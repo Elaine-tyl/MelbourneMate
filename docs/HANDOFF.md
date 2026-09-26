@@ -15,9 +15,11 @@ or test results.
 - system architecture and evaluation design;
 - contribution boundaries and branch order.
 
-## Branch 2: retrieval and evaluation code
+## Branch 2: RAG pipeline core
 
 Owner: Elaine
+
+Branch: `elaine/s9-rag-pipeline`
 
 This branch may be committed after Branch 1. It contains Elaine's base
 implementation and intentionally excludes Sriporn's later S9-14 fixes. It adds:
@@ -25,8 +27,13 @@ implementation and intentionally excludes Sriporn's later S9-14 fixes. It adds:
 - BM25s and MPNet retrieval;
 - frozen configuration and model revisions;
 - immutable run and manifest code;
-- retrieval metrics, statistics and review tooling;
+- retrieval metrics, topic-clustered statistics and targeted qrels tooling;
 - grounded generation evaluation code.
+
+The qrels workflow follows Walert's topic-to-passage ground truth. It adds only
+a small targeted check for candidates unique to the frozen MPNet top-five
+pool. Full retrieval double review, Cohen's kappa and complex adjudication are
+outside this branch.
 
 It must not include Sriporn's dataset, tests, scoring sheets or no-context run.
 After this branch is available, Sriporn can apply the S9-14 encoder-name and

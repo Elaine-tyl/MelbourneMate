@@ -40,5 +40,24 @@ pip install -e ".[dense,app,dev]"
 Do not commit virtual environments, model weights, `.env` files, caches or
 personal participant data.
 
+## Core commands
+
+The same commands work with the sample fixture now and with `data/v1` after the
+collection PR is merged:
+
+```bash
+mm --data data/sample validate
+mm --data data/sample quality
+mm --data data/sample retrieve --arm bm25 --split validation \
+  --run-id bm25-validation
+mm --data data/sample retrieve --arm dense --encoder multi-qa-mpnet \
+  --split validation --run-id mpnet-validation
+mm --data data/sample compare \
+  --left runs/retrieval/bm25-validation \
+  --right runs/retrieval/mpnet-validation
+```
+
+Run IDs are write-once. Use a new ID instead of overwriting evidence.
+
 Team responsibilities and the reviewed branch order are recorded in
 [`docs/HANDOFF.md`](docs/HANDOFF.md).
