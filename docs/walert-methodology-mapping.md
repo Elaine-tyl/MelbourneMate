@@ -40,8 +40,8 @@ international-student domain.
    information need remain in the same split. Configuration choices use
    validation only; the held-out test is not used for tuning.
 3. **Targeted qrels verification.** Following Walert, qrels are generated from
-   curated topic-passage mappings. Only the 37 new MPNet candidates missing
-   from those mappings are checked. Each pair receives one primary grade; a
+   curated topic-passage mappings. Only new MPNet candidates missing from those
+   mappings are checked. Each pair receives one primary grade; a
    teammate checks only flagged or uncertain cases. Retrieval qrels do not use
    full double review, Cohen's kappa or complex adjudication.
 4. **Uncertainty that respects the data structure.** Confidence intervals and

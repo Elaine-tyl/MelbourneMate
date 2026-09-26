@@ -25,12 +25,11 @@ when they do not use official wording**.
 
 That claim is made measurable by a property of the collection itself. For every
 question we compute *containment*: the share of its content words that already
-appear in the passage that answers it. A canonical question written in official
-language sits near 0.85; a question phrased the way a student actually asks sits
-near 0.3. Binning questions by containment turns the claim into a dose-response
-curve — as wording moves away from the source, does the lexical baseline fall
-away faster than the dense retriever? — rather than a single two-cell
-comparison.
+appear in the passage that answers it. Canonical questions are expected to have
+higher containment than student-style paraphrases. Binning questions by
+containment turns the claim into a dose-response curve — as wording moves away
+from the source, does the lexical baseline fall away faster than the dense
+retriever? — rather than a single two-cell comparison.
 
 ### Research questions and pre-specified hypotheses
 
@@ -62,7 +61,7 @@ boundary are documented in
 |---|---|---|---|
 | `bm25` | BM25 (bm25s), k1=1.5, b=0.75 | Ollama, local | Lexical baseline |
 | `dense` | pinned multi-qa-mpnet-base-cos-v1, normalised-vector inner product | Ollama, local | Semantic retrieval for question-to-passage matching |
-| `none` | — | same model, **closed-book prompt** | No-context ablation for RQ4 |
+| `none` | — | same model, **closed-book prompt** | No-context ablation for RQ3 |
 
 One generator across all arms. The project is not a model competition: holding
 generation fixed is what makes the retrieval differences attributable.
@@ -118,14 +117,14 @@ Written before any result is seen, so that no test is chosen after the numbers
 are known. One primary claim per research question; everything else is
 diagnostic and is labelled as such in the report.
 
-| RQ | Claim tested | Procedure | Command | Reported as positive when |
+| RQ | Claim tested | Procedure | Evidence | Reported as positive when |
 |---|---|---|---|---|
-| RQ1 | Dense ≥ BM25 overall | paired comparison on NDCG@5, topic-clustered bootstrap + randomisation | `mm compare` | the 95% CI excludes zero **and** p < 0.05 |
-| RQ2 | The gap widens as containment falls | NDCG@5 by `containment_bin`, and the pairwise difference within the `low` bin | `mm slices --by containment_bin`, `mm compare` | the low-bin difference is larger than the high-bin difference, with the low-bin CI excluding zero |
-| RQ2 diagnostic | Neighbouring topics are distinguished | displacement rate over six confusable pairs | `mm pairs` | displacement below 10% of pair questions |
-| RQ3a | Retrieval reduces unsupported answers | paired answered-rate comparison on OOKB questions | `mm gencompare --metric answered --only ookb` | the grounded arm is lower, the CI excludes zero and at least 5 questions are discordant |
-| RQ3b | Grounded answers are actually correct | blind manual validation, both members, κ reported | `mm review score` | correctness is higher for a grounded arm, with κ ≥ 0.6 |
-| RQ4 | The system fails safely | correct-refusal and false-refusal rates, each with a cluster bootstrap CI | `mm gencompare --only ookb` | correct refusal high while false refusal stays low — neither read alone |
+| RQ1 | Dense ≥ BM25 overall | paired comparison on NDCG@5, topic-clustered bootstrap + randomisation | `mm evaluate-retrieval` and `mm compare` | the 95% CI excludes zero **and** p < 0.05 |
+| RQ2 | The gap widens as containment falls | NDCG@5 by `containment_bin`, and the pairwise difference within the `low` bin | retrieval run CSV grouped by containment and question form | the low-bin difference is larger than the high-bin difference, with the low-bin CI excluding zero |
+| RQ2 diagnostic | Neighbouring topics are distinguished | displacement rate over six confusable pairs | `pairs.csv` and ranked-output error review | displacement below 10% of pair questions |
+| RQ3a | Retrieval reduces unsupported answers | paired answered-rate comparison on OOKB questions | generation runs and deterministic metrics | the grounded arm is lower, the CI excludes zero and at least 5 questions are discordant |
+| RQ3b | Grounded answers are actually correct | blind manual validation, both members, κ reported | blind-review CSV and agreement calculation | correctness is higher for a grounded arm, with κ ≥ 0.6 |
+| RQ4 | The system fails safely | correct-refusal and false-refusal rates, each with a cluster bootstrap CI | deterministic refusal table | correct refusal high while false refusal stays low — neither read alone |
 
 Citation validity is compared only between grounded arms (BM25 and Dense).
 The no-context prompt has no citation requirement, so treating its missing
@@ -144,9 +143,10 @@ Recall@5 and MRR are diagnostic and no claim rests on them alone. The slices
 a difference found only in a slice is reported as a hypothesis for future work,
 not as a result.
 
-**Thin comparisons.** `mm gencompare` reports how many questions the two arms
-actually disagree on. Under five discordant questions, the report states the
-evidence is insufficient and quotes no p-value as if it settled anything.
+**Thin comparisons.** The generation comparison reports how many questions the
+two arms actually disagree on. Under five discordant questions, the report
+states the evidence is insufficient and quotes no p-value as if it settled
+anything.
 
 **Truncated answers** are excluded from every rate and reported separately. A
 truncation rate above 10% invalidates the generation comparison for that arm
