@@ -12,6 +12,13 @@ question: can a RAG system retrieve useful evidence, answer when evidence is
 available and avoid answering when it is not? It then extends the protocol to
 make a smaller two-person project easier to audit and reproduce.
 
+The knowledge-base design also follows Walert's general pattern: curated
+passages are organised by information need, questions are classified as known,
+inferred or out of knowledge base, and graded topic-passage mappings are
+converted into qrels. MelbourneMate reuses that structure only. Its passages,
+questions, official URLs and reference answers are newly authored for the
+international-student domain.
+
 ## Methodology mapping
 
 | Walert evaluation idea | MelbourneMate implementation | Status |
@@ -32,9 +39,11 @@ make a smaller two-person project easier to audit and reproduce.
 2. **Frozen topic-level hold-out.** Canonical and paraphrased versions of one
    information need remain in the same split. Configuration choices use
    validation only; the held-out test is not used for tuning.
-3. **Independent relevance review.** The held-out BM25s/Dense top-five union is
-   reviewed independently, with 25% overlap and agreement reported before final
-   qrels are produced.
+3. **Targeted qrels verification.** Following Walert, qrels are generated from
+   curated topic-passage mappings. Only the 37 new MPNet candidates missing
+   from those mappings are checked. Each pair receives one primary grade; a
+   teammate checks only flagged or uncertain cases. Retrieval qrels do not use
+   full double review, Cohen's kappa or complex adjudication.
 4. **Uncertainty that respects the data structure.** Confidence intervals and
    paired randomisation operate on topic clusters rather than treating three
    phrasings of one topic as independent observations.

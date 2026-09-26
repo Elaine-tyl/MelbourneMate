@@ -49,9 +49,10 @@ Walert is the methodological baseline for the test design, not a source-code or
 dataset dependency. MelbourneMate retains its known, inferred and
 out-of-knowledge-base scenarios, graded retrieval evaluation and explicit
 measurement of unanswered behaviour. It extends that baseline with a frozen
-topic-level hold-out, a BM25s-versus-Dense comparison, independently reviewed
-test qrels, topic-clustered statistical inference, a no-context generation
-ablation, deterministic citation checks and blind human assessment. The exact
+topic-level hold-out, a BM25s-versus-Dense comparison, Walert-style test qrels
+with targeted checks for new MPNet candidates, topic-clustered statistical
+inference, a no-context generation ablation, deterministic citation checks and
+blind human assessment. The exact
 mapping, deliberate differences and claim boundary are documented in
 [`walert-methodology-mapping.md`](walert-methodology-mapping.md).
 
@@ -80,6 +81,11 @@ generation fixed is what makes the retrieval differences attributable.
   observed.
 * Parameters are chosen on validation only. The test split is scored **once**,
   after `config.py` is frozen and tagged.
+* Following Walert, formal qrels are generated from curated topic-passage
+  ground truth. Only MPNet candidates missing from those mappings receive
+  targeted verification. Each candidate has one primary grade; a teammate
+  checks only flagged or uncertain cases. This is not a full double review and
+  no agreement statistic is claimed for retrieval qrels.
 
 ## 5. Metrics
 

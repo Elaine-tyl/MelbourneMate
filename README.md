@@ -17,10 +17,10 @@ MelbourneMate extends that baseline with:
 
 - a topic-level validation and held-out test split;
 - BM25s versus pinned MPNet retrieval;
-- independently reviewed relevance judgements;
+- Walert-style qrels with targeted checks for new MPNet candidates;
 - topic-clustered confidence intervals and paired testing;
 - grounded and no-context generation arms;
-- deterministic citation checks and blind human review;
+- deterministic citation checks and blind generated-answer review;
 - immutable run manifests and data/configuration fingerprints;
 - a local Ollama generator and Streamlit interface.
 

@@ -40,12 +40,13 @@ Do not finalise this branch until Sriporn's pull requests provide:
 
 - the official-source `data/v1` collection and collection documentation;
 - the test suite and build-verification record;
-- her retrieval and generation review sheets;
+- any MPNet qrels candidates she was asked to check and her generation answer
+  review sheet;
 - the no-context generation run.
 
-After those dependencies are merged, Elaine may add the derived final qrels,
-rescored rankings, statistical comparison, agreement outputs, error analysis,
-shared Streamlit work and the final evidence index.
+After those dependencies are merged, Elaine may add the Walert-style final
+qrels, the targeted verification record, rescored rankings, statistical
+comparison, error analysis, shared Streamlit work and the final evidence index.
 
 ## Verification after integration
 
