@@ -16,6 +16,9 @@ collection protocol is added with the formal data in a later reviewed branch.
 | `topics.csv` | information need | `topic_id, category, knowledge_type, information_need` |
 | `questions.csv` | question | `question_id, topic_id, question_form, language, text` |
 | `qrels.txt` | judgement | `question_id 0 passage_id grade` |
+| `judgements.csv` | reviewed question-passage pair | `question_id, passage_id, grade, judge, note` |
+| `gold.csv` | optional reference answer | `question_id, answer, support, judge` |
+| `pairs.csv` | confusable topic pair | `topic_a, topic_b, reason` |
 | `splits.csv` | topic | `topic_id, split` |
 
 ## Rules the validator enforces
@@ -32,6 +35,9 @@ collection protocol is added with the formal data in a later reviewed branch.
   what make NDCG meaningful — a binary hit rate would treat both the same.
 * Each question-passage pair has one primary grade. A teammate checks only
   flagged or uncertain pairs.
+* `gold.csv` may cover selected questions only. A support value such as
+  `P001#0` means sentence 0 of passage P001; sentence indexes start at 0.
+* `pairs.csv` lists similar topics used during retrieval error analysis.
 * Splits are assigned per **topic**, so a topic's canonical and paraphrased
   questions always land on the same side of the validation/test boundary.
   Anything else leaks the test set.

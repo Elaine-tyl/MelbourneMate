@@ -12,7 +12,7 @@ a defect, and a re-run after that date is recorded as such.
 
 | Week | Dates | Goal | Done when |
 |---|---|---|---|
-| 1 | 23–29 Sep | Collection, half of it | 15 topics with passages, questions and judgements; `mm validate` passes; split file committed; repo, CI and board set up |
+| 1 | 23–29 Sep | Collection, half of it | 15 topics with passages, questions and judgements; `mm --data data/v1 validate` passes; split file committed; repo, CI and board set up |
 | 2 | 30 Sep – 6 Oct | Collection finished and frozen | 30 topics, 90 answerable questions and 30 OOKB; Walert-style ground truth converted to `qrels.txt`; new MPNet candidates receive targeted verification; BM25s and Dense validation runs complete |
 | 3 | 7–13 Oct | Parameters frozen, test split scored once | Gate thresholds and top-k chosen on validation; `config.py` tagged `config-frozen`; BM25s and Dense test runs + paired comparison; slice table by question form and containment bin |
 | 4 | 14–19 Oct | Generation evidence and the video | Frozen generation sample run on BM25, Dense and no-context; refusal, citation and 2×2 tables; manual validation of 20–30 answers by both members; one documented refine → re-evaluate cycle; video recorded |
@@ -30,8 +30,8 @@ a defect, and a re-run after that date is recorded as such.
 ## Weekly rhythm
 
 Monday 30 min planning, Thursday 30 min check, Sunday 15 min: board tidy, and
-one line each in `docs/contributions.md` — task, evidence link, outcome. Written
-weekly, not reconstructed in week 5.
+one line each in the final contribution sheet — task, evidence link, outcome.
+Written weekly, not reconstructed in week 5.
 
 ## Git
 
@@ -57,6 +57,6 @@ no-context ablation. Those four are what the argument rests on.
 | Risk | Sign | Response |
 |---|---|---|
 | Collection takes longer than two weeks | Fewer than 15 topics done by 29 Sep | Reduce topic count transparently; keep three question forms per topic and preserve the held-out split |
-| The local model is slow or unavailable mid-run | `mm generate` stops on the failing question | Nothing is lost: the sample is frozen, so restart that arm with a new run id. `mm spike` checks the server before a long run |
+| The local model is slow or unavailable mid-run | `mm generate` stops on the failing question | Nothing is lost: the sample is frozen, so restart that arm with a new run id. Check `ollama list` and run one question before a long run |
 | Dense model too slow on a laptop | Indexing takes minutes | Cache the passage matrix to disk; 120 passages is seconds either way |
-| Paraphrases come in above 0.55 containment | `mm quality` after the first batch | Rewrite them with the passage closed — an easy benchmark cannot answer RQ2 |
+| Paraphrases come in above 0.55 containment | `mm --data data/v1 quality` after the first batch | Rewrite them with the passage closed — an easy benchmark cannot answer RQ2 |
