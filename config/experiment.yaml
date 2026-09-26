@@ -1,0 +1,38 @@
+# Snapshot of the frozen values in src/melbourne_mate/config.py.
+# Keep both files aligned when the approved experiment changes.
+protocol_version: v1
+config_fingerprint: 12c8cb570a59215c
+
+retrieval:
+  final_top_k: 5
+  bm25:
+    k1: 1.5
+    b: 0.75
+    stemmer: "english"
+  dense:
+    model: "sentence-transformers/multi-qa-mpnet-base-cos-v1"
+    revision: "d51b22a1dfa8184e9258074e56e2875e50612dca"
+    query_prefix: ""
+    passage_prefix: ""
+    normalize: true
+    max_seq_length: 512
+
+gate:
+  min_top_score: 0.3
+  min_supporting_hits: 1
+
+generation:
+  provider: "ollama"
+  model: "qwen2.5:7b-instruct"
+  temperature: 0.0
+  seed: 20260923
+  prompt_version: "v1"
+  max_context_passages: 5
+
+evaluation:
+  primary_metric: "ndcg@5"
+  ndcg_gain: "exponential"
+  cluster_field: "topic_id"
+  bootstrap_resamples: 10000
+  randomisation_permutations: 10000
+  seed: 20260923

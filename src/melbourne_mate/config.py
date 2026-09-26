@@ -1,0 +1,115 @@
+"""Frozen experiment settings used by code and run manifests."""
+
+from __future__ import annotations
+
+import hashlib
+import json
+from dataclasses import asdict, dataclass, field
+
+PROTOCOL_VERSION = "v1"
+
+
+@dataclass(frozen=True)
+class BM25Params:
+    k1: float = 1.5
+    b: float = 0.75
+    stemmer: str = "english"
+
+
+@dataclass(frozen=True)
+class DenseParams:
+    model: str = "sentence-transformers/multi-qa-mpnet-base-cos-v1"
+    revision: str = "d51b22a1dfa8184e9258074e56e2875e50612dca"
+    query_prefix: str = ""
+    passage_prefix: str = ""
+    normalize: bool = True
+    max_seq_length: int = 512
+
+
+@dataclass(frozen=True)
+class GateParams:
+    min_top_score: float = 0.30
+    min_supporting_hits: int = 1
+
+
+@dataclass(frozen=True)
+class GenerationParams:
+    """Settings for the pinned local generation model."""
+
+    provider: str = "ollama"
+    model: str = "qwen2.5:7b-instruct"
+    temperature: float = 0.0
+    seed: int = 20260923
+    prompt_version: str = "v1"
+    max_context_passages: int = 5
+
+
+@dataclass(frozen=True)
+class EvalParams:
+    primary_metric: str = "ndcg@5"
+    # Exponential gain gives grade 2 more weight than grade 1.
+    # The choice is saved in each run manifest.
+    ndcg_gain: str = "exponential"
+    cluster_field: str = "topic_id"
+    bootstrap_resamples: int = 10_000
+    randomisation_permutations: int = 10_000
+    seed: int = 20260923
+
+
+@dataclass(frozen=True)
+class Config:
+    protocol_version: str = PROTOCOL_VERSION
+    final_top_k: int = 5
+    bm25: BM25Params = field(default_factory=BM25Params)
+    dense: DenseParams = field(default_factory=DenseParams)
+    gate: GateParams = field(default_factory=GateParams)
+    generation: GenerationParams = field(default_factory=GenerationParams)
+    evaluation: EvalParams = field(default_factory=EvalParams)
+
+    def fingerprint(self) -> str:
+        """Stable hash of every frozen parameter, recorded in run manifests."""
+        payload = json.dumps(asdict(self), sort_keys=True).encode("utf-8")
+        return hashlib.sha256(payload).hexdigest()[:16]
+
+    def to_yaml(self) -> str:
+        """Render the frozen settings stored with the report."""
+        lines = [
+            "# Snapshot of the frozen values in src/melbourne_mate/config.py.",
+            "# Keep both files aligned when the approved experiment changes.",
+            f"protocol_version: {self.protocol_version}",
+            f"config_fingerprint: {self.fingerprint()}",
+            "",
+        ]
+
+        def block(name: str, values: dict[str, object], indent: int = 0) -> None:
+            pad = " " * indent
+            lines.append(f"{pad}{name}:")
+            for key, value in values.items():
+                if isinstance(value, dict):
+                    block(key, value, indent + 2)
+                elif isinstance(value, bool):
+                    lines.append(f"{pad}  {key}: {str(value).lower()}")
+                elif isinstance(value, str):
+                    lines.append(f'{pad}  {key}: "{value}"')
+                else:
+                    lines.append(f"{pad}  {key}: {value}")
+
+        block(
+            "retrieval",
+            {
+                "final_top_k": self.final_top_k,
+                "bm25": asdict(self.bm25),
+                "dense": asdict(self.dense),
+            },
+        )
+        lines.append("")
+        block("gate", asdict(self.gate))
+        lines.append("")
+        block("generation", asdict(self.generation))
+        lines.append("")
+        block("evaluation", asdict(self.evaluation))
+        return "\n".join(lines) + "\n"
+
+
+CONFIG = Config()
+EXPERIMENT_YAML = "config/experiment.yaml"

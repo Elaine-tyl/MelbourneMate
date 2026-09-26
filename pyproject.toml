@@ -20,6 +20,9 @@ dense = ["sentence-transformers>=3.0"]
 app = ["streamlit>=1.36"]
 dev = ["pytest>=8.0", "ruff>=0.6"]
 
+[project.scripts]
+mm = "melbourne_mate.cli:main"
+
 [tool.setuptools]
 package-dir = { "" = "src" }
 
