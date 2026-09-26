@@ -6,16 +6,8 @@ from collections import Counter, defaultdict
 from collections.abc import Sequence
 from dataclasses import dataclass, field
 
-from melbourne_mate.corpus import Collection, Judgement
+from melbourne_mate.corpus import Collection
 from melbourne_mate.text import containment, jaccard, terms
-
-
-@dataclass(frozen=True)
-class Agreement:
-    overlapping_items: int
-    exact_match: float
-    kappa: float
-    judges: tuple[str, ...]
 
 
 @dataclass(frozen=True)
@@ -28,11 +20,8 @@ class QualityReport:
     inferred_topics: int
     volatile_passages: int
     judged_pairs: int
-    double_judged_share: float
-    agreement: Agreement | None
     gold_coverage: float
     mean_support_spans: float
-    confusable_pairs: int
     lexical_overlap: dict[str, float] = field(default_factory=dict)
 
     def lines(self) -> list[str]:
@@ -45,44 +34,17 @@ class QualityReport:
             "languages: "
             + ", ".join(f"{k}={v}" for k, v in sorted(self.questions_by_language.items())),
             f"judged (question, passage) pairs: {self.judged_pairs}",
-            f"double-judged share: {self.double_judged_share:.1%}",
         ]
-        if self.agreement:
-            out.append(
-                f"agreement on {self.agreement.overlapping_items} overlapping items: "
-                f"exact {self.agreement.exact_match:.1%}, Cohen's kappa "
-                f"{self.agreement.kappa:.3f} ({' vs '.join(self.agreement.judges)})"
-            )
         gold_line = (
             f"gold answers: {self.gold_coverage:.1%} of answerable questions, "
             f"{self.mean_support_spans:.1f} support sentences each"
         )
         out += [
             gold_line,
-            f"confusable topic pairs: {self.confusable_pairs}",
             "question-term containment in the gold passage (lower = harder): "
             + ", ".join(f"{k}={v:.3f}" for k, v in sorted(self.lexical_overlap.items())),
         ]
         return out
-
-
-def cohens_kappa(left: Sequence[int], right: Sequence[int]) -> float:
-    """Cohen's kappa for two annotators over the same items."""
-    if len(left) != len(right):
-        raise ValueError("both judges must cover the same items")
-    n = len(left)
-    if n == 0:
-        return 0.0
-    observed = sum(1 for a, b in zip(left, right) if a == b) / n
-    left_counts = Counter(left)
-    right_counts = Counter(right)
-    expected = sum(
-        (left_counts[label] / n) * (right_counts[label] / n)
-        for label in set(left) | set(right)
-    )
-    if expected == 1.0:
-        return 1.0
-    return (observed - expected) / (1 - expected)
 
 
 def weighted_cohens_kappa(
@@ -120,41 +82,6 @@ def weighted_cohens_kappa(
     if expected == 0.0:
         return 1.0 if observed == 0.0 else 0.0
     return 1.0 - observed / expected
-
-
-def _agreement(judgements: Sequence[Judgement]) -> tuple[Agreement | None, int, float]:
-    by_item: dict[tuple[str, str], dict[str, int]] = defaultdict(dict)
-    for judgement in judgements:
-        by_item[(judgement.question_id, judgement.passage_id)][judgement.judge] = judgement.grade
-
-    judged_pairs = len(by_item)
-    if not judged_pairs:
-        return None, 0, 0.0
-
-    multi = {item: grades for item, grades in by_item.items() if len(grades) > 1}
-    double_share = len(multi) / judged_pairs
-    if not multi:
-        return None, judged_pairs, 0.0
-
-    judges = Counter(judge for grades in multi.values() for judge in grades)
-    top_two = tuple(judge for judge, _ in judges.most_common(2))
-    if len(top_two) < 2:
-        return None, judged_pairs, double_share
-
-    left, right = [], []
-    for grades in multi.values():
-        if top_two[0] in grades and top_two[1] in grades:
-            left.append(grades[top_two[0]])
-            right.append(grades[top_two[1]])
-    if not left:
-        return None, judged_pairs, double_share
-
-    matches = sum(1 for a, b in zip(left, right) if a == b) / len(left)
-    return (
-        Agreement(len(left), matches, cohens_kappa(left, right), top_two),
-        judged_pairs,
-        double_share,
-    )
 
 
 CONTAINMENT_BINS = ((0.4, "low"), (0.7, "medium"))
@@ -228,7 +155,9 @@ def lexical_overlap(collection: Collection, measure: str = "containment") -> dic
 
 def build_report(collection: Collection) -> QualityReport:
     answerable = [q for q in collection.questions.values() if not q.is_ookb]
-    agreement, judged_pairs, double_share = _agreement(collection.judgements)
+    judged_pairs = len(
+        {(item.question_id, item.passage_id) for item in collection.judgements}
+    ) or sum(len(items) for items in collection.qrels.values())
 
     gold_for_answerable = [
         collection.gold[q.question_id] for q in answerable if q.question_id in collection.gold
@@ -251,11 +180,8 @@ def build_report(collection: Collection) -> QualityReport:
         volatile_passages=sum(
             1 for p in collection.passages.values() if p.volatility == "volatile"
         ),
-        judged_pairs=judged_pairs or sum(len(v) for v in collection.qrels.values()),
-        double_judged_share=double_share,
-        agreement=agreement,
+        judged_pairs=judged_pairs,
         gold_coverage=len(gold_for_answerable) / len(answerable) if answerable else 0.0,
         mean_support_spans=sum(spans) / len(spans) if spans else 0.0,
-        confusable_pairs=len(collection.pairs),
         lexical_overlap=lexical_overlap(collection),
     )

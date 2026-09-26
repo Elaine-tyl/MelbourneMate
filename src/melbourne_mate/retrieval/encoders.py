@@ -41,7 +41,6 @@ def load_encoder(name: str):
         return HashingEncoder()
     models = {
         "all-minilm": "sentence-transformers/all-MiniLM-L6-v2",
-        "multi-qa-minilm": "sentence-transformers/multi-qa-MiniLM-L6-cos-v1",
         "multi-qa-mpnet": "sentence-transformers/multi-qa-mpnet-base-cos-v1",
     }
     if name in models:

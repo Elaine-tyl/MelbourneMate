@@ -25,6 +25,8 @@ from melbourne_mate.pipeline import RagPipeline, build_retriever
 from melbourne_mate.retrieval.encoders import load_encoder
 from melbourne_mate.testing import EchoModel
 
+ENCODER_CHOICES = ["multi-qa-mpnet", "all-minilm", "hashing"]
+
 
 def _question_ids(path: str | Path) -> list[str]:
     return [
@@ -225,6 +227,60 @@ def cmd_targeted_qrels(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_evaluate_retrieval(args: argparse.Namespace) -> int:
+    """Run the frozen retrieval workflow with one command."""
+    bm25_id = f"{args.run_prefix}-bm25-{args.split}"
+    dense_label = "mpnet" if args.encoder == "multi-qa-mpnet" else "minilm"
+    dense_id = f"{args.run_prefix}-{dense_label}-{args.split}"
+    bm25_path = Path(args.runs_dir) / bm25_id
+    dense_path = Path(args.runs_dir) / dense_id
+
+    steps = [
+        ("validate", cmd_validate, argparse.Namespace(data=args.data)),
+        ("quality", cmd_quality, argparse.Namespace(data=args.data)),
+        (
+            "BM25s retrieval",
+            cmd_retrieve,
+            argparse.Namespace(
+                data=args.data,
+                arm="bm25",
+                split=args.split,
+                run_id=bm25_id,
+                encoder=args.encoder,
+                runs_dir=args.runs_dir,
+            ),
+        ),
+        (
+            "Dense retrieval",
+            cmd_retrieve,
+            argparse.Namespace(
+                data=args.data,
+                arm="dense",
+                split=args.split,
+                run_id=dense_id,
+                encoder=args.encoder,
+                runs_dir=args.runs_dir,
+            ),
+        ),
+        (
+            "comparison",
+            cmd_compare,
+            argparse.Namespace(
+                data=args.data,
+                left=bm25_path,
+                right=dense_path,
+                metric=args.metric,
+            ),
+        ),
+    ]
+    for label, command, step_args in steps:
+        print(f"\n[{label}]")
+        status = command(step_args)
+        if status:
+            return status
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="mm", description="MelbourneMate experiment")
     parser.add_argument("--data", default="data/sample")
@@ -248,7 +304,7 @@ def main(argv: list[str] | None = None) -> int:
     retrieve.add_argument(
         "--encoder",
         default="multi-qa-mpnet",
-        choices=["multi-qa-mpnet", "all-minilm", "multi-qa-minilm", "hashing"],
+        choices=ENCODER_CHOICES,
     )
     retrieve.add_argument("--runs-dir", default="runs/retrieval")
     retrieve.set_defaults(func=cmd_retrieve)
@@ -261,7 +317,7 @@ def main(argv: list[str] | None = None) -> int:
     generate.add_argument(
         "--encoder",
         default="multi-qa-mpnet",
-        choices=["multi-qa-mpnet", "all-minilm", "multi-qa-minilm", "hashing"],
+        choices=ENCODER_CHOICES,
     )
     generate.add_argument("--model", default="")
     generate.add_argument("--offline", action="store_true")
@@ -280,6 +336,20 @@ def main(argv: list[str] | None = None) -> int:
     qrels.add_argument("--questions", required=True)
     qrels.add_argument("--out", required=True)
     qrels.set_defaults(func=cmd_targeted_qrels)
+
+    workflow = sub.add_parser("evaluate-retrieval")
+    workflow.add_argument(
+        "--split", default="validation", choices=["validation", "test"]
+    )
+    workflow.add_argument("--run-prefix", required=True)
+    workflow.add_argument(
+        "--encoder",
+        default="multi-qa-mpnet",
+        choices=["multi-qa-mpnet", "all-minilm"],
+    )
+    workflow.add_argument("--runs-dir", default="runs/retrieval")
+    workflow.add_argument("--metric", default=CONFIG.evaluation.primary_metric)
+    workflow.set_defaults(func=cmd_evaluate_retrieval)
 
     args = parser.parse_args(argv)
     return args.func(args)
