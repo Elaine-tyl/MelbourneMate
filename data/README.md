@@ -30,6 +30,8 @@ collection protocol is added with the formal data in a later reviewed branch.
   has none and belongs to no topic.
 * Grades are 1 (partially relevant) or 2 (fully answers). Graded judgements are
   what make NDCG meaningful — a binary hit rate would treat both the same.
+* Each question-passage pair has one primary grade. A teammate checks only
+  flagged or uncertain pairs.
 * Splits are assigned per **topic**, so a topic's canonical and paraphrased
   questions always land on the same side of the validation/test boundary.
   Anything else leaks the test set.
