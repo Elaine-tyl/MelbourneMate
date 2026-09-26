@@ -1,10 +1,9 @@
 # Snapshot of the frozen values in src/melbourne_mate/config.py.
 # Keep both files aligned when the approved experiment changes.
 protocol_version: v1
-config_fingerprint: bc7099b791163711
+config_fingerprint: 12c8cb570a59215c
 
 retrieval:
-  candidate_depth: 20
   final_top_k: 5
   bm25:
     k1: 1.5

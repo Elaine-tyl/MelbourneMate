@@ -59,7 +59,6 @@ class EvalParams:
 @dataclass(frozen=True)
 class Config:
     protocol_version: str = PROTOCOL_VERSION
-    candidate_depth: int = 20
     final_top_k: int = 5
     bm25: BM25Params = field(default_factory=BM25Params)
     dense: DenseParams = field(default_factory=DenseParams)
@@ -98,7 +97,6 @@ class Config:
         block(
             "retrieval",
             {
-                "candidate_depth": self.candidate_depth,
                 "final_top_k": self.final_top_k,
                 "bm25": asdict(self.bm25),
                 "dense": asdict(self.dense),

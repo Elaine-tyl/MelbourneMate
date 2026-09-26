@@ -21,7 +21,7 @@ from melbourne_mate.evaluation.stats import compare as compare_runs
 from melbourne_mate.evaluation.targeted_qrels import build_targeted_qrels
 from melbourne_mate.generation.gate import EvidenceGate
 from melbourne_mate.generation.ollama import OllamaClient, OllamaError
-from melbourne_mate.pipeline import RagPipeline, build_retriever
+from melbourne_mate.pipeline import ARMS, RagPipeline, build_retriever
 from melbourne_mate.retrieval.encoders import load_encoder
 from melbourne_mate.testing import EchoModel
 
@@ -129,7 +129,10 @@ def cmd_generate(args: argparse.Namespace) -> int:
     question_ids = _question_ids(sample_path)
     encoder = load_encoder(args.encoder) if args.arm == "dense" else None
     retriever = build_retriever(collection, args.arm, encoder)
-    gate_encoder = encoder or load_encoder(args.encoder)
+    gate = None
+    if args.arm != "none":
+        gate_encoder = encoder or load_encoder(args.encoder)
+        gate = EvidenceGate(gate_encoder)
     model = (
         EchoModel("Offline answer [P001].")
         if args.offline
@@ -145,7 +148,7 @@ def cmd_generate(args: argparse.Namespace) -> int:
         collection,
         retriever,
         model,
-        gate=EvidenceGate(gate_encoder),
+        gate=gate,
         arm=args.arm,
     )
 
@@ -191,6 +194,9 @@ def cmd_compare(args: argparse.Namespace) -> int:
         return 1
     if left_manifest.collection_fingerprint != right_manifest.collection_fingerprint:
         print("runs use different collections", file=sys.stderr)
+        return 1
+    if left_manifest.ndcg_gain != right_manifest.ndcg_gain:
+        print("runs use different NDCG gain settings", file=sys.stderr)
         return 1
 
     collection = load_collection(args.data)
@@ -310,7 +316,7 @@ def main(argv: list[str] | None = None) -> int:
     retrieve.set_defaults(func=cmd_retrieve)
 
     generate = sub.add_parser("generate")
-    generate.add_argument("--arm", required=True, choices=["bm25", "dense"])
+    generate.add_argument("--arm", required=True, choices=ARMS)
     generate.add_argument("--split", default="test", choices=["validation", "test"])
     generate.add_argument("--run-id", required=True)
     generate.add_argument("--sample", required=True)

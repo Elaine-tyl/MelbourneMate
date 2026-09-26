@@ -39,6 +39,45 @@ It must not include Sriporn's dataset, tests, scoring sheets or no-context run.
 After this branch is available, Sriporn can apply the S9-14 encoder-name and
 BM25 dependency changes in her own reviewed pull request.
 
+## Sriporn's work package
+
+Complete these items on a separate branch:
+
+1. Add the checked official-source collection under `data/v1/` and update its
+   source dates.
+2. Add the full test suite and record the commands and results in
+   `docs/build-verification.md`.
+3. Check the flagged MPNet question-passage pairs and return the completed
+   verification CSV.
+4. Complete the assigned generated-answer review sheet.
+5. Apply the S9-14 encoder-name and BM25 dependency fixes.
+6. Run the no-context arm on the agreed frozen question list. Do not edit the
+   BM25 or MPNet run folders.
+
+Put the frozen question IDs in `data/v1/generation-sample.txt`, one ID per
+line, then run:
+
+```bash
+python -m melbourne_mate.cli --data data/v1 generate \
+  --arm none \
+  --split test \
+  --run-id s9-no-context-test \
+  --sample generation-sample.txt \
+  --model qwen2.5:7b-instruct \
+  --runs-dir runs/generation
+```
+
+Return these items to Elaine:
+
+- `data/v1/` and its source log;
+- the test files and `docs/build-verification.md`;
+- the checked MPNet pairs and generated-answer review CSV;
+- the new no-context run folder;
+- the S9-14 code changes.
+
+Elaine will then integrate the final qrels, rerun the saved rankings, compare
+the systems and prepare the final evidence.
+
 ## Branch 3: final evidence and interface
 
 Owner: Elaine for integration; shared files retain joint credit.
