@@ -1,0 +1,15 @@
+question_id,topic_id,question_form,language,text
+Q001,T001,canonical,en,What are the work-hour conditions for a student visa subclass 500 holder?
+Q002,T001,paraphrased,en,How much am I allowed to work while classes are on?
+Q003,T001,paraphrased,en,My classes start next week — does that change how many shifts I can take?
+Q004,T002,canonical,en,What is Overseas Student Health Cover and who must hold it?
+Q005,T002,paraphrased,en,Do I need health insurance as a student here and how do I use it?
+Q006,T002,paraphrased,en,I feel unwell and I have never been to a doctor here — what do I do and what does it cost me?
+Q007,T003,canonical,en,How do I obtain and validate a Myki card for Melbourne public transport?
+Q008,T003,paraphrased,en,How do I pay for trams and trains in Melbourne?
+Q009,T003,paraphrased,en,I just landed and I need to get into the city — how do I pay to get on?
+Q010,T004,canonical,en,What is a residential rental bond in Victoria and how is it lodged?
+Q011,T004,paraphrased,en,I paid a deposit before moving in — how do I get that money back later?
+Q012,T004,paraphrased,en,I gave the agent four weeks of rent before moving in — where does that money sit and when do I see it again?
+Q901,,ookb,en,Which Melbourne suburb has the cheapest rent for a two-bedroom apartment this month?
+Q902,,ookb,en,Can you tell me whether my own visa application will be approved?

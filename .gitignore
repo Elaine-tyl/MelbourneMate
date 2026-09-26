@@ -1,0 +1,22 @@
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.env
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+build/
+dist/
+.DS_Store
+.Rhistory
+.ipynb_checkpoints/
+
+# Model caches downloaded at first dense run
+.cache/
+models/
+
+# Scratch runs only. Reported runs live under runs/retrieval/ and
+# runs/generation/ and are committed once their manifest has been checked.
+runs/scratch/
+runs/demo/

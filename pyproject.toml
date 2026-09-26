@@ -1,0 +1,33 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "melbourne-mate"
+version = "0.1.0"
+description = "Test-Driven RAG for international students adjusting to life in Melbourne"
+requires-python = ">=3.10"
+dependencies = [
+    "bm25s>=0.2",
+    "numpy>=1.26",
+    "pandas>=2.0",
+    "PyStemmer>=2.2",
+    "requests>=2.32",
+]
+
+[project.optional-dependencies]
+dense = ["sentence-transformers>=3.0"]
+app = ["streamlit>=1.36"]
+dev = ["pytest>=8.0", "ruff>=0.6"]
+
+[tool.setuptools]
+package-dir = { "" = "src" }
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 88
