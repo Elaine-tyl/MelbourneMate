@@ -1,8 +1,7 @@
 # Baseline delivery plan — recorded 23 September 2026
 
 This is the original delivery baseline retained as project-management evidence.
-Current completion status and remaining submission work are tracked in Trello
-and `docs/submission-checklist.md`.
+Current completion status and remaining submission work are tracked in Trello.
 
 Fixed dates: **oral presentation due Tue 20 Oct, 10:00** · **written report due
 Sun 25 Oct, 23:59**. The presentation is five days before the report, so it —

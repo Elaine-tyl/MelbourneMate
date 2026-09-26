@@ -52,8 +52,8 @@ measurement of unanswered behaviour. It extends that baseline with a frozen
 topic-level hold-out, a BM25s-versus-Dense comparison, Walert-style test qrels
 with targeted checks for new MPNet candidates, topic-clustered statistical
 inference, a no-context generation ablation, deterministic citation checks and
-blind human assessment. The exact
-mapping, deliberate differences and claim boundary are documented in
+blind human assessment. The exact mapping, deliberate differences and claim
+boundary are documented in
 [`walert-methodology-mapping.md`](walert-methodology-mapping.md).
 
 ## 3. System variants
@@ -175,7 +175,7 @@ Every error examined in the analysis is labelled with one of these, so that
 
 ## 7. Statistics
 
-Four questions share a topic, so their scores are not independent. Both
+Three questions share a topic, so their scores are not independent. Both
 procedures resample **topics**, not questions: a 95 % percentile bootstrap over
 topic clusters for the interval, and a paired randomisation test that flips the
 sign of whole clusters for the p-value (add-one corrected, so it is never

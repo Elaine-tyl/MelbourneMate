@@ -4,8 +4,8 @@
 was **not** verified against the official pages, so it is used only by the
 tests and the CI smoke run. Nothing from it may appear in a reported result.
 
-The real collection goes in `data/v1/` and is built by hand from official
-sources, following `docs/collection-spec.md`.
+The real collection goes in `data/v1/` and is built from official sources. Its
+collection protocol is added with the formal data in a later reviewed branch.
 
 ## Files
 

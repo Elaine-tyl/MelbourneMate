@@ -28,35 +28,6 @@ The projects use different domains, collections, questions, models and
 protocols, so their numerical scores are not directly comparable. See
 [`docs/walert-methodology-mapping.md`](docs/walert-methodology-mapping.md).
 
-## Elaine's Sprint 9 scope
-
-Elaine owns the following technical and evaluation work recorded in Trello:
-
-- S9-03: BM25s and MPNet retrieval;
-- S9-04: frozen settings, manifests and reproducible run records;
-- S9-06: BM25s/MPNet comparison and statistical testing;
-- S9-09: retrieval and generation error analysis;
-- S9-15: shared high-risk definitions and refreshed analysis;
-- S9-16: system architecture and evidence flow;
-- S9-17: all-MiniLM/MPNet validation comparison and final encoder decision.
-
-S9-01, S9-05, S9-07, S9-08 and S9-10 are shared tasks. Their final evidence is
-added only after both members' inputs are present. Files owned solely by
-Sriporn are not included in Elaine's branch.
-
-## Repository delivery order
-
-The project is delivered through three reviewed branches:
-
-1. `elaine/s9-foundation-methodology`
-2. `elaine/s9-retrieval-evaluation-code`
-3. `elaine/s9-final-evidence-interface`
-
-Each branch is reviewed through a pull request before it reaches `main`.
-Branch 2 contains Elaine's base implementation and excludes Sriporn's later
-fixes. Branch 3 must not be finalised before the dependencies listed in
-[`docs/HANDOFF.md`](docs/HANDOFF.md) are available.
-
 ## Development setup
 
 ```bash
@@ -69,10 +40,5 @@ pip install -e ".[dense,app,dev]"
 Do not commit virtual environments, model weights, `.env` files, caches or
 personal participant data.
 
-## Current branch boundary
-
-The first branch contains project structure, a small non-reportable fixture,
-the architecture and the Walert methodology mapping. It intentionally does not
-claim that the final dataset, tests, manual reviews or reported results are
-already present. Those items enter later branches after their owners' pull
-requests and reviews.
+Team responsibilities and the reviewed branch order are recorded in
+[`docs/HANDOFF.md`](docs/HANDOFF.md).
