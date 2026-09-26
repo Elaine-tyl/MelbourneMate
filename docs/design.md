@@ -62,7 +62,7 @@ boundary are documented in
 |---|---|---|---|
 | `bm25` | BM25 (bm25s), k1=1.5, b=0.75 | Ollama, local | Lexical baseline |
 | `dense` | pinned multi-qa-mpnet-base-cos-v1, normalised-vector inner product | Ollama, local | Semantic retrieval for question-to-passage matching |
-| `none` | — | same model, **closed-book prompt** | No-context ablation for RQ4 |
+| `none` | — | same model, **closed-book prompt** | No-context ablation for RQ3 |
 
 One generator across all arms. The project is not a model competition: holding
 generation fixed is what makes the retrieval differences attributable.

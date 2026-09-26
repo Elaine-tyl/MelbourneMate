@@ -34,5 +34,5 @@ collection protocol is added with the formal data in a later reviewed branch.
   questions always land on the same side of the validation/test boundary.
   Anything else leaks the test set.
 
-Run `mm validate --data data/v1` after every editing session. It is quick and
+Run `mm --data data/v1 validate` after every editing session. It is quick and
 it fails loudly.
