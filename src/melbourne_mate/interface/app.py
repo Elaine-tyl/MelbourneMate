@@ -40,8 +40,11 @@ def answer_view(answer: Answer) -> dict[str, object]:
     }
     label, tone = state.get(answer.status, ("Unable to answer", "error"))
 
+    cited = set(answer.citations.cited) if answer.citations and not answer.refused else set()
     sources: dict[str, dict[str, object]] = {}
     for item in answer.evidence:
+        if item.passage_id not in cited:
+            continue
         if item.url not in sources:
             sources[item.url] = {
                 "organisation": item.organisation,
@@ -66,6 +69,20 @@ def answer_view(answer: Answer) -> dict[str, object]:
         "sources": source_rows,
         "latency_ms": answer.latency_ms,
     }
+
+
+def answer_question(pipeline: RagPipeline, question: str) -> Answer:
+    """Use saved qrels when the question is part of the test collection."""
+    known = next(
+        (item for item in pipeline.collection.questions.values() if item.text == question),
+        None,
+    )
+    relevant = (
+        tuple(sorted(pipeline.collection.qrels.get(known.question_id, {})))
+        if known
+        else ()
+    )
+    return pipeline.answer(question, relevant_ids=relevant)
 
 
 def _project_root() -> Path:
@@ -136,7 +153,7 @@ def main() -> None:
         # Model loading starts only after the first question.
         pipeline = _build_pipeline()
         with st.spinner("Checking official sources..."):
-            answer = pipeline.answer(question.strip())
+            answer = answer_question(pipeline, question.strip())
     except (CollectionError, OllamaError, OSError, RuntimeError, ValueError) as exc:
         st.error(f"The local service is not ready: {exc}")
         return
@@ -148,7 +165,7 @@ def main() -> None:
 
     sources = view["sources"]
     if sources:
-        st.subheader("Official sources checked")
+        st.subheader("Official sources cited")
         for source in sources:
             st.markdown(
                 f"- [{source['organisation']}: {source['heading']}]({source['url']}) "

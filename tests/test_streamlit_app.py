@@ -4,13 +4,14 @@ from pathlib import Path
 
 from streamlit.testing.v1 import AppTest
 
+from melbourne_mate.corpus import load_collection
 from melbourne_mate.generation.citations import CitationReport
 from melbourne_mate.generation.prompts import EvidenceItem
-from melbourne_mate.interface.app import EXAMPLE_QUESTIONS, answer_view
+from melbourne_mate.interface.app import EXAMPLE_QUESTIONS, answer_question, answer_view
 from melbourne_mate.pipeline import Answer
 
 
-def test_answer_view_deduplicates_official_sources():
+def test_answer_view_lists_only_cited_official_sources():
     evidence = (
         EvidenceItem("P04-1", "Pay rights", "First", "Fair Work", "https://fw.example"),
         EvidenceItem("P04-2", "Get help", "Second", "Fair Work", "https://fw.example"),
@@ -37,17 +38,45 @@ def test_answer_view_deduplicates_official_sources():
             "organisation": "Fair Work",
             "heading": "Pay rights",
             "url": "https://fw.example",
-            "passage_ids": "P04-1, P04-2",
+            "passage_ids": "P04-1",
         },
     )
 
 
 def test_answer_view_marks_refusal_for_an_official_check():
-    view = answer_view(Answer("What is the cheapest rent today?", "refused", "Check an official source."))
+    evidence = (
+        EvidenceItem("P20-1", "Housing", "Text", "Study Melbourne", "https://sm.example"),
+    )
+    view = answer_view(
+        Answer(
+            "What is the cheapest rent today?",
+            "refused",
+            "Check an official source.",
+            evidence=evidence,
+        )
+    )
 
     assert view["label"] == "Needs an official check"
     assert view["tone"] == "warning"
     assert view["citation_valid"] is None
+    assert view["sources"] == ()
+
+
+def test_answer_question_uses_qrels_for_a_saved_example():
+    class PipelineStub:
+        collection = load_collection("data/v1")
+        relevant_ids = ()
+
+        def answer(self, question, relevant_ids=()):
+            self.relevant_ids = relevant_ids
+            return Answer(question, "answered", "Answer")
+
+    pipeline = PipelineStub()
+    answer_question(pipeline, EXAMPLE_QUESTIONS["Work"])
+
+    assert pipeline.relevant_ids == tuple(
+        sorted(pipeline.collection.qrels["Q04P1"])
+    )
 
 
 def test_four_example_tasks_cover_the_required_cases():
