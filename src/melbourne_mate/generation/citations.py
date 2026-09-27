@@ -9,7 +9,9 @@ import re
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 
-CITATION_PATTERN = re.compile(r"\[([A-Za-z0-9_\-]+)\]")
+CITATION_PATTERN = re.compile(
+    r"\[([A-Za-z0-9_\-]+(?:\s*,\s*[A-Za-z0-9_\-]+)*)\]"
+)
 URL_PATTERN = re.compile(r"https?://[^\s<>\]\)\"']+")
 # Normalise "$500" and "500" to the same number.
 NUMBER_PATTERN = re.compile(r"\d[\d,]*(?:\.\d+)?")
@@ -39,9 +41,10 @@ class CitationReport:
 def extract_citations(answer: str) -> list[str]:
     """Citation ids in order of first appearance."""
     seen: list[str] = []
-    for match in CITATION_PATTERN.findall(answer):
-        if match not in seen:
-            seen.append(match)
+    for group in CITATION_PATTERN.findall(answer):
+        for citation in re.split(r"\s*,\s*", group):
+            if citation not in seen:
+                seen.append(citation)
     return seen
 
 
