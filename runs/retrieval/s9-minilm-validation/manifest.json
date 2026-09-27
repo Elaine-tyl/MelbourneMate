@@ -1,0 +1,16 @@
+{
+  "arm": "dense",
+  "code_version": "0.1.0",
+  "collection_fingerprint": "1f04bcc7ed2cd814",
+  "config_fingerprint": "12c8cb570a59215c",
+  "created_utc": "2026-09-27T09:33:02+00:00",
+  "encoder": "sentence-transformers/all-MiniLM-L6-v2@1110a243fdf4706b3f48f1d95db1a4f5529b4d41",
+  "ndcg_gain": "exponential",
+  "note": "",
+  "platform": "macOS-26.6.2-arm64-arm-64bit",
+  "protocol_version": "v1",
+  "python_version": "3.12.14",
+  "questions": 54,
+  "run_id": "s9-minilm-validation",
+  "split": "validation"
+}

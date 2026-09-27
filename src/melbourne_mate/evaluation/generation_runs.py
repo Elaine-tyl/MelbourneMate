@@ -34,7 +34,10 @@ class GenerationManifest:
     prompt_version: str
     encoder: str
     collection_fingerprint: str
+    sample_fingerprint: str
+    qrels_fingerprint: str
     config_fingerprint: str
+    model_digest: str
     questions: int
     created_utc: str
     code_version: str
@@ -43,13 +46,29 @@ class GenerationManifest:
     note: str = ""
 
 
-def trace_row(answer: Answer, question_id: str, answerable: bool) -> dict:
+@dataclass(frozen=True)
+class GenerationRunItem:
+    question_id: str
+    answer: Answer
+    answerable: bool
+    retrieval_hit: bool
+    risk_category: str = "general"
+    language: str = "en"
+    question_form: str = "canonical"
+
+
+def trace_row(item: GenerationRunItem) -> dict:
+    """Flatten one answer into a saved trace."""
+    answer = item.answer
     report = answer.citations
     return {
-        "question_id": question_id,
+        "question_id": item.question_id,
         "question": answer.question,
         "arm": answer.arm,
-        "answerable": answerable,
+        "answerable": item.answerable,
+        "risk_category": item.risk_category,
+        "language": item.language,
+        "question_form": item.question_form,
         "status": answer.status,
         "truncated": answer.truncated,
         "answer": answer.text,
@@ -83,14 +102,14 @@ def write_generation_run(
     split: str,
     encoder: str,
     collection_fingerprint: str,
-    answers: Sequence[tuple[str, Answer, bool, bool]],
+    answers: Sequence[GenerationRunItem],
     model: str,
+    sample_fingerprint: str = "",
+    qrels_fingerprint: str = "",
+    model_digest: str = "",
     note: str = "",
 ) -> Path:
-    """Write a generation run.
-
-    answers: (question_id, Answer, answerable, retrieval_hit) in question order.
-    """
+    """Write one immutable generation run."""
     path = Path(directory)
     if path.exists() and any(path.iterdir()):
         raise RunError(f"run directory {path} already exists; choose a new run id")
@@ -98,36 +117,41 @@ def write_generation_run(
 
     outcomes: list[GenerationOutcome] = []
     with (path / "answers.jsonl").open("w", encoding="utf-8") as handle:
-        for question_id, answer, answerable, retrieval_hit in answers:
+        for item in answers:
             handle.write(
-                json.dumps(trace_row(answer, question_id, answerable), ensure_ascii=False) + "\n"
+                json.dumps(trace_row(item), ensure_ascii=False) + "\n"
             )
             outcomes.append(
                 GenerationOutcome(
-                    question_id=question_id,
-                    answerable=answerable,
-                    refused=answer.refused,
-                    citations_valid=bool(answer.citations and answer.citations.is_valid),
-                    retrieval_hit=retrieval_hit,
-                    # Keep truncation separate from answers and refusals.
-                    truncated=answer.truncated,
+                    question_id=item.question_id,
+                    answerable=item.answerable,
+                    refused=item.answer.refused,
+                    citations_valid=bool(
+                        item.answer.citations and item.answer.citations.is_valid
+                    ),
+                    retrieval_hit=item.retrieval_hit,
+                    # Track truncation on its own.
+                    truncated=item.answer.truncated,
+                    risk_category=item.risk_category,
+                    language=item.language,
+                    question_form=item.question_form,
                 )
             )
 
     summary = summarise_generation(outcomes).as_dict()
     if arm == "none":
-        # No retrieved evidence, so these rates are undefined.
+        # No-context has no retrieval evidence.
         summary["false_refusal_rate"] = None
         summary["citation_validity_rate"] = None
     with (path / "summary.csv").open("w", newline="", encoding="utf-8") as handle:
-        writer = csv.writer(handle)
+        writer = csv.writer(handle, lineterminator="\n")
         writer.writerow(["metric", "value"])
         for metric, value in summary.items():
             writer.writerow([metric, round(value, 6) if isinstance(value, float) else value])
 
     table = contingency_2x2(outcomes)
     with (path / "contingency.csv").open("w", newline="", encoding="utf-8") as handle:
-        writer = csv.writer(handle)
+        writer = csv.writer(handle, lineterminator="\n")
         writer.writerow(["cell", "count", "reads_as"])
         writer.writerow(["hit_answered", table["hit_answered"], "working as intended"])
         writer.writerow(["hit_refused", table["hit_refused"], "generator too conservative"])
@@ -145,7 +169,10 @@ def write_generation_run(
         prompt_version=CONFIG.generation.prompt_version,
         encoder=encoder,
         collection_fingerprint=collection_fingerprint,
+        sample_fingerprint=sample_fingerprint,
+        qrels_fingerprint=qrels_fingerprint,
         config_fingerprint=CONFIG.fingerprint(),
+        model_digest=model_digest,
         questions=len(answers),
         created_utc=datetime.now(timezone.utc).isoformat(timespec="seconds"),
         code_version=__version__,
@@ -160,5 +187,6 @@ def write_generation_run(
 
 
 def read_traces(directory: str | Path) -> list[dict]:
+    """Read saved answer traces."""
     path = Path(directory) / "answers.jsonl"
     return [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line]

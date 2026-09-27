@@ -7,7 +7,8 @@ from collections.abc import Iterable
 from dataclasses import dataclass
 from pathlib import Path
 
-from melbourne_mate.corpus import load_qrels
+from melbourne_mate.corpus import Collection, load_qrels
+from melbourne_mate.evaluation.runs import read_manifest, read_run_file
 
 
 @dataclass(frozen=True)
@@ -16,6 +17,77 @@ class TargetedQrelsResult:
     seed_pairs: int
     checked_candidates: int
     added_positive_pairs: int
+
+
+@dataclass(frozen=True)
+class ReviewPoolResult:
+    path: Path
+    candidates: int
+
+
+def build_review_pool(
+    collection: Collection,
+    run_dir: str | Path,
+    output_path: str | Path,
+) -> ReviewPoolResult:
+    manifest = read_manifest(run_dir)
+    if manifest.arm != "dense":
+        raise ValueError("review pool requires a Dense run")
+    if manifest.collection_fingerprint != collection.fingerprint():
+        raise ValueError("run and collection fingerprints do not match")
+
+    confusable = {
+        frozenset((pair.topic_a, pair.topic_b)) for pair in collection.pairs
+    }
+    rows = []
+    for qid, passage_ids in sorted(read_run_file(run_dir).items()):
+        question = collection.questions.get(qid)
+        if question is None or collection.splits.get(question.topic_id) != manifest.split:
+            raise ValueError(f"{qid}: run does not match the recorded split")
+        qtopic = collection.topics[question.topic_id]
+
+        for rank, pid in enumerate(passage_ids[:5], start=1):
+            if pid in collection.qrels.get(qid, {}):
+                continue
+            passage = collection.passages.get(pid)
+            if passage is None:
+                raise ValueError(f"{qid}: run contains unknown passage {pid}")
+            ptopic = collection.topics[passage.topic_id]
+            same_category = qtopic.category == ptopic.category
+            is_confusable = frozenset((qtopic.topic_id, ptopic.topic_id)) in confusable
+            if not (same_category or is_confusable):
+                continue
+
+            source = collection.sources[passage.source_id]
+            rows.append(
+                {
+                    "question_id": qid,
+                    "passage_id": pid,
+                    "rank": rank,
+                    "reason": "same_category" if same_category else "confusable_topics",
+                    "question_text": question.text,
+                    "passage_text": passage.text,
+                    "source_url": source.url,
+                    "grade": "",
+                    "primary_reviewer": "",
+                    "needs_second_review": "",
+                    "note": "",
+                }
+            )
+
+    if not rows:
+        raise ValueError("no review candidates matched the targeted rule")
+
+    out = Path(output_path)
+    if out.exists():
+        raise ValueError(f"review pool already exists: {out}")
+    out.parent.mkdir(parents=True, exist_ok=True)
+    columns = list(rows[0]) if rows else []
+    with out.open("w", newline="", encoding="utf-8") as handle:
+        writer = csv.DictWriter(handle, fieldnames=columns)
+        writer.writeheader()
+        writer.writerows(rows)
+    return ReviewPoolResult(out, len(rows))
 
 
 def _write_qrels(path: str | Path, qrels: dict[str, dict[str, int]]) -> Path:
@@ -97,6 +169,7 @@ def build_targeted_qrels(
         seen.add(pair)
 
         grade = _grade(row.get("grade", ""), f"row {index}")
+        # Only verified positive pairs extend the seed qrels.
         if grade > 0:
             qrels.setdefault(question_id, {})[passage_id] = grade
             added += 1

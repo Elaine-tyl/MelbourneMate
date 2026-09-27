@@ -1,0 +1,17 @@
+{
+  "arm": "bm25",
+  "code_version": "0.1.0",
+  "collection_fingerprint": "1f04bcc7ed2cd814",
+  "config_fingerprint": "12c8cb570a59215c",
+  "created_utc": "2026-09-27T11:18:58+00:00",
+  "encoder": "none",
+  "ndcg_gain": "exponential",
+  "note": "Rescored from s9-formal-bm25-test using qrels-a3ecafcdf28fb918",
+  "platform": "macOS-26.6.2-arm64-arm-64bit",
+  "protocol_version": "v1",
+  "python_version": "3.12.14",
+  "qrels_fingerprint": "a3ecafcdf28fb918",
+  "questions": 36,
+  "run_id": "s9-final-bm25-test",
+  "split": "test"
+}

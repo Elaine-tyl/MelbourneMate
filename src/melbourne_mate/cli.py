@@ -3,22 +3,41 @@
 from __future__ import annotations
 
 import argparse
+import csv
 import hashlib
 import sys
 from pathlib import Path
 
 from melbourne_mate.config import CONFIG
-from melbourne_mate.corpus import CollectionError, load_collection
+from melbourne_mate.corpus import CollectionError, load_collection, load_qrels
 from melbourne_mate.evaluation import metrics as metrics_mod
 from melbourne_mate.evaluation.collection_quality import (
     build_report,
     containment_bin,
     question_containment,
 )
-from melbourne_mate.evaluation.generation_runs import write_generation_run
-from melbourne_mate.evaluation.runs import read_manifest, read_per_question, write_run
+from melbourne_mate.evaluation.generation_inputs import (
+    GenerationCase,
+    GenerationInputError,
+    generation_sample_fingerprint,
+    load_generation_cases,
+    load_generation_qrels,
+)
+from melbourne_mate.evaluation.generation_runs import (
+    GenerationRunItem,
+    write_generation_run,
+)
+from melbourne_mate.evaluation.runs import (
+    read_manifest,
+    read_per_question,
+    read_run_file,
+    write_run,
+)
 from melbourne_mate.evaluation.stats import compare as compare_runs
-from melbourne_mate.evaluation.targeted_qrels import build_targeted_qrels
+from melbourne_mate.evaluation.targeted_qrels import (
+    build_review_pool,
+    build_targeted_qrels,
+)
 from melbourne_mate.generation.gate import EvidenceGate
 from melbourne_mate.generation.ollama import OllamaClient, OllamaError
 from melbourne_mate.pipeline import ARMS, RagPipeline, build_retriever
@@ -118,6 +137,7 @@ def cmd_retrieve(args: argparse.Namespace) -> int:
 
 
 def cmd_generate(args: argparse.Namespace) -> int:
+    """Run one generation arm and save its evidence."""
     collection = load_collection(args.data)
     sample_path = Path(args.sample)
     if not sample_path.is_absolute():
@@ -126,7 +146,25 @@ def cmd_generate(args: argparse.Namespace) -> int:
         print(f"sample not found: {sample_path}", file=sys.stderr)
         return 1
 
-    question_ids = _question_ids(sample_path)
+    qrels_path = getattr(args, "qrels", None)
+    try:
+        if qrels_path:
+            cases = load_generation_cases(sample_path, collection)
+            qrels, qrels_fingerprint = load_generation_qrels(
+                qrels_path, collection
+            )
+        else:
+            cases = tuple(
+                GenerationCase(question_id, "general")
+                for question_id in _question_ids(sample_path)
+            )
+            qrels = collection.qrels
+            qrels_fingerprint = ""
+    except (GenerationInputError, OSError) as exc:
+        print(str(exc), file=sys.stderr)
+        return 1
+
+    sample_fingerprint = generation_sample_fingerprint(cases)
     encoder = load_encoder(args.encoder) if args.arm == "dense" else None
     retriever = build_retriever(collection, args.arm, encoder)
     gate = None
@@ -152,22 +190,33 @@ def cmd_generate(args: argparse.Namespace) -> int:
         arm=args.arm,
     )
 
-    answers = []
-    for question_id in question_ids:
-        question = collection.questions.get(question_id)
+    answers: list[GenerationRunItem] = []
+    for case in cases:
+        question = collection.questions.get(case.question_id)
         if question is None:
-            print(f"unknown question in sample: {question_id}", file=sys.stderr)
+            print(f"unknown question in sample: {case.question_id}", file=sys.stderr)
             return 1
         relevant = tuple(
             passage_id
-            for passage_id, grade in collection.qrels.get(question_id, {}).items()
+            for passage_id, grade in qrels.get(case.question_id, {}).items()
             if grade > 0
         )
         answer = pipeline.answer(question.text, relevant_ids=relevant)
         retrieval_hit = any(hit.passage_id in relevant for hit in answer.hits)
-        answers.append((question_id, answer, not question.is_ookb, retrieval_hit))
+        answers.append(
+            GenerationRunItem(
+                question_id=case.question_id,
+                answer=answer,
+                answerable=not question.is_ookb,
+                retrieval_hit=retrieval_hit,
+                risk_category=case.risk_category,
+                language=question.language,
+                question_form=question.question_form,
+            )
+        )
 
     model_label = "offline" if args.offline else model.model
+    model_digest = "" if args.offline else model.digest
     path = write_generation_run(
         Path(args.runs_dir) / args.run_id,
         run_id=args.run_id,
@@ -181,8 +230,56 @@ def cmd_generate(args: argparse.Namespace) -> int:
         collection_fingerprint=collection.fingerprint(),
         answers=answers,
         model=model_label,
+        model_digest=model_digest,
+        sample_fingerprint=sample_fingerprint,
+        qrels_fingerprint=qrels_fingerprint,
     )
     print(f"wrote {path}")
+    return 0
+
+
+def cmd_evaluate_generation(args: argparse.Namespace) -> int:
+    """Run all three generation arms with one checked input set."""
+    sample_path = Path(args.sample)
+    if not sample_path.is_absolute():
+        sample_path = Path(args.data) / sample_path
+    try:
+        collection = load_collection(args.data)
+        load_generation_cases(sample_path, collection)
+        load_generation_qrels(args.qrels, collection)
+    except (CollectionError, GenerationInputError, OSError) as exc:
+        print(str(exc), file=sys.stderr)
+        return 1
+
+    run_ids = {
+        "bm25": f"{args.run_prefix}-bm25",
+        "dense": f"{args.run_prefix}-mpnet",
+        "none": f"{args.run_prefix}-no-context",
+    }
+    for run_id in run_ids.values():
+        target = Path(args.runs_dir) / run_id
+        if target.exists():
+            print(f"target run already exists: {target}", file=sys.stderr)
+            return 1
+
+    for arm in ("bm25", "dense", "none"):
+        status = cmd_generate(
+            argparse.Namespace(
+                data=args.data,
+                arm=arm,
+                split="test",
+                run_id=run_ids[arm],
+                # cmd_generate owns path resolution.
+                sample=args.sample,
+                qrels=args.qrels,
+                encoder=args.encoder,
+                model=args.model,
+                offline=args.offline,
+                runs_dir=args.runs_dir,
+            )
+        )
+        if status:
+            return status
     return 0
 
 
@@ -198,8 +295,15 @@ def cmd_compare(args: argparse.Namespace) -> int:
     if left_manifest.ndcg_gain != right_manifest.ndcg_gain:
         print("runs use different NDCG gain settings", file=sys.stderr)
         return 1
+    # Different qrels produce incomparable scores.
+    if left_manifest.qrels_fingerprint != right_manifest.qrels_fingerprint:
+        print("runs use different qrels", file=sys.stderr)
+        return 1
 
     collection = load_collection(args.data)
+    if collection.fingerprint() != left_manifest.collection_fingerprint:
+        print("data uses a different collection from the runs", file=sys.stderr)
+        return 1
     clusters = {
         question.question_id: question.topic_id
         for question in collection.questions.values()
@@ -214,11 +318,100 @@ def cmd_compare(args: argparse.Namespace) -> int:
     print(f"mean difference: {result.mean_difference:+.4f}")
     print(f"95% cluster bootstrap CI: [{result.ci_low:+.4f}, {result.ci_high:+.4f}]")
     print(f"paired randomisation p: {result.p_value:.4f}")
+    if getattr(args, "out", None):
+        output = Path(args.out)
+        output.parent.mkdir(parents=True, exist_ok=True)
+        row = {
+            "metric": args.metric,
+            "left_run": left_manifest.run_id,
+            "right_run": right_manifest.run_id,
+            "mean_difference": f"{result.mean_difference:.6f}",
+            "ci_low": f"{result.ci_low:.6f}",
+            "ci_high": f"{result.ci_high:.6f}",
+            "p_value": f"{result.p_value:.6f}",
+            "clusters": result.clusters,
+            "observations": result.observations,
+            "resamples": result.resamples,
+            "permutations": CONFIG.evaluation.randomisation_permutations,
+            "seed": result.seed,
+            "qrels_fingerprint": left_manifest.qrels_fingerprint,
+        }
+        with output.open("w", newline="", encoding="utf-8") as handle:
+            writer = csv.DictWriter(
+                handle, fieldnames=list(row), lineterminator="\n"
+            )
+            writer.writeheader()
+            writer.writerow(row)
+        print(f"wrote {output}")
+    return 0
+
+
+def cmd_rescore_retrieval(args: argparse.Namespace) -> int:
+    """Recalculate metrics from a saved ranking without running retrieval."""
+    collection = load_collection(args.data)
+    source = Path(args.source_run)
+    manifest = read_manifest(source)
+    if manifest.collection_fingerprint != collection.fingerprint():
+        print("source run uses a different collection", file=sys.stderr)
+        return 1
+    if manifest.config_fingerprint != CONFIG.fingerprint():
+        print("source run uses a different configuration", file=sys.stderr)
+        return 1
+
+    # Keep rankings fixed and rescore only.
+    rankings = read_run_file(source)
+    questions = collection.questions_in_split(manifest.split)
+    question_ids = [question.question_id for question in questions]
+    if set(rankings) != set(question_ids):
+        print("source run does not match its recorded split", file=sys.stderr)
+        return 1
+
+    qrels_path = Path(args.qrels)
+    qrels = load_qrels(qrels_path)
+    try:
+        scores = metrics_mod.score_run(rankings, qrels, question_ids)
+    except ValueError as exc:
+        print(str(exc), file=sys.stderr)
+        return 1
+
+    overlap = question_containment(collection)
+    meta = {
+        question.question_id: {
+            "topic_id": question.topic_id,
+            "question_form": question.question_form,
+            "knowledge_type": collection.topics[question.topic_id].knowledge_type,
+            "category": collection.topics[question.topic_id].category,
+            "containment": f"{overlap.get(question.question_id, 0.0):.3f}",
+            "containment_bin": containment_bin(
+                overlap.get(question.question_id, 0.0)
+            ),
+        }
+        for question in questions
+    }
+    qrels_fp = hashlib.sha256(qrels_path.read_bytes()).hexdigest()[:16]
+    path = write_run(
+        Path(args.runs_dir) / args.run_id,
+        run_id=args.run_id,
+        arm=manifest.arm,
+        split=manifest.split,
+        encoder=manifest.encoder,
+        collection_fingerprint=manifest.collection_fingerprint,
+        rankings=rankings,
+        per_question=scores,
+        question_meta=meta,
+        note=f"Rescored from {manifest.run_id} using qrels-{qrels_fp}",
+        qrels_fingerprint=qrels_fp,
+    )
+    print(f"wrote {path}")
+    for metric, value in metrics_mod.aggregate(scores).items():
+        print(f"  {metric}: {value:.4f}")
     return 0
 
 
 def cmd_targeted_qrels(args: argparse.Namespace) -> int:
-    question_ids = _question_ids(args.questions)
+    question_ids = (
+        sorted(read_run_file(args.run)) if args.run else _question_ids(args.questions)
+    )
     result = build_targeted_qrels(
         args.base_qrels,
         args.verification,
@@ -230,6 +423,13 @@ def cmd_targeted_qrels(args: argparse.Namespace) -> int:
     print(f"  seed pairs: {result.seed_pairs}")
     print(f"  checked candidates: {result.checked_candidates}")
     print(f"  added positive pairs: {result.added_positive_pairs}")
+    return 0
+
+
+def cmd_qrels_pool(args: argparse.Namespace) -> int:
+    result = build_review_pool(load_collection(args.data), args.run, args.out)
+    print(f"wrote {result.path}")
+    print(f"  candidates: {result.candidates}")
     return 0
 
 
@@ -320,6 +520,7 @@ def main(argv: list[str] | None = None) -> int:
     generate.add_argument("--split", default="test", choices=["validation", "test"])
     generate.add_argument("--run-id", required=True)
     generate.add_argument("--sample", required=True)
+    generate.add_argument("--qrels")
     generate.add_argument(
         "--encoder",
         default="multi-qa-mpnet",
@@ -330,18 +531,45 @@ def main(argv: list[str] | None = None) -> int:
     generate.add_argument("--runs-dir", default="runs/generation")
     generate.set_defaults(func=cmd_generate)
 
+    generation_workflow = sub.add_parser("evaluate-generation")
+    generation_workflow.add_argument("--run-prefix", required=True)
+    generation_workflow.add_argument("--sample", required=True)
+    generation_workflow.add_argument("--qrels", required=True)
+    generation_workflow.add_argument(
+        "--encoder", default="multi-qa-mpnet", choices=ENCODER_CHOICES
+    )
+    generation_workflow.add_argument("--model", default="")
+    generation_workflow.add_argument("--offline", action="store_true")
+    generation_workflow.add_argument("--runs-dir", default="runs/generation")
+    generation_workflow.set_defaults(func=cmd_evaluate_generation)
+
     compare = sub.add_parser("compare")
     compare.add_argument("--left", required=True)
     compare.add_argument("--right", required=True)
     compare.add_argument("--metric", default=CONFIG.evaluation.primary_metric)
+    compare.add_argument("--out")
     compare.set_defaults(func=cmd_compare)
+
+    rescore = sub.add_parser("rescore-retrieval")
+    rescore.add_argument("--source-run", required=True)
+    rescore.add_argument("--qrels", required=True)
+    rescore.add_argument("--run-id", required=True)
+    rescore.add_argument("--runs-dir", default="runs/retrieval")
+    rescore.set_defaults(func=cmd_rescore_retrieval)
 
     qrels = sub.add_parser("targeted-qrels")
     qrels.add_argument("--base-qrels", required=True)
     qrels.add_argument("--verification", required=True)
-    qrels.add_argument("--questions", required=True)
+    question_source = qrels.add_mutually_exclusive_group(required=True)
+    question_source.add_argument("--run")
+    question_source.add_argument("--questions")
     qrels.add_argument("--out", required=True)
     qrels.set_defaults(func=cmd_targeted_qrels)
+
+    pool = sub.add_parser("qrels-pool")
+    pool.add_argument("--run", required=True)
+    pool.add_argument("--out", required=True)
+    pool.set_defaults(func=cmd_qrels_pool)
 
     workflow = sub.add_parser("evaluate-retrieval")
     workflow.add_argument(

@@ -1,0 +1,7 @@
+metric,value
+ndcg@1,0.814815
+ndcg@3,0.878972
+ndcg@5,0.899001
+recall@5,0.981481
+mrr,0.891049
+retrieval_failure@5,0.0

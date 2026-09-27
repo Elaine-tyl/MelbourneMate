@@ -1,123 +1,86 @@
-# Team handoff and dependency gates
+# Team handoff
 
-This file separates Elaine's work from Sriporn's work and prevents dependent
-results from being committed before their inputs exist in Git.
+The current base includes the checked `data/v1` collection from the latest
+`main` branch.
 
-## Branch 1: foundation and methodology
+## Elaine's completed work
 
-Owner: Elaine
+- S9-17: compared pinned MiniLM and MPNet on validation and selected MPNet.
+- S9-04: saved BM25s and MPNet held-out rankings, metrics and manifests.
+- S9-05: completed the 37-pair targeted qrels check and generated final qrels.
+- S9-06: rescored the saved rankings and compared BM25s with MPNet.
 
-May be committed now because it does not depend on final data, scoring sheets
-or test results.
+The model decision is recorded in `docs/dense-encoder-comparison.md`. Saved
+runs are under `runs/retrieval/`.
 
-- repository and package foundation;
-- Walert-to-MelbourneMate methodology mapping;
-- system architecture and evaluation design;
-- contribution boundaries and branch order.
+## Sprint 9 evidence links
 
-## Branch 2: RAG pipeline core
+| Trello task | GitHub issue | Commits | Evidence |
+| --- | --- | --- | --- |
+| S9-17 | [#51](https://github.com/Elaine-tyl/MelbourneMate/issues/51) | [`398ba97`](https://github.com/Elaine-tyl/MelbourneMate/commit/398ba97) | [Decision](dense-encoder-comparison.md); [MiniLM run](../runs/retrieval/s9-minilm-validation/); [MPNet run](../runs/retrieval/s9-mpnet-validation/) |
+| S9-04 | [#38](https://github.com/Elaine-tyl/MelbourneMate/issues/38) | [`ff31c35`](https://github.com/Elaine-tyl/MelbourneMate/commit/ff31c35) | [BM25s run](../runs/retrieval/s9-formal-bm25-test/); [MPNet run](../runs/retrieval/s9-formal-mpnet-test/) |
+| S9-05 | [#39](https://github.com/Elaine-tyl/MelbourneMate/issues/39) | [`fe3882d`](https://github.com/Elaine-tyl/MelbourneMate/commit/fe3882d), [`ff229dd`](https://github.com/Elaine-tyl/MelbourneMate/commit/ff229dd), [`46ab029`](https://github.com/Elaine-tyl/MelbourneMate/commit/46ab029), [`79b1a6a`](https://github.com/Elaine-tyl/MelbourneMate/commit/79b1a6a), [`af7021c`](https://github.com/Elaine-tyl/MelbourneMate/commit/af7021c) | [Completed review](../review/targeted-qrels/s9-mpnet-candidates.csv); [final qrels](../review/targeted-qrels/qrels-final.txt) |
+| S9-06 | [#40](https://github.com/Elaine-tyl/MelbourneMate/issues/40) | [`bd4b791`](https://github.com/Elaine-tyl/MelbourneMate/commit/bd4b791), [`265114a`](https://github.com/Elaine-tyl/MelbourneMate/commit/265114a) | [BM25s final run](../runs/retrieval/s9-final-bm25-test/); [MPNet final run](../runs/retrieval/s9-final-mpnet-test/); [paired comparison](../runs/retrieval/s9-final-comparison.csv) |
 
-Owner: Elaine
+## Targeted qrels review
 
-Branch: `elaine/s9-rag-pipeline`
+Use `review/targeted-qrels/s9-mpnet-candidates.csv`.
 
-This branch may be committed after Branch 1. It contains Elaine's base
-implementation and intentionally excludes Sriporn's later S9-14 fixes. It adds:
+1. Elaine assigns one grade to each pair: 0, 1 or 2.
+2. Elaine writes `Elaine` in `primary_reviewer`.
+3. Elaine marks uncertain rows in `needs_second_review` and adds a short note.
+4. Siriporn checks only marked rows and records the agreed decision in `note`.
+5. Keep one final grade per pair. Do not calculate Cohen's kappa for this check.
 
-- BM25s and MPNet retrieval;
-- frozen configuration and model revisions;
-- immutable run and manifest code;
-- retrieval metrics, topic-clustered statistics and targeted qrels tooling;
-- grounded generation evaluation code.
-
-The qrels workflow follows Walert's topic-to-passage ground truth. It adds only
-a small targeted check for candidates unique to the frozen MPNet top-five
-pool. Full retrieval double review, Cohen's kappa and complex adjudication are
-outside this branch.
-
-It must not include Sriporn's dataset, tests, scoring sheets or no-context run.
-After this branch is available, Sriporn can apply the S9-14 encoder-name and
-BM25 dependency changes in her own reviewed pull request.
-
-## Sriporn's work package
-
-Complete these items on a separate branch:
-
-1. Add the checked official-source collection under `data/v1/` and update its
-   source dates.
-2. Add the full test suite and record the commands and results in
-   `docs/build-verification.md`.
-3. Check the flagged MPNet question-passage pairs and return the completed
-   verification CSV.
-4. Complete the assigned generated-answer review sheet.
-5. Apply the S9-14 encoder-name and BM25 dependency fixes.
-6. Run the no-context arm on the agreed frozen question list. Do not edit the
-   BM25 or MPNet run folders.
-
-Put the frozen question IDs in `data/v1/generation-sample.txt`, one ID per
-line, then run:
+After the sheet is complete, create the final test qrels from the saved run:
 
 ```bash
-python -m melbourne_mate.cli --data data/v1 generate \
-  --arm none \
-  --split test \
-  --run-id s9-no-context-test \
-  --sample generation-sample.txt \
-  --model qwen2.5:7b-instruct \
-  --runs-dir runs/generation
+mm --data data/v1 targeted-qrels \
+  --base-qrels data/v1/qrels.txt \
+  --verification review/targeted-qrels/s9-mpnet-candidates.csv \
+  --run runs/retrieval/s9-formal-mpnet-test \
+  --out review/targeted-qrels/qrels-final.txt
 ```
 
-Return these items to Elaine:
+The completed file contains 69 positive pairs: 57 seed pairs and 12 verified
+additions. Its SHA-256 fingerprint is
+`a3ecafcdf28fb918a663677ecb324c1de1b38fdd3f32a27ac4af331116c233f1`.
+Use it to rescore the saved BM25s and MPNet rankings. Retrieval must not be
+tuned or rerun after this review.
 
-- `data/v1/` and its source log;
-- the test files and `docs/build-verification.md`;
-- the checked MPNet pairs and generated-answer review CSV;
-- the new no-context run folder;
-- the S9-14 code changes.
+## Final retrieval comparison
 
-Elaine will then integrate the final qrels, rerun the saved rankings, compare
-the systems and prepare the final evidence.
+The saved rankings were rescored against the final qrels. BM25s achieved
+NDCG@5 `0.8353`, Recall@5 `0.8750` and MRR `0.8843`. MPNet achieved NDCG@5
+`0.9709`, Recall@5 `1.0000` and MRR `0.9815`.
 
-## Branch 3: final evidence and interface
+MPNet minus BM25s on NDCG@5 was `+0.1356`. The topic-clustered 95% bootstrap
+interval was `[+0.0486, +0.2519]`, with paired randomisation `p = 0.0065`.
+The comparison covers 36 questions from 12 held-out topics and uses 10,000
+bootstrap resamples and 10,000 randomisation permutations.
 
-Owner: Elaine for integration; shared files retain joint credit.
+## Generation evaluation
 
-Do not finalise this branch until Sriporn's pull requests provide:
+Run the three methods with the same sample and final qrels:
 
-- the official-source `data/v1` collection and collection documentation;
-- the test suite and build-verification record;
-- any MPNet qrels candidates she was asked to check and her generation answer
-  review sheet;
-- the no-context generation run.
+```bash
+mm --data data/v1 evaluate-generation \
+  --sample generation-sample.csv \
+  --qrels review/targeted-qrels/qrels-final.txt \
+  --run-prefix recheck-yourname \
+  --model qwen2.5:7b-instruct
+```
 
-After those dependencies are merged, Elaine may add the Walert-style final
-qrels, the targeted verification record, rescored rankings, statistical
-comparison, error analysis, shared Streamlit work and the final evidence index.
+The command creates `-bm25`, `-mpnet`, and `-no-context` run folders. A new
+prefix is required for every repeat. Human answer review is a separate task.
 
-## Verification after integration
-
-Sriporn should rerun these commands after Branch 2 is combined with her files:
+## Checks
 
 ```bash
 python -m pytest -q
-python -m ruff check src tests tools
-python -m melbourne_mate.cli --data data/v1 validate
-python -m melbourne_mate.cli --data data/v1 quality
+ruff check src tests
+mm --data data/v1 validate
+mm --data data/v1 quality
 ```
 
-For the local model and interface:
-
-```bash
-ollama list
-MM_DATA_DIR=data/v1 MM_ENCODER=multi-qa-mpnet \
-  streamlit run src/melbourne_mate/interface/app.py
-```
-
-Record the command output in Sriporn's build-verification evidence. If any
-result changes, create a new run ID; never overwrite an existing formal run.
-
-## Pull-request order
-
-Merge the three branches in order. Use a merge commit rather than squash so
-the Trello-linked commits remain visible. Each pull request requires one review
-from the other member.
+Use a new run ID for any reproduction. Do not overwrite saved evidence.

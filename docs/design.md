@@ -81,10 +81,10 @@ generation fixed is what makes the retrieval differences attributable.
 * Parameters are chosen on validation only. The test split is scored **once**,
   after `config.py` is frozen and tagged.
 * Following Walert, formal qrels are generated from curated topic-passage
-  ground truth. Only MPNet candidates missing from those mappings receive
-  targeted verification. Each candidate has one primary grade; a teammate
-  checks only flagged or uncertain cases. This is not a full double review and
-  no agreement statistic is claimed for retrieval qrels.
+  ground truth. The targeted check keeps missing MPNet top-five candidates only
+  when the passage is in the same category or a listed confusable topic pair.
+  Each candidate has one primary grade; a teammate checks only flagged cases.
+  No agreement statistic is claimed for retrieval qrels.
 
 ## 5. Metrics
 

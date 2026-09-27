@@ -1,0 +1,37 @@
+question_id,category,containment,containment_bin,knowledge_type,question_form,topic_id,ndcg@1,ndcg@3,ndcg@5,recall@5,mrr,retrieval_failure@5
+Q04C,Work rights,0.000,low,inferred,canonical,T04,0.0,0.0,0.0,0.0,0.0,1.0
+Q04P1,Work rights,0.000,low,inferred,paraphrased,T04,1.0,0.703918,0.906025,1.0,1.0,0.0
+Q04P2,Work rights,0.000,low,inferred,paraphrased,T04,1.0,1.0,1.0,1.0,1.0,0.0
+Q08C,Health cover,0.000,low,inferred,canonical,T08,1.0,0.765361,0.765361,0.666667,1.0,0.0
+Q08P1,Health cover,0.000,low,inferred,paraphrased,T08,1.0,1.0,1.0,1.0,1.0,0.0
+Q08P2,Health cover,0.000,low,inferred,paraphrased,T08,1.0,0.765361,0.765361,0.666667,1.0,0.0
+Q10C,Health cover,0.000,low,inferred,canonical,T10,1.0,1.0,1.0,1.0,1.0,0.0
+Q10P1,Health cover,0.000,low,inferred,paraphrased,T10,1.0,0.765361,0.765361,0.666667,1.0,0.0
+Q10P2,Health cover,0.000,low,inferred,paraphrased,T10,1.0,0.703918,0.703918,0.666667,1.0,0.0
+Q14C,Transport,0.714,high,known,canonical,T14,1.0,1.0,1.0,1.0,1.0,0.0
+Q14P1,Transport,0.400,medium,known,paraphrased,T14,0.333333,0.796708,0.796708,1.0,1.0,0.0
+Q14P2,Transport,0.444,medium,known,paraphrased,T14,1.0,1.0,1.0,1.0,1.0,0.0
+Q17C,Housing,0.750,high,known,canonical,T17,1.0,0.847267,0.847267,0.666667,1.0,0.0
+Q17P1,Housing,0.375,low,known,paraphrased,T17,0.333333,0.688529,0.688529,1.0,1.0,0.0
+Q17P2,Housing,0.667,medium,known,paraphrased,T17,1.0,1.0,1.0,1.0,1.0,0.0
+Q18C,Housing,0.000,low,inferred,canonical,T18,1.0,1.0,1.0,1.0,1.0,0.0
+Q18P1,Housing,0.000,low,inferred,paraphrased,T18,1.0,0.469279,0.671386,0.666667,1.0,0.0
+Q18P2,Housing,0.000,low,inferred,paraphrased,T18,1.0,1.0,1.0,1.0,1.0,0.0
+Q20C,Housing,0.667,medium,known,canonical,T20,1.0,1.0,1.0,1.0,1.0,0.0
+Q20P1,Housing,0.556,medium,known,paraphrased,T20,1.0,1.0,1.0,1.0,1.0,0.0
+Q20P2,Housing,0.273,low,known,paraphrased,T20,0.0,0.63093,0.63093,1.0,0.5,0.0
+Q23C,Money and tax,0.000,low,inferred,canonical,T23,1.0,1.0,1.0,1.0,1.0,0.0
+Q23P1,Money and tax,0.000,low,inferred,paraphrased,T23,1.0,1.0,1.0,1.0,1.0,0.0
+Q23P2,Money and tax,0.000,low,inferred,paraphrased,T23,1.0,1.0,1.0,1.0,1.0,0.0
+Q25C,Arrival,0.429,medium,known,canonical,T25,0.0,0.521296,0.521296,0.5,0.5,0.0
+Q25P1,Arrival,0.333,low,known,paraphrased,T25,0.0,0.5,0.5,1.0,0.333333,0.0
+Q25P2,Arrival,0.333,low,known,paraphrased,T25,0.0,0.0,0.0,0.0,0.0,1.0
+Q26C,Arrival,0.000,low,inferred,canonical,T26,1.0,1.0,1.0,1.0,1.0,0.0
+Q26P1,Arrival,0.000,low,inferred,paraphrased,T26,1.0,1.0,1.0,1.0,1.0,0.0
+Q26P2,Arrival,0.000,low,inferred,paraphrased,T26,1.0,1.0,1.0,1.0,1.0,0.0
+Q28C,Study and support,0.778,high,known,canonical,T28,1.0,1.0,1.0,1.0,1.0,0.0
+Q28P1,Study and support,0.286,low,known,paraphrased,T28,1.0,1.0,1.0,1.0,1.0,0.0
+Q28P2,Study and support,0.375,low,known,paraphrased,T28,0.0,0.63093,0.63093,1.0,0.5,0.0
+Q30C,Safety and legal,0.000,low,inferred,canonical,T30,1.0,1.0,1.0,1.0,1.0,0.0
+Q30P1,Safety and legal,0.000,low,inferred,paraphrased,T30,1.0,1.0,1.0,1.0,1.0,0.0
+Q30P2,Safety and legal,0.000,low,inferred,paraphrased,T30,1.0,0.613147,0.877215,1.0,1.0,0.0
