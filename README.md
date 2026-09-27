@@ -27,21 +27,17 @@ The projects use different domains, collections, questions, models and
 protocols, so their numerical scores are not directly comparable. See
 [`docs/walert-methodology-mapping.md`](docs/walert-methodology-mapping.md).
 
-### Walert method versus MelbourneMate tooling
+### Walert method and local tooling
 
-Walert does not use the `mm` command. Its published evaluation runs separate
-Python programs for data preparation, retrieval and evaluation, plus a shell
-command for BM25 indexing. MelbourneMate follows the same broad experimental
-sequence but exposes it through one project-local command:
+MelbourneMate follows Walert's broad experimental sequence:
 
 ```text
 validate data -> run BM25s -> run Dense -> calculate metrics -> compare runs
 ```
 
-The `mm` command changes only how the steps are started. It does not introduce
-a different retrieval method or make the results directly comparable with
-Walert. The automation reduces manual command errors and gives both team
-members one reproducible entry point.
+Walert uses separate scripts. MelbourneMate uses the project-local `mm` command
+to automate the same sequence and reduce command errors. This does not make the
+two projects' scores directly comparable.
 
 ## Development setup
 
@@ -57,33 +53,45 @@ personal participant data.
 
 ## Core commands
 
-`mm` is the short command installed by MelbourneMate. It runs
-`melbourne_mate.cli:main`; it is not a Walert command or an external tool.
-
-The same commands work with the sample fixture now and with `data/v1` after the
-collection PR is merged:
+`mm` is the short command installed by MelbourneMate. Validate the formal
+collection before running an experiment:
 
 ```bash
-mm --data data/sample validate
-mm --data data/sample quality
-mm --data data/sample retrieve --arm bm25 --split validation \
-  --run-id bm25-validation
-mm --data data/sample retrieve --arm dense --encoder multi-qa-mpnet \
-  --split validation --run-id mpnet-validation
-mm --data data/sample compare \
-  --left runs/retrieval/bm25-validation \
-  --right runs/retrieval/mpnet-validation
+mm --data data/v1 validate
+mm --data data/v1 quality
 ```
 
-Run the complete validation retrieval workflow with one command:
+The Dense encoder decision used validation only:
 
 ```bash
-mm --data data/v1 evaluate-retrieval \
-  --split validation --run-prefix s9-validation
+mm --data data/v1 retrieve --arm dense --split validation \
+  --encoder all-minilm --run-id s9-minilm-validation
+mm --data data/v1 retrieve --arm dense --split validation \
+  --encoder multi-qa-mpnet --run-id s9-mpnet-validation
+mm --data data/v1 compare \
+  --left runs/retrieval/s9-minilm-validation \
+  --right runs/retrieval/s9-mpnet-validation --metric ndcg@5
 ```
 
-Use `--split test` only for the frozen held-out run. Every run ID is
-write-once, so use a new prefix instead of replacing evidence.
+After MPNet was frozen, BM25s and MPNet were run once on the held-out test:
+
+```bash
+mm --data data/v1 evaluate-retrieval --split test \
+  --encoder multi-qa-mpnet --run-prefix recheck-yourname
+```
+
+The submitted rankings are in `runs/retrieval/s9-formal-bm25-test/` and
+`runs/retrieval/s9-formal-mpnet-test/`. They use the current Walert-style qrels.
+After the small targeted qrels check, rescore these rankings without tuning or
+rerunning either retriever. Each run ID is write-once, so a reproduction needs
+a new prefix.
+
+Run the checks before handing work to another team member:
+
+```bash
+python -m pytest -q
+ruff check src tests
+```
 
 Team responsibilities and the reviewed branch order are recorded in
 [`docs/HANDOFF.md`](docs/HANDOFF.md).
