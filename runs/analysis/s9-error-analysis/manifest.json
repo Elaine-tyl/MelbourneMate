@@ -1,0 +1,22 @@
+{
+  "analysis_id": "s9-error-analysis",
+  "case_count": 67,
+  "code_version": "0.1.0",
+  "collection_fingerprint": "1f04bcc7ed2cd814",
+  "created_utc": "2026-09-27T14:51:01+00:00",
+  "high_risk_categories": [
+    "emergency",
+    "employment",
+    "health",
+    "housing",
+    "visa"
+  ],
+  "input_runs": {
+    "bm25_generation": "s9-qwen25-20260927-bm25",
+    "bm25_retrieval": "s9-final-bm25-test",
+    "mpnet_generation": "s9-qwen25-20260927-mpnet",
+    "mpnet_retrieval": "s9-final-mpnet-test",
+    "no_context_generation": "s9-qwen25-20260927-no-context"
+  },
+  "qrels_fingerprint": "a3ecafcdf28fb918"
+}

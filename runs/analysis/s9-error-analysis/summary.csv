@@ -1,0 +1,16 @@
+stage,arm,metric,value
+retrieval,bm25,bm25_better,1
+retrieval,mpnet,mpnet_better_paraphrase,11
+retrieval,both,both_retrieval_fail,0
+generation,bm25,retrieval_hit_but_refused,2
+generation,mpnet,retrieval_hit_but_refused,3
+generation,bm25,retrieval_miss_but_answered,2
+generation,mpnet,retrieval_miss_but_answered,0
+generation,bm25,invalid_citation,6
+generation,mpnet,invalid_citation,7
+generation,bm25,ookb_answered,1
+generation,mpnet,ookb_answered,4
+generation,no-context,ookb_answered,30
+generation,bm25,high_risk_failure,7
+generation,mpnet,high_risk_failure,11
+generation,no-context,high_risk_failure,15
