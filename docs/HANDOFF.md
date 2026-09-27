@@ -7,7 +7,7 @@ The current base includes the checked `data/v1` collection from the latest
 
 - S9-17: compared pinned MiniLM and MPNet on validation and selected MPNet.
 - S9-04: saved BM25s and MPNet held-out rankings, metrics and manifests.
-- S9-05: generated the 37-pair targeted qrels review sheet.
+- S9-05: completed the 37-pair targeted qrels check and generated final qrels.
 
 The model decision is recorded in `docs/dense-encoder-comparison.md`. Saved
 runs are under `runs/retrieval/`.
@@ -18,7 +18,7 @@ runs are under `runs/retrieval/`.
 | --- | --- | --- | --- |
 | S9-17 | [#51](https://github.com/Elaine-tyl/MelbourneMate/issues/51) | [`398ba97`](https://github.com/Elaine-tyl/MelbourneMate/commit/398ba97) | [Decision](dense-encoder-comparison.md); [MiniLM run](../runs/retrieval/s9-minilm-validation/); [MPNet run](../runs/retrieval/s9-mpnet-validation/) |
 | S9-04 | [#38](https://github.com/Elaine-tyl/MelbourneMate/issues/38) | [`ff31c35`](https://github.com/Elaine-tyl/MelbourneMate/commit/ff31c35) | [BM25s run](../runs/retrieval/s9-formal-bm25-test/); [MPNet run](../runs/retrieval/s9-formal-mpnet-test/) |
-| S9-05 | [#39](https://github.com/Elaine-tyl/MelbourneMate/issues/39) | [`fe3882d`](https://github.com/Elaine-tyl/MelbourneMate/commit/fe3882d), [`ff229dd`](https://github.com/Elaine-tyl/MelbourneMate/commit/ff229dd) | [Review CSV](../review/targeted-qrels/s9-mpnet-candidates.csv); teammate review still required |
+| S9-05 | [#39](https://github.com/Elaine-tyl/MelbourneMate/issues/39) | [`fe3882d`](https://github.com/Elaine-tyl/MelbourneMate/commit/fe3882d), [`ff229dd`](https://github.com/Elaine-tyl/MelbourneMate/commit/ff229dd), [`46ab029`](https://github.com/Elaine-tyl/MelbourneMate/commit/46ab029), [`79b1a6a`](https://github.com/Elaine-tyl/MelbourneMate/commit/79b1a6a) | [Completed review](../review/targeted-qrels/s9-mpnet-candidates.csv); [final qrels](../review/targeted-qrels/qrels-final.txt) |
 
 ## Targeted qrels review
 
@@ -40,9 +40,11 @@ mm --data data/v1 targeted-qrels \
   --out review/targeted-qrels/qrels-final.txt
 ```
 
-Return the completed CSV to Elaine. Elaine will check the row count and qrels
-fingerprint, then rescore the saved BM25s and MPNet rankings. Retrieval must not
-be tuned or rerun after this review.
+The completed file contains 69 positive pairs: 57 seed pairs and 12 verified
+additions. Its SHA-256 fingerprint is
+`a3ecafcdf28fb918a663677ecb324c1de1b38fdd3f32a27ac4af331116c233f1`.
+Use it to rescore the saved BM25s and MPNet rankings. Retrieval must not be
+tuned or rerun after this review.
 
 ## Checks
 
