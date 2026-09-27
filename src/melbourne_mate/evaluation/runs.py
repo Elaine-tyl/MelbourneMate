@@ -36,11 +36,12 @@ class RunManifest:
     python_version: str
     platform: str
     note: str = ""
+    qrels_fingerprint: str = ""
 
 
 def _write_csv(path: Path, rows: Sequence[Mapping[str, object]], columns: Sequence[str]) -> None:
     with path.open("w", newline="", encoding="utf-8") as handle:
-        writer = csv.DictWriter(handle, fieldnames=list(columns))
+        writer = csv.DictWriter(handle, fieldnames=list(columns), lineterminator="\n")
         writer.writeheader()
         for row in rows:
             writer.writerow(row)
@@ -57,6 +58,7 @@ def write_run(
     per_question: Mapping[str, Mapping[str, float]],
     question_meta: Mapping[str, Mapping[str, str]] | None = None,
     note: str = "",
+    qrels_fingerprint: str = "",
 ) -> Path:
     """Write retrieval.run, per-question and aggregate metrics, and a manifest."""
     path = Path(directory)
@@ -105,6 +107,7 @@ def write_run(
         python_version=sys.version.split()[0],
         platform=platform.platform(),
         note=note,
+        qrels_fingerprint=qrels_fingerprint,
     )
     (path / "manifest.json").write_text(
         json.dumps(asdict(manifest), indent=2, sort_keys=True) + "\n", encoding="utf-8"

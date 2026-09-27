@@ -8,6 +8,7 @@ The current base includes the checked `data/v1` collection from the latest
 - S9-17: compared pinned MiniLM and MPNet on validation and selected MPNet.
 - S9-04: saved BM25s and MPNet held-out rankings, metrics and manifests.
 - S9-05: completed the 37-pair targeted qrels check and generated final qrels.
+- S9-06: rescored the saved rankings and compared BM25s with MPNet.
 
 The model decision is recorded in `docs/dense-encoder-comparison.md`. Saved
 runs are under `runs/retrieval/`.
@@ -19,6 +20,7 @@ runs are under `runs/retrieval/`.
 | S9-17 | [#51](https://github.com/Elaine-tyl/MelbourneMate/issues/51) | [`398ba97`](https://github.com/Elaine-tyl/MelbourneMate/commit/398ba97) | [Decision](dense-encoder-comparison.md); [MiniLM run](../runs/retrieval/s9-minilm-validation/); [MPNet run](../runs/retrieval/s9-mpnet-validation/) |
 | S9-04 | [#38](https://github.com/Elaine-tyl/MelbourneMate/issues/38) | [`ff31c35`](https://github.com/Elaine-tyl/MelbourneMate/commit/ff31c35) | [BM25s run](../runs/retrieval/s9-formal-bm25-test/); [MPNet run](../runs/retrieval/s9-formal-mpnet-test/) |
 | S9-05 | [#39](https://github.com/Elaine-tyl/MelbourneMate/issues/39) | [`fe3882d`](https://github.com/Elaine-tyl/MelbourneMate/commit/fe3882d), [`ff229dd`](https://github.com/Elaine-tyl/MelbourneMate/commit/ff229dd), [`46ab029`](https://github.com/Elaine-tyl/MelbourneMate/commit/46ab029), [`79b1a6a`](https://github.com/Elaine-tyl/MelbourneMate/commit/79b1a6a) | [Completed review](../review/targeted-qrels/s9-mpnet-candidates.csv); [final qrels](../review/targeted-qrels/qrels-final.txt) |
+| S9-06 | [#40](https://github.com/Elaine-tyl/MelbourneMate/issues/40) | This change | [BM25s final run](../runs/retrieval/s9-final-bm25-test/); [MPNet final run](../runs/retrieval/s9-final-mpnet-test/); [paired comparison](../runs/retrieval/s9-final-comparison.csv) |
 
 ## Targeted qrels review
 
@@ -45,6 +47,17 @@ additions. Its SHA-256 fingerprint is
 `a3ecafcdf28fb918a663677ecb324c1de1b38fdd3f32a27ac4af331116c233f1`.
 Use it to rescore the saved BM25s and MPNet rankings. Retrieval must not be
 tuned or rerun after this review.
+
+## Final retrieval comparison
+
+The saved rankings were rescored against the final qrels. BM25s achieved
+NDCG@5 `0.8353`, Recall@5 `0.8750` and MRR `0.8843`. MPNet achieved NDCG@5
+`0.9709`, Recall@5 `1.0000` and MRR `0.9815`.
+
+MPNet minus BM25s on NDCG@5 was `+0.1356`. The topic-clustered 95% bootstrap
+interval was `[+0.0486, +0.2519]`, with paired randomisation `p = 0.0065`.
+The comparison covers 36 questions from 12 held-out topics and uses 10,000
+bootstrap resamples and 10,000 randomisation permutations.
 
 ## Checks
 

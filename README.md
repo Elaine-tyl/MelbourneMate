@@ -81,10 +81,27 @@ mm --data data/v1 evaluate-retrieval --split test \
 ```
 
 The submitted rankings are in `runs/retrieval/s9-formal-bm25-test/` and
-`runs/retrieval/s9-formal-mpnet-test/`. They use the current Walert-style qrels.
-After the small targeted qrels check, rescore these rankings without tuning or
-rerunning either retriever. Each run ID is write-once, so a reproduction needs
-a new prefix.
+`runs/retrieval/s9-formal-mpnet-test/`. After the targeted qrels check, the
+same rankings were rescored without tuning or rerunning either retriever:
+
+```bash
+mm --data data/v1 rescore-retrieval \
+  --source-run runs/retrieval/s9-formal-bm25-test \
+  --qrels review/targeted-qrels/qrels-final.txt \
+  --run-id recheck-yourname-bm25-test
+mm --data data/v1 rescore-retrieval \
+  --source-run runs/retrieval/s9-formal-mpnet-test \
+  --qrels review/targeted-qrels/qrels-final.txt \
+  --run-id recheck-yourname-mpnet-test
+mm --data data/v1 compare \
+  --left runs/retrieval/recheck-yourname-bm25-test \
+  --right runs/retrieval/recheck-yourname-mpnet-test \
+  --out runs/retrieval/recheck-yourname-comparison.csv
+```
+
+The final submitted results are in `runs/retrieval/s9-final-bm25-test/`,
+`runs/retrieval/s9-final-mpnet-test/` and
+`runs/retrieval/s9-final-comparison.csv`. Each run ID is write-once.
 
 Create the 37-pair review sheet from the saved MPNet top-five rankings:
 

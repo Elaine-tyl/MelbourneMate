@@ -3,12 +3,13 @@
 from __future__ import annotations
 
 import argparse
+import csv
 import hashlib
 import sys
 from pathlib import Path
 
 from melbourne_mate.config import CONFIG
-from melbourne_mate.corpus import CollectionError, load_collection
+from melbourne_mate.corpus import CollectionError, load_collection, load_qrels
 from melbourne_mate.evaluation import metrics as metrics_mod
 from melbourne_mate.evaluation.collection_quality import (
     build_report,
@@ -206,6 +207,9 @@ def cmd_compare(args: argparse.Namespace) -> int:
     if left_manifest.ndcg_gain != right_manifest.ndcg_gain:
         print("runs use different NDCG gain settings", file=sys.stderr)
         return 1
+    if left_manifest.qrels_fingerprint != right_manifest.qrels_fingerprint:
+        print("runs use different qrels", file=sys.stderr)
+        return 1
 
     collection = load_collection(args.data)
     clusters = {
@@ -222,6 +226,92 @@ def cmd_compare(args: argparse.Namespace) -> int:
     print(f"mean difference: {result.mean_difference:+.4f}")
     print(f"95% cluster bootstrap CI: [{result.ci_low:+.4f}, {result.ci_high:+.4f}]")
     print(f"paired randomisation p: {result.p_value:.4f}")
+    if getattr(args, "out", None):
+        output = Path(args.out)
+        output.parent.mkdir(parents=True, exist_ok=True)
+        row = {
+            "metric": args.metric,
+            "left_run": left_manifest.run_id,
+            "right_run": right_manifest.run_id,
+            "mean_difference": f"{result.mean_difference:.6f}",
+            "ci_low": f"{result.ci_low:.6f}",
+            "ci_high": f"{result.ci_high:.6f}",
+            "p_value": f"{result.p_value:.6f}",
+            "clusters": result.clusters,
+            "observations": result.observations,
+            "resamples": result.resamples,
+            "permutations": CONFIG.evaluation.randomisation_permutations,
+            "seed": result.seed,
+            "qrels_fingerprint": left_manifest.qrels_fingerprint,
+        }
+        with output.open("w", newline="", encoding="utf-8") as handle:
+            writer = csv.DictWriter(
+                handle, fieldnames=list(row), lineterminator="\n"
+            )
+            writer.writeheader()
+            writer.writerow(row)
+        print(f"wrote {output}")
+    return 0
+
+
+def cmd_rescore_retrieval(args: argparse.Namespace) -> int:
+    """Recalculate metrics from a saved ranking without running retrieval."""
+    collection = load_collection(args.data)
+    source = Path(args.source_run)
+    manifest = read_manifest(source)
+    if manifest.collection_fingerprint != collection.fingerprint():
+        print("source run uses a different collection", file=sys.stderr)
+        return 1
+    if manifest.config_fingerprint != CONFIG.fingerprint():
+        print("source run uses a different configuration", file=sys.stderr)
+        return 1
+
+    rankings = read_run_file(source)
+    questions = collection.questions_in_split(manifest.split)
+    question_ids = [question.question_id for question in questions]
+    if set(rankings) != set(question_ids):
+        print("source run does not match its recorded split", file=sys.stderr)
+        return 1
+
+    qrels_path = Path(args.qrels)
+    qrels = load_qrels(qrels_path)
+    try:
+        scores = metrics_mod.score_run(rankings, qrels, question_ids)
+    except ValueError as exc:
+        print(str(exc), file=sys.stderr)
+        return 1
+
+    overlap = question_containment(collection)
+    meta = {
+        question.question_id: {
+            "topic_id": question.topic_id,
+            "question_form": question.question_form,
+            "knowledge_type": collection.topics[question.topic_id].knowledge_type,
+            "category": collection.topics[question.topic_id].category,
+            "containment": f"{overlap.get(question.question_id, 0.0):.3f}",
+            "containment_bin": containment_bin(
+                overlap.get(question.question_id, 0.0)
+            ),
+        }
+        for question in questions
+    }
+    qrels_fingerprint = hashlib.sha256(qrels_path.read_bytes()).hexdigest()[:16]
+    path = write_run(
+        Path(args.runs_dir) / args.run_id,
+        run_id=args.run_id,
+        arm=manifest.arm,
+        split=manifest.split,
+        encoder=manifest.encoder,
+        collection_fingerprint=manifest.collection_fingerprint,
+        rankings=rankings,
+        per_question=scores,
+        question_meta=meta,
+        note=f"Rescored from {manifest.run_id} using qrels-{qrels_fingerprint}",
+        qrels_fingerprint=qrels_fingerprint,
+    )
+    print(f"wrote {path}")
+    for metric, value in metrics_mod.aggregate(scores).items():
+        print(f"  {metric}: {value:.4f}")
     return 0
 
 
@@ -351,7 +441,15 @@ def main(argv: list[str] | None = None) -> int:
     compare.add_argument("--left", required=True)
     compare.add_argument("--right", required=True)
     compare.add_argument("--metric", default=CONFIG.evaluation.primary_metric)
+    compare.add_argument("--out")
     compare.set_defaults(func=cmd_compare)
+
+    rescore = sub.add_parser("rescore-retrieval")
+    rescore.add_argument("--source-run", required=True)
+    rescore.add_argument("--qrels", required=True)
+    rescore.add_argument("--run-id", required=True)
+    rescore.add_argument("--runs-dir", default="runs/retrieval")
+    rescore.set_defaults(func=cmd_rescore_retrieval)
 
     qrels = sub.add_parser("targeted-qrels")
     qrels.add_argument("--base-qrels", required=True)
