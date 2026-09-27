@@ -16,7 +16,17 @@ from melbourne_mate.evaluation.collection_quality import (
     containment_bin,
     question_containment,
 )
-from melbourne_mate.evaluation.generation_runs import write_generation_run
+from melbourne_mate.evaluation.generation_inputs import (
+    GenerationCase,
+    GenerationInputError,
+    generation_sample_fingerprint,
+    load_generation_cases,
+    load_generation_qrels,
+)
+from melbourne_mate.evaluation.generation_runs import (
+    GenerationRunItem,
+    write_generation_run,
+)
 from melbourne_mate.evaluation.runs import (
     read_manifest,
     read_per_question,
@@ -127,6 +137,7 @@ def cmd_retrieve(args: argparse.Namespace) -> int:
 
 
 def cmd_generate(args: argparse.Namespace) -> int:
+    """Run one generation arm and save its evidence."""
     collection = load_collection(args.data)
     sample_path = Path(args.sample)
     if not sample_path.is_absolute():
@@ -135,7 +146,25 @@ def cmd_generate(args: argparse.Namespace) -> int:
         print(f"sample not found: {sample_path}", file=sys.stderr)
         return 1
 
-    question_ids = _question_ids(sample_path)
+    qrels_path = getattr(args, "qrels", None)
+    try:
+        if qrels_path:
+            cases = load_generation_cases(sample_path, collection)
+            qrels, qrels_fingerprint = load_generation_qrels(
+                qrels_path, collection
+            )
+        else:
+            cases = tuple(
+                GenerationCase(question_id, "general")
+                for question_id in _question_ids(sample_path)
+            )
+            qrels = collection.qrels
+            qrels_fingerprint = ""
+    except (GenerationInputError, OSError) as exc:
+        print(str(exc), file=sys.stderr)
+        return 1
+
+    sample_fingerprint = generation_sample_fingerprint(cases)
     encoder = load_encoder(args.encoder) if args.arm == "dense" else None
     retriever = build_retriever(collection, args.arm, encoder)
     gate = None
@@ -161,22 +190,33 @@ def cmd_generate(args: argparse.Namespace) -> int:
         arm=args.arm,
     )
 
-    answers = []
-    for question_id in question_ids:
-        question = collection.questions.get(question_id)
+    answers: list[GenerationRunItem] = []
+    for case in cases:
+        question = collection.questions.get(case.question_id)
         if question is None:
-            print(f"unknown question in sample: {question_id}", file=sys.stderr)
+            print(f"unknown question in sample: {case.question_id}", file=sys.stderr)
             return 1
         relevant = tuple(
             passage_id
-            for passage_id, grade in collection.qrels.get(question_id, {}).items()
+            for passage_id, grade in qrels.get(case.question_id, {}).items()
             if grade > 0
         )
         answer = pipeline.answer(question.text, relevant_ids=relevant)
         retrieval_hit = any(hit.passage_id in relevant for hit in answer.hits)
-        answers.append((question_id, answer, not question.is_ookb, retrieval_hit))
+        answers.append(
+            GenerationRunItem(
+                question_id=case.question_id,
+                answer=answer,
+                answerable=not question.is_ookb,
+                retrieval_hit=retrieval_hit,
+                risk_category=case.risk_category,
+                language=question.language,
+                question_form=question.question_form,
+            )
+        )
 
     model_label = "offline" if args.offline else model.model
+    model_digest = "" if args.offline else model.digest
     path = write_generation_run(
         Path(args.runs_dir) / args.run_id,
         run_id=args.run_id,
@@ -190,8 +230,56 @@ def cmd_generate(args: argparse.Namespace) -> int:
         collection_fingerprint=collection.fingerprint(),
         answers=answers,
         model=model_label,
+        model_digest=model_digest,
+        sample_fingerprint=sample_fingerprint,
+        qrels_fingerprint=qrels_fingerprint,
     )
     print(f"wrote {path}")
+    return 0
+
+
+def cmd_evaluate_generation(args: argparse.Namespace) -> int:
+    """Run all three generation arms with one checked input set."""
+    sample_path = Path(args.sample)
+    if not sample_path.is_absolute():
+        sample_path = Path(args.data) / sample_path
+    try:
+        collection = load_collection(args.data)
+        load_generation_cases(sample_path, collection)
+        load_generation_qrels(args.qrels, collection)
+    except (CollectionError, GenerationInputError, OSError) as exc:
+        print(str(exc), file=sys.stderr)
+        return 1
+
+    run_ids = {
+        "bm25": f"{args.run_prefix}-bm25",
+        "dense": f"{args.run_prefix}-mpnet",
+        "none": f"{args.run_prefix}-no-context",
+    }
+    for run_id in run_ids.values():
+        target = Path(args.runs_dir) / run_id
+        if target.exists():
+            print(f"target run already exists: {target}", file=sys.stderr)
+            return 1
+
+    for arm in ("bm25", "dense", "none"):
+        status = cmd_generate(
+            argparse.Namespace(
+                data=args.data,
+                arm=arm,
+                split="test",
+                run_id=run_ids[arm],
+                # cmd_generate owns path resolution.
+                sample=args.sample,
+                qrels=args.qrels,
+                encoder=args.encoder,
+                model=args.model,
+                offline=args.offline,
+                runs_dir=args.runs_dir,
+            )
+        )
+        if status:
+            return status
     return 0
 
 
@@ -207,7 +295,7 @@ def cmd_compare(args: argparse.Namespace) -> int:
     if left_manifest.ndcg_gain != right_manifest.ndcg_gain:
         print("runs use different NDCG gain settings", file=sys.stderr)
         return 1
-    # Scores from different qrels are not comparable.
+    # Different qrels produce incomparable scores.
     if left_manifest.qrels_fingerprint != right_manifest.qrels_fingerprint:
         print("runs use different qrels", file=sys.stderr)
         return 1
@@ -270,7 +358,7 @@ def cmd_rescore_retrieval(args: argparse.Namespace) -> int:
         print("source run uses a different configuration", file=sys.stderr)
         return 1
 
-    # Reuse saved rankings; only the qrels and scores change.
+    # Keep rankings fixed and rescore only.
     rankings = read_run_file(source)
     questions = collection.questions_in_split(manifest.split)
     question_ids = [question.question_id for question in questions]
@@ -432,6 +520,7 @@ def main(argv: list[str] | None = None) -> int:
     generate.add_argument("--split", default="test", choices=["validation", "test"])
     generate.add_argument("--run-id", required=True)
     generate.add_argument("--sample", required=True)
+    generate.add_argument("--qrels")
     generate.add_argument(
         "--encoder",
         default="multi-qa-mpnet",
@@ -441,6 +530,18 @@ def main(argv: list[str] | None = None) -> int:
     generate.add_argument("--offline", action="store_true")
     generate.add_argument("--runs-dir", default="runs/generation")
     generate.set_defaults(func=cmd_generate)
+
+    generation_workflow = sub.add_parser("evaluate-generation")
+    generation_workflow.add_argument("--run-prefix", required=True)
+    generation_workflow.add_argument("--sample", required=True)
+    generation_workflow.add_argument("--qrels", required=True)
+    generation_workflow.add_argument(
+        "--encoder", default="multi-qa-mpnet", choices=ENCODER_CHOICES
+    )
+    generation_workflow.add_argument("--model", default="")
+    generation_workflow.add_argument("--offline", action="store_true")
+    generation_workflow.add_argument("--runs-dir", default="runs/generation")
+    generation_workflow.set_defaults(func=cmd_evaluate_generation)
 
     compare = sub.add_parser("compare")
     compare.add_argument("--left", required=True)

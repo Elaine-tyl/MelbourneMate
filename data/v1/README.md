@@ -56,6 +56,12 @@ covers every part of its own phrasing and is built from the passage sentences
 listed in `support`; for inferred topics it uses both passages. The answers are
 an auditable target and do not make the seed labels independent.
 
+## Generation sample
+
+`generation-sample.csv` freezes the 66 questions used by every generation
+method: all 36 held-out test questions and all 30 out-of-KB questions. Its risk
+category supports the safety results. It does not add relevance labels.
+
 ## Check
 
 ```bash

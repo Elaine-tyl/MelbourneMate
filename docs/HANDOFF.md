@@ -59,6 +59,21 @@ interval was `[+0.0486, +0.2519]`, with paired randomisation `p = 0.0065`.
 The comparison covers 36 questions from 12 held-out topics and uses 10,000
 bootstrap resamples and 10,000 randomisation permutations.
 
+## Generation evaluation
+
+Run the three methods with the same sample and final qrels:
+
+```bash
+mm --data data/v1 evaluate-generation \
+  --sample generation-sample.csv \
+  --qrels review/targeted-qrels/qrels-final.txt \
+  --run-prefix recheck-yourname \
+  --model qwen2.5:7b-instruct
+```
+
+The command creates `-bm25`, `-mpnet`, and `-no-context` run folders. A new
+prefix is required for every repeat. Human answer review is a separate task.
+
 ## Checks
 
 ```bash
