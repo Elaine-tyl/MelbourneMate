@@ -16,9 +16,17 @@ from melbourne_mate.evaluation.collection_quality import (
     question_containment,
 )
 from melbourne_mate.evaluation.generation_runs import write_generation_run
-from melbourne_mate.evaluation.runs import read_manifest, read_per_question, write_run
+from melbourne_mate.evaluation.runs import (
+    read_manifest,
+    read_per_question,
+    read_run_file,
+    write_run,
+)
 from melbourne_mate.evaluation.stats import compare as compare_runs
-from melbourne_mate.evaluation.targeted_qrels import build_targeted_qrels
+from melbourne_mate.evaluation.targeted_qrels import (
+    build_review_pool,
+    build_targeted_qrels,
+)
 from melbourne_mate.generation.gate import EvidenceGate
 from melbourne_mate.generation.ollama import OllamaClient, OllamaError
 from melbourne_mate.pipeline import ARMS, RagPipeline, build_retriever
@@ -218,7 +226,9 @@ def cmd_compare(args: argparse.Namespace) -> int:
 
 
 def cmd_targeted_qrels(args: argparse.Namespace) -> int:
-    question_ids = _question_ids(args.questions)
+    question_ids = (
+        sorted(read_run_file(args.run)) if args.run else _question_ids(args.questions)
+    )
     result = build_targeted_qrels(
         args.base_qrels,
         args.verification,
@@ -230,6 +240,13 @@ def cmd_targeted_qrels(args: argparse.Namespace) -> int:
     print(f"  seed pairs: {result.seed_pairs}")
     print(f"  checked candidates: {result.checked_candidates}")
     print(f"  added positive pairs: {result.added_positive_pairs}")
+    return 0
+
+
+def cmd_qrels_pool(args: argparse.Namespace) -> int:
+    result = build_review_pool(load_collection(args.data), args.run, args.out)
+    print(f"wrote {result.path}")
+    print(f"  candidates: {result.candidates}")
     return 0
 
 
@@ -339,9 +356,16 @@ def main(argv: list[str] | None = None) -> int:
     qrels = sub.add_parser("targeted-qrels")
     qrels.add_argument("--base-qrels", required=True)
     qrels.add_argument("--verification", required=True)
-    qrels.add_argument("--questions", required=True)
+    question_source = qrels.add_mutually_exclusive_group(required=True)
+    question_source.add_argument("--run")
+    question_source.add_argument("--questions")
     qrels.add_argument("--out", required=True)
     qrels.set_defaults(func=cmd_targeted_qrels)
+
+    pool = sub.add_parser("qrels-pool")
+    pool.add_argument("--run", required=True)
+    pool.add_argument("--out", required=True)
+    pool.set_defaults(func=cmd_qrels_pool)
 
     workflow = sub.add_parser("evaluate-retrieval")
     workflow.add_argument(

@@ -86,6 +86,18 @@ After the small targeted qrels check, rescore these rankings without tuning or
 rerunning either retriever. Each run ID is write-once, so a reproduction needs
 a new prefix.
 
+Create the 37-pair review sheet from the saved MPNet top-five rankings:
+
+```bash
+mm --data data/v1 qrels-pool \
+  --run runs/retrieval/s9-formal-mpnet-test \
+  --out review/targeted-qrels/recheck-yourname.csv
+```
+
+The submitted sheet is `review/targeted-qrels/s9-mpnet-candidates.csv`. It keeps
+only candidates absent from the current qrels whose passage is in the same
+category as the question or in a listed confusable topic pair.
+
 Run the checks before handing work to another team member:
 
 ```bash
