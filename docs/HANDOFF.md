@@ -12,6 +12,14 @@ The current base includes the checked `data/v1` collection from the latest
 The model decision is recorded in `docs/dense-encoder-comparison.md`. Saved
 runs are under `runs/retrieval/`.
 
+## Sprint 9 evidence links
+
+| Trello task | GitHub issue | Commits | Evidence |
+| --- | --- | --- | --- |
+| S9-17 | [#51](https://github.com/Elaine-tyl/MelbourneMate/issues/51) | [`398ba97`](https://github.com/Elaine-tyl/MelbourneMate/commit/398ba97) | [Decision](dense-encoder-comparison.md); [MiniLM run](../runs/retrieval/s9-minilm-validation/); [MPNet run](../runs/retrieval/s9-mpnet-validation/) |
+| S9-04 | [#38](https://github.com/Elaine-tyl/MelbourneMate/issues/38) | [`ff31c35`](https://github.com/Elaine-tyl/MelbourneMate/commit/ff31c35) | [BM25s run](../runs/retrieval/s9-formal-bm25-test/); [MPNet run](../runs/retrieval/s9-formal-mpnet-test/) |
+| S9-05 | [#39](https://github.com/Elaine-tyl/MelbourneMate/issues/39) | [`fe3882d`](https://github.com/Elaine-tyl/MelbourneMate/commit/fe3882d), [`ff229dd`](https://github.com/Elaine-tyl/MelbourneMate/commit/ff229dd) | [Review CSV](../review/targeted-qrels/s9-mpnet-candidates.csv); teammate review still required |
+
 ## Targeted qrels review
 
 Use `review/targeted-qrels/s9-mpnet-candidates.csv`.
