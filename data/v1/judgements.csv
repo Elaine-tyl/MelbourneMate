@@ -2,21 +2,21 @@ question_id,passage_id,grade,judge,note
 Q01C,P01-1,2,seed-author,Provisional topic-to-evidence seed label; not independently human judged.
 Q01P1,P01-1,2,seed-author,Provisional topic-to-evidence seed label; not independently human judged.
 Q01P2,P01-1,2,seed-author,Provisional topic-to-evidence seed label; not independently human judged.
-Q02C,P02-1,2,seed-author,Provisional topic-to-evidence seed label; not independently human judged.
-Q02C,P02-2,1,seed-author,Provisional topic-to-evidence seed label; not independently human judged.
-Q02P1,P02-1,2,seed-author,Provisional topic-to-evidence seed label; not independently human judged.
-Q02P1,P02-2,1,seed-author,Provisional topic-to-evidence seed label; not independently human judged.
-Q02P2,P02-1,2,seed-author,Provisional topic-to-evidence seed label; not independently human judged.
-Q02P2,P02-2,1,seed-author,Provisional topic-to-evidence seed label; not independently human judged.
+Q02C,P02-1,1,seed-author,Inferred-topic seed label; this passage answers part of the question and needs the topic's other passage.
+Q02C,P02-2,1,seed-author,Inferred-topic seed label; this passage answers part of the question and needs the topic's other passage.
+Q02P1,P02-1,1,seed-author,Inferred-topic seed label; this passage answers part of the question and needs the topic's other passage.
+Q02P1,P02-2,1,seed-author,Inferred-topic seed label; this passage answers part of the question and needs the topic's other passage.
+Q02P2,P02-1,1,seed-author,Inferred-topic seed label; this passage answers part of the question and needs the topic's other passage.
+Q02P2,P02-2,1,seed-author,Inferred-topic seed label; this passage answers part of the question and needs the topic's other passage.
 Q03C,P03-1,2,seed-author,Provisional topic-to-evidence seed label; not independently human judged.
 Q03P1,P03-1,2,seed-author,Provisional topic-to-evidence seed label; not independently human judged.
 Q03P2,P03-1,2,seed-author,Provisional topic-to-evidence seed label; not independently human judged.
-Q04C,P04-1,2,seed-author,Provisional topic-to-evidence seed label; not independently human judged.
-Q04C,P04-2,1,seed-author,Provisional topic-to-evidence seed label; not independently human judged.
-Q04P1,P04-1,2,seed-author,Provisional topic-to-evidence seed label; not independently human judged.
-Q04P1,P04-2,1,seed-author,Provisional topic-to-evidence seed label; not independently human judged.
-Q04P2,P04-1,2,seed-author,Provisional topic-to-evidence seed label; not independently human judged.
-Q04P2,P04-2,1,seed-author,Provisional topic-to-evidence seed label; not independently human judged.
+Q04C,P04-1,1,seed-author,Inferred-topic seed label; this passage answers part of the question and needs the topic's other passage.
+Q04C,P04-2,1,seed-author,Inferred-topic seed label; this passage answers part of the question and needs the topic's other passage.
+Q04P1,P04-1,1,seed-author,Inferred-topic seed label; this passage answers part of the question and needs the topic's other passage.
+Q04P1,P04-2,1,seed-author,Inferred-topic seed label; this passage answers part of the question and needs the topic's other passage.
+Q04P2,P04-1,1,seed-author,Inferred-topic seed label; this passage answers part of the question and needs the topic's other passage.
+Q04P2,P04-2,1,seed-author,Inferred-topic seed label; this passage answers part of the question and needs the topic's other passage.
 Q05C,P05-1,2,seed-author,Provisional topic-to-evidence seed label; not independently human judged.
 Q05P1,P05-1,2,seed-author,Provisional topic-to-evidence seed label; not independently human judged.
 Q05P2,P05-1,2,seed-author,Provisional topic-to-evidence seed label; not independently human judged.
@@ -26,33 +26,33 @@ Q06P2,P06-1,2,seed-author,Provisional topic-to-evidence seed label; not independ
 Q07C,P07-1,2,seed-author,Provisional topic-to-evidence seed label; not independently human judged.
 Q07P1,P07-1,2,seed-author,Provisional topic-to-evidence seed label; not independently human judged.
 Q07P2,P07-1,2,seed-author,Provisional topic-to-evidence seed label; not independently human judged.
-Q08C,P08-1,2,seed-author,Provisional topic-to-evidence seed label; not independently human judged.
-Q08C,P08-2,1,seed-author,Provisional topic-to-evidence seed label; not independently human judged.
-Q08P1,P08-1,2,seed-author,Provisional topic-to-evidence seed label; not independently human judged.
-Q08P1,P08-2,1,seed-author,Provisional topic-to-evidence seed label; not independently human judged.
-Q08P2,P08-1,2,seed-author,Provisional topic-to-evidence seed label; not independently human judged.
-Q08P2,P08-2,1,seed-author,Provisional topic-to-evidence seed label; not independently human judged.
-Q09C,P09-1,2,seed-author,Provisional topic-to-evidence seed label; not independently human judged.
-Q09C,P09-2,1,seed-author,Provisional topic-to-evidence seed label; not independently human judged.
-Q09P1,P09-1,2,seed-author,Provisional topic-to-evidence seed label; not independently human judged.
-Q09P1,P09-2,1,seed-author,Provisional topic-to-evidence seed label; not independently human judged.
-Q09P2,P09-1,2,seed-author,Provisional topic-to-evidence seed label; not independently human judged.
-Q09P2,P09-2,1,seed-author,Provisional topic-to-evidence seed label; not independently human judged.
-Q10C,P10-1,2,seed-author,Provisional topic-to-evidence seed label; not independently human judged.
-Q10C,P10-2,1,seed-author,Provisional topic-to-evidence seed label; not independently human judged.
-Q10P1,P10-1,2,seed-author,Provisional topic-to-evidence seed label; not independently human judged.
-Q10P1,P10-2,1,seed-author,Provisional topic-to-evidence seed label; not independently human judged.
-Q10P2,P10-1,2,seed-author,Provisional topic-to-evidence seed label; not independently human judged.
-Q10P2,P10-2,1,seed-author,Provisional topic-to-evidence seed label; not independently human judged.
+Q08C,P08-1,1,seed-author,Inferred-topic seed label; this passage answers part of the question and needs the topic's other passage.
+Q08C,P08-2,1,seed-author,Inferred-topic seed label; this passage answers part of the question and needs the topic's other passage.
+Q08P1,P08-1,1,seed-author,Inferred-topic seed label; this passage answers part of the question and needs the topic's other passage.
+Q08P1,P08-2,1,seed-author,Inferred-topic seed label; this passage answers part of the question and needs the topic's other passage.
+Q08P2,P08-1,1,seed-author,Inferred-topic seed label; this passage answers part of the question and needs the topic's other passage.
+Q08P2,P08-2,1,seed-author,Inferred-topic seed label; this passage answers part of the question and needs the topic's other passage.
+Q09C,P09-1,1,seed-author,Inferred-topic seed label; this passage answers part of the question and needs the topic's other passage.
+Q09C,P09-2,1,seed-author,Inferred-topic seed label; this passage answers part of the question and needs the topic's other passage.
+Q09P1,P09-1,1,seed-author,Inferred-topic seed label; this passage answers part of the question and needs the topic's other passage.
+Q09P1,P09-2,1,seed-author,Inferred-topic seed label; this passage answers part of the question and needs the topic's other passage.
+Q09P2,P09-1,1,seed-author,Inferred-topic seed label; this passage answers part of the question and needs the topic's other passage.
+Q09P2,P09-2,1,seed-author,Inferred-topic seed label; this passage answers part of the question and needs the topic's other passage.
+Q10C,P10-1,1,seed-author,Inferred-topic seed label; this passage answers part of the question and needs the topic's other passage.
+Q10C,P10-2,1,seed-author,Inferred-topic seed label; this passage answers part of the question and needs the topic's other passage.
+Q10P1,P10-1,1,seed-author,Inferred-topic seed label; this passage answers part of the question and needs the topic's other passage.
+Q10P1,P10-2,1,seed-author,Inferred-topic seed label; this passage answers part of the question and needs the topic's other passage.
+Q10P2,P10-1,1,seed-author,Inferred-topic seed label; this passage answers part of the question and needs the topic's other passage.
+Q10P2,P10-2,1,seed-author,Inferred-topic seed label; this passage answers part of the question and needs the topic's other passage.
 Q11C,P11-1,2,seed-author,Provisional topic-to-evidence seed label; not independently human judged.
 Q11P1,P11-1,2,seed-author,Provisional topic-to-evidence seed label; not independently human judged.
 Q11P2,P11-1,2,seed-author,Provisional topic-to-evidence seed label; not independently human judged.
-Q12C,P12-1,2,seed-author,Provisional topic-to-evidence seed label; not independently human judged.
-Q12C,P12-2,1,seed-author,Provisional topic-to-evidence seed label; not independently human judged.
-Q12P1,P12-1,2,seed-author,Provisional topic-to-evidence seed label; not independently human judged.
-Q12P1,P12-2,1,seed-author,Provisional topic-to-evidence seed label; not independently human judged.
-Q12P2,P12-1,2,seed-author,Provisional topic-to-evidence seed label; not independently human judged.
-Q12P2,P12-2,1,seed-author,Provisional topic-to-evidence seed label; not independently human judged.
+Q12C,P12-1,1,seed-author,Inferred-topic seed label; this passage answers part of the question and needs the topic's other passage.
+Q12C,P12-2,1,seed-author,Inferred-topic seed label; this passage answers part of the question and needs the topic's other passage.
+Q12P1,P12-1,1,seed-author,Inferred-topic seed label; this passage answers part of the question and needs the topic's other passage.
+Q12P1,P12-2,1,seed-author,Inferred-topic seed label; this passage answers part of the question and needs the topic's other passage.
+Q12P2,P12-1,1,seed-author,Inferred-topic seed label; this passage answers part of the question and needs the topic's other passage.
+Q12P2,P12-2,1,seed-author,Inferred-topic seed label; this passage answers part of the question and needs the topic's other passage.
 Q13C,P13-1,2,seed-author,Provisional topic-to-evidence seed label; not independently human judged.
 Q13P1,P13-1,2,seed-author,Provisional topic-to-evidence seed label; not independently human judged.
 Q13P2,P13-1,2,seed-author,Provisional topic-to-evidence seed label; not independently human judged.
@@ -62,21 +62,21 @@ Q14P2,P14-1,2,seed-author,Provisional topic-to-evidence seed label; not independ
 Q15C,P15-1,2,seed-author,Provisional topic-to-evidence seed label; not independently human judged.
 Q15P1,P15-1,2,seed-author,Provisional topic-to-evidence seed label; not independently human judged.
 Q15P2,P15-1,2,seed-author,Provisional topic-to-evidence seed label; not independently human judged.
-Q16C,P16-1,2,seed-author,Provisional topic-to-evidence seed label; not independently human judged.
-Q16C,P16-2,1,seed-author,Provisional topic-to-evidence seed label; not independently human judged.
-Q16P1,P16-1,2,seed-author,Provisional topic-to-evidence seed label; not independently human judged.
-Q16P1,P16-2,1,seed-author,Provisional topic-to-evidence seed label; not independently human judged.
-Q16P2,P16-1,2,seed-author,Provisional topic-to-evidence seed label; not independently human judged.
-Q16P2,P16-2,1,seed-author,Provisional topic-to-evidence seed label; not independently human judged.
+Q16C,P16-1,1,seed-author,Inferred-topic seed label; this passage answers part of the question and needs the topic's other passage.
+Q16C,P16-2,1,seed-author,Inferred-topic seed label; this passage answers part of the question and needs the topic's other passage.
+Q16P1,P16-1,1,seed-author,Inferred-topic seed label; this passage answers part of the question and needs the topic's other passage.
+Q16P1,P16-2,1,seed-author,Inferred-topic seed label; this passage answers part of the question and needs the topic's other passage.
+Q16P2,P16-1,1,seed-author,Inferred-topic seed label; this passage answers part of the question and needs the topic's other passage.
+Q16P2,P16-2,1,seed-author,Inferred-topic seed label; this passage answers part of the question and needs the topic's other passage.
 Q17C,P17-1,2,seed-author,Provisional topic-to-evidence seed label; not independently human judged.
 Q17P1,P17-1,2,seed-author,Provisional topic-to-evidence seed label; not independently human judged.
 Q17P2,P17-1,2,seed-author,Provisional topic-to-evidence seed label; not independently human judged.
-Q18C,P18-1,2,seed-author,Provisional topic-to-evidence seed label; not independently human judged.
-Q18C,P18-2,1,seed-author,Provisional topic-to-evidence seed label; not independently human judged.
-Q18P1,P18-1,2,seed-author,Provisional topic-to-evidence seed label; not independently human judged.
-Q18P1,P18-2,1,seed-author,Provisional topic-to-evidence seed label; not independently human judged.
-Q18P2,P18-1,2,seed-author,Provisional topic-to-evidence seed label; not independently human judged.
-Q18P2,P18-2,1,seed-author,Provisional topic-to-evidence seed label; not independently human judged.
+Q18C,P18-1,1,seed-author,Inferred-topic seed label; this passage answers part of the question and needs the topic's other passage.
+Q18C,P18-2,1,seed-author,Inferred-topic seed label; this passage answers part of the question and needs the topic's other passage.
+Q18P1,P18-1,1,seed-author,Inferred-topic seed label; this passage answers part of the question and needs the topic's other passage.
+Q18P1,P18-2,1,seed-author,Inferred-topic seed label; this passage answers part of the question and needs the topic's other passage.
+Q18P2,P18-1,1,seed-author,Inferred-topic seed label; this passage answers part of the question and needs the topic's other passage.
+Q18P2,P18-2,1,seed-author,Inferred-topic seed label; this passage answers part of the question and needs the topic's other passage.
 Q19C,P19-1,2,seed-author,Provisional topic-to-evidence seed label; not independently human judged.
 Q19P1,P19-1,2,seed-author,Provisional topic-to-evidence seed label; not independently human judged.
 Q19P2,P19-1,2,seed-author,Provisional topic-to-evidence seed label; not independently human judged.
@@ -89,24 +89,24 @@ Q21P2,P21-1,2,seed-author,Provisional topic-to-evidence seed label; not independ
 Q22C,P22-1,2,seed-author,Provisional topic-to-evidence seed label; not independently human judged.
 Q22P1,P22-1,2,seed-author,Provisional topic-to-evidence seed label; not independently human judged.
 Q22P2,P22-1,2,seed-author,Provisional topic-to-evidence seed label; not independently human judged.
-Q23C,P23-1,2,seed-author,Provisional topic-to-evidence seed label; not independently human judged.
-Q23C,P23-2,1,seed-author,Provisional topic-to-evidence seed label; not independently human judged.
-Q23P1,P23-1,2,seed-author,Provisional topic-to-evidence seed label; not independently human judged.
-Q23P1,P23-2,1,seed-author,Provisional topic-to-evidence seed label; not independently human judged.
-Q23P2,P23-1,2,seed-author,Provisional topic-to-evidence seed label; not independently human judged.
-Q23P2,P23-2,1,seed-author,Provisional topic-to-evidence seed label; not independently human judged.
+Q23C,P23-1,1,seed-author,Inferred-topic seed label; this passage answers part of the question and needs the topic's other passage.
+Q23C,P23-2,1,seed-author,Inferred-topic seed label; this passage answers part of the question and needs the topic's other passage.
+Q23P1,P23-1,1,seed-author,Inferred-topic seed label; this passage answers part of the question and needs the topic's other passage.
+Q23P1,P23-2,1,seed-author,Inferred-topic seed label; this passage answers part of the question and needs the topic's other passage.
+Q23P2,P23-1,1,seed-author,Inferred-topic seed label; this passage answers part of the question and needs the topic's other passage.
+Q23P2,P23-2,1,seed-author,Inferred-topic seed label; this passage answers part of the question and needs the topic's other passage.
 Q24C,P24-1,2,seed-author,Provisional topic-to-evidence seed label; not independently human judged.
 Q24P1,P24-1,2,seed-author,Provisional topic-to-evidence seed label; not independently human judged.
 Q24P2,P24-1,2,seed-author,Provisional topic-to-evidence seed label; not independently human judged.
 Q25C,P25-1,2,seed-author,Provisional topic-to-evidence seed label; not independently human judged.
 Q25P1,P25-1,2,seed-author,Provisional topic-to-evidence seed label; not independently human judged.
 Q25P2,P25-1,2,seed-author,Provisional topic-to-evidence seed label; not independently human judged.
-Q26C,P26-1,2,seed-author,Provisional topic-to-evidence seed label; not independently human judged.
-Q26C,P26-2,1,seed-author,Provisional topic-to-evidence seed label; not independently human judged.
-Q26P1,P26-1,2,seed-author,Provisional topic-to-evidence seed label; not independently human judged.
-Q26P1,P26-2,1,seed-author,Provisional topic-to-evidence seed label; not independently human judged.
-Q26P2,P26-1,2,seed-author,Provisional topic-to-evidence seed label; not independently human judged.
-Q26P2,P26-2,1,seed-author,Provisional topic-to-evidence seed label; not independently human judged.
+Q26C,P26-1,1,seed-author,Inferred-topic seed label; this passage answers part of the question and needs the topic's other passage.
+Q26C,P26-2,1,seed-author,Inferred-topic seed label; this passage answers part of the question and needs the topic's other passage.
+Q26P1,P26-1,1,seed-author,Inferred-topic seed label; this passage answers part of the question and needs the topic's other passage.
+Q26P1,P26-2,1,seed-author,Inferred-topic seed label; this passage answers part of the question and needs the topic's other passage.
+Q26P2,P26-1,1,seed-author,Inferred-topic seed label; this passage answers part of the question and needs the topic's other passage.
+Q26P2,P26-2,1,seed-author,Inferred-topic seed label; this passage answers part of the question and needs the topic's other passage.
 Q27C,P27-1,2,seed-author,Provisional topic-to-evidence seed label; not independently human judged.
 Q27P1,P27-1,2,seed-author,Provisional topic-to-evidence seed label; not independently human judged.
 Q27P2,P27-1,2,seed-author,Provisional topic-to-evidence seed label; not independently human judged.
@@ -116,9 +116,9 @@ Q28P2,P28-1,2,seed-author,Provisional topic-to-evidence seed label; not independ
 Q29C,P29-1,2,seed-author,Provisional topic-to-evidence seed label; not independently human judged.
 Q29P1,P29-1,2,seed-author,Provisional topic-to-evidence seed label; not independently human judged.
 Q29P2,P29-1,2,seed-author,Provisional topic-to-evidence seed label; not independently human judged.
-Q30C,P30-1,2,seed-author,Provisional topic-to-evidence seed label; not independently human judged.
-Q30C,P30-2,1,seed-author,Provisional topic-to-evidence seed label; not independently human judged.
-Q30P1,P30-1,2,seed-author,Provisional topic-to-evidence seed label; not independently human judged.
-Q30P1,P30-2,1,seed-author,Provisional topic-to-evidence seed label; not independently human judged.
-Q30P2,P30-1,2,seed-author,Provisional topic-to-evidence seed label; not independently human judged.
-Q30P2,P30-2,1,seed-author,Provisional topic-to-evidence seed label; not independently human judged.
+Q30C,P30-1,1,seed-author,Inferred-topic seed label; this passage answers part of the question and needs the topic's other passage.
+Q30C,P30-2,1,seed-author,Inferred-topic seed label; this passage answers part of the question and needs the topic's other passage.
+Q30P1,P30-1,1,seed-author,Inferred-topic seed label; this passage answers part of the question and needs the topic's other passage.
+Q30P1,P30-2,1,seed-author,Inferred-topic seed label; this passage answers part of the question and needs the topic's other passage.
+Q30P2,P30-1,1,seed-author,Inferred-topic seed label; this passage answers part of the question and needs the topic's other passage.
+Q30P2,P30-2,1,seed-author,Inferred-topic seed label; this passage answers part of the question and needs the topic's other passage.

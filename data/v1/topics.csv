@@ -1,14 +1,14 @@
 topic_id,category,knowledge_type,information_need
 T01,Work rights,known,How many paid hours a student visa holder may work while the course is in session and where the current limit is published
 T02,Work rights,inferred,Whether a compulsory course placement or volunteer work counts towards the work-hour limit
-T03,Work rights,known,What the minimum wage and payslip entitlements are for a casual job
+T03,Work rights,known,What minimum pay rate applies to a casual job
 T04,Work rights,inferred,What to do when an employer pays below the lawful rate or refuses a payslip
 T05,Work rights,known,What work rights a student keeps after the course finishes and before the visa ends
 T06,Health cover,known,What Overseas Student Health Cover is and for how long a student must hold it
 T07,Health cover,known,How to see a doctor and claim the cost back through OSHC
 T08,Health cover,inferred,What OSHC does not cover and what a student pays for out of pocket
 T09,Health cover,inferred,Whether a reciprocal health care agreement changes what cover a student needs
-T10,Health cover,known,What to do in a medical emergency and what it costs
+T10,Health cover,inferred,What to do in a medical emergency and what it costs
 T11,Transport,known,How to obtain a myki and touch on and off correctly
 T12,Transport,inferred,Whether an international student is eligible for concession fares and how eligibility is established
 T13,Transport,known,How to get from Melbourne Airport into the city on arrival
@@ -22,8 +22,8 @@ T20,Housing,known,What on-campus and homestay accommodation involve and how to a
 T21,Money and tax,known,How to open an Australian bank account after arrival
 T22,Money and tax,known,What a tax file number is and how a student applies for one
 T23,Money and tax,inferred,Whether a student must lodge a tax return and what happens if they do not
-T24,Arrival,known,What documents to carry in hand luggage and what cannot be brought into Australia
-T25,Arrival,known,What to complete in the first week after arriving
+T24,Arrival,known,What food travellers must declare when arriving in Australia
+T25,Arrival,known,What to prepare before leaving for Australia to study
 T26,Arrival,inferred,How to get a proof-of-age or identity card without an Australian driver licence
 T27,Study and support,known,What support services a university provides to international students
 T28,Study and support,known,What visa condition 8202 requires of course attendance and progress

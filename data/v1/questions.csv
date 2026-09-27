@@ -5,9 +5,9 @@ Q01P2,T01,paraphrased,en,My roster has shifts at two employers during semester; 
 Q02C,T02,canonical,en,Does a compulsory course placement count toward the Student visa work-hour limit?
 Q02P1,T02,paraphrased,en,I have an internship as part of my course. Does it use up my work hours?
 Q02P2,T02,paraphrased,en,My program requires a placement; could those rostered hours reduce my casual-job allowance?
-Q03C,T03,canonical,en,What minimum pay and payslip rules should an international student check for casual work?
-Q03P1,T03,paraphrased,en,"How do I tell if my café is paying me correctly, and when should I get a payslip?"
-Q03P2,T03,paraphrased,en,I received less than expected for a shift. Which official pay rate and records should I check?
+Q03C,T03,canonical,en,What minimum pay rate should an international student check for casual work?
+Q03P1,T03,paraphrased,en,How do I tell if my café is paying me at least the legal minimum?
+Q03P2,T03,paraphrased,en,I received less than expected for a shift. Which official pay rate should I check?
 Q04C,T04,canonical,en,What can an international student do about underpayment or a missing payslip?
 Q04P1,T04,paraphrased,en,My employer paid me below the rate I expected and gave no payslip. Where can I ask for help?
 Q04P2,T04,paraphrased,en,I am worried my visa status affects a workplace complaint. Can I still ask about my pay rights?
@@ -20,8 +20,8 @@ Q06P2,T06,paraphrased,en,My course end date and visa end date differ. Which date
 Q07C,T07,canonical,en,How can a student use OSHC when seeing a doctor and claiming a reimbursement?
 Q07P1,T07,paraphrased,en,I paid for a GP visit myself. What should I keep and how do I ask the insurer to pay me back?
 Q07P2,T07,paraphrased,en,"For a non-emergency illness, where should I start and how do I submit an OSHC claim?"
-Q08C,T08,canonical,en,What common services are excluded from basic OSHC and may cost extra?
-Q08P1,T08,paraphrased,en,Will my basic student health cover pay for glasses or dental treatment?
+Q08C,T08,canonical,en,"What does basic OSHC leave out, and how can a student check what a service will cost before treatment?"
+Q08P1,T08,paraphrased,en,"Will my basic student health cover pay for glasses or dental work, and who should I ask before booking?"
 Q08P2,T08,paraphrased,en,I need a dental check-up. How can I tell whether OSHC covers it or I will pay myself?
 Q09C,T09,canonical,en,Does a Reciprocal Health Care Agreement change a student's OSHC obligations?
 Q09P1,T09,paraphrased,en,My country has a health agreement with Australia. Does that mean I can cancel OSHC?
@@ -32,9 +32,9 @@ Q10P2,T10,paraphrased,en,"In an emergency, what number should I use and where do
 Q11C,T11,canonical,en,How should I tap on and off with myki on Melbourne public transport?
 Q11P1,T11,paraphrased,en,I am new to trams and trains. When do I touch my card on the reader?
 Q11P2,T11,paraphrased,en,I changed from a train to a tram and forgot to tap off. What are the normal myki rules?
-Q12C,T12,canonical,en,Which international students may qualify for the International Student Travel Pass?
+Q12C,T12,canonical,en,"Which international students may qualify for the International Student Travel Pass, and what does it offer?"
 Q12P1,T12,paraphrased,en,I study full time on an international student visa. Do I automatically get concession fares?
-Q12P2,T12,paraphrased,en,How can I check if my provider and course make me eligible for the student travel discount?
+Q12P2,T12,paraphrased,en,"How can I check if my provider and course make me eligible for the student travel discount, and how much could I save?"
 Q13C,T13,canonical,en,What are the transport options from Melbourne Airport to the city?
 Q13P1,T13,paraphrased,en,I land at Melbourne Airport with luggage. What is a straightforward way to reach the CBD?
 Q13P2,T13,paraphrased,en,"My ticket says Melbourne Airport, not Avalon. Which bus goes toward Southern Cross?"
@@ -45,8 +45,8 @@ Q15C,T15,canonical,en,Where is a residential rental bond held in Victoria and wh
 Q15P1,T15,paraphrased,en,My agent asked for a bond before moving in. Where should that money be registered?
 Q15P2,T15,paraphrased,en,I paid a bond to the rental provider. What confirmation should I receive and keep?
 Q16C,T16,canonical,en,How can a renter start a Victorian bond refund claim and what if it is disputed?
-Q16P1,T16,paraphrased,en,My lease ended and I want my bond back. How do I start the process myself?
-Q16P2,T16,paraphrased,en,My landlord and I disagree about a deduction. What official process handles a bond dispute?
+Q16P1,T16,paraphrased,en,"My lease ended and I want my bond back. How do I start the process myself, and what if the landlord objects?"
+Q16P2,T16,paraphrased,en,My landlord and I disagree about a deduction. How is the bond claim made and who decides the dispute?
 Q17C,T17,canonical,en,What information and condition documents should a renter receive at the start of a tenancy?
 Q17P1,T17,paraphrased,en,I just got keys to a rental. What paperwork should I check and keep?
 Q17P2,T17,paraphrased,en,The property has marks already. How do I record the condition when I move in?
@@ -71,12 +71,12 @@ Q23P2,T23,paraphrased,en,Which ATO tools can help me work out residency and whet
 Q24C,T24,canonical,en,What should a traveller do before bringing food into Australia?
 Q24P1,T24,paraphrased,en,Can I pack snacks from home for my flight to Melbourne?
 Q24P2,T24,paraphrased,en,The food is sealed and familiar. Do I still need to declare it at the border?
-Q25C,T25,canonical,en,What should an international student prepare for the first week after arriving in Australia?
-Q25P1,T25,paraphrased,en,I land shortly before classes. What practical things should I sort out first?
-Q25P2,T25,paraphrased,en,How do I avoid missing early provider steps after I reach Melbourne?
-Q26C,T26,canonical,en,How can someone without an Australian driver licence get a Victorian Proof of Age card?
-Q26P1,T26,paraphrased,en,I need local photo ID but I do not drive. What card can I apply for?
-Q26P2,T26,paraphrased,en,What identity documents and application steps should I check for a Proof of Age card?
+Q25C,T25,canonical,en,What should an international student prepare before leaving for Australia?
+Q25P1,T25,paraphrased,en,"My flight to Melbourne is next month. Which documents, insurance and money matters should I sort out first?"
+Q25P2,T25,paraphrased,en,"Before I fly out for my course, what should I confirm about where I will stay and who to notify?"
+Q26C,T26,canonical,en,"Without an Australian driver licence, what can prove a student's age, and how do they apply for a Victorian Proof of Age card?"
+Q26P1,T26,paraphrased,en,"I need local photo ID but I do not drive. Can my passport work, and what card can I apply for?"
+Q26P2,T26,paraphrased,en,"Which documents prove my age at a venue, and what steps apply for a Proof of Age card?"
 Q27C,T27,canonical,en,What student support services may be available through an Australian education provider?
 Q27P1,T27,paraphrased,en,I am overwhelmed by classes and settling in. Which university services could I contact?
 Q27P2,T27,paraphrased,en,Where can an international student find wellbeing or academic support?
@@ -86,9 +86,9 @@ Q28P2,T28,paraphrased,en,What study requirements should I discuss with my provid
 Q29C,T29,canonical,en,What number should I call for an emergency in Australia and what information should I give?
 Q29P1,T29,paraphrased,en,There is an immediate safety problem. Should I call 000 or search for a service online?
 Q29P2,T29,paraphrased,en,What should I tell the emergency operator when they answer?
-Q30C,T30,canonical,en,Where can an international student get free legal help about employment or accommodation?
-Q30P1,T30,paraphrased,en,My employer or landlord is treating me unfairly. Is there a student legal service I can contact?
-Q30P2,T30,paraphrased,en,I need someone independent to explain my rental rights. Where can I ask for a referral?
+Q30C,T30,canonical,en,"Where can an international student get free legal help about employment or accommodation, and what other support is available?"
+Q30P1,T30,paraphrased,en,"My employer or landlord is treating me unfairly. Is there a free student legal service, and who else can support me?"
+Q30P2,T30,paraphrased,en,"I need independent advice about my rental rights. Which free service can refer me, and can my university help too?"
 QX01,,ookb,en,How do I apply for a driver licence in Victoria?
 QX02,,ookb,en,Can I bring my partner to Australia on my student visa?
 QX03,,ookb,en,How do I get a police check for a part-time job?

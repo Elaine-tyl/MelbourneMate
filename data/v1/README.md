@@ -9,9 +9,9 @@ questions, passages or judgements.
 
 | Element | Count |
 |---|---:|
-| Official sources | 30 |
+| Official sources | 31 |
 | Passages | 41 (34 marked `volatile`) |
-| Topics | 30 (20 known, 10 inferred) |
+| Topics | 30 (19 known, 11 inferred) |
 | Validation / test split | 18 / 12 topics |
 | Answerable questions | 90 (canonical plus two paraphrases per topic) |
 | Out-of-KB questions | 30 |
@@ -24,7 +24,8 @@ same side of the validation/test boundary.
 ## Sources and access dates
 
 Every source URL was opened and checked against the passages that cite it on
-27 September 2026. `sources.csv` records that access date. `source-log.csv`
+27 September 2026, and passages revised after review were checked again against
+their pages. `sources.csv` records that access date. `source-log.csv`
 records, for each source, the page's own "last updated" date where shown, the
 passages it supports and the outcome of the check:
 
@@ -39,15 +40,21 @@ rechecked before use; the collection is a dated snapshot.
 
 ## Relevance labels
 
-`judgements.csv` and `qrels.txt` hold Walert-style topic-to-passage seed labels:
-each answerable question is linked to the passage or passages written for its
-topic (grade 2 fully answers, grade 1 partially relevant). Out-of-KB questions
-have no labels. New MPNet candidates are checked separately under S9-05 before
-final qrels are generated.
+`judgements.csv` and `qrels.txt` hold Walert-style topic-to-passage seed labels.
+Out-of-KB questions have no labels. New MPNet candidates are checked separately
+under S9-05 before final qrels are generated.
 
-`gold.csv` holds reference answers with sentence support spans for every
-answerable question. They are an auditable answer target and do not make the
-seed labels independent.
+- A `known` topic has one passage that fully answers each of its questions
+  (grade 2).
+- An `inferred` topic has two passages that each answer part of the question
+  (grade 1 each). No single passage is a complete answer, so a system needs
+  both. `mm quality` reports question-term containment for grade-2 passages
+  only, so its containment figures describe the known topics.
+
+`gold.csv` holds one reference answer per answerable question. Each answer
+covers every part of its own phrasing and is built from the passage sentences
+listed in `support`; for inferred topics it uses both passages. The answers are
+an auditable target and do not make the seed labels independent.
 
 ## Check
 
