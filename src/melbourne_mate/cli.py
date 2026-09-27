@@ -16,6 +16,10 @@ from melbourne_mate.evaluation.collection_quality import (
     containment_bin,
     question_containment,
 )
+from melbourne_mate.evaluation.error_analysis import (
+    ErrorAnalysisError,
+    write_error_analysis,
+)
 from melbourne_mate.evaluation.generation_inputs import (
     GenerationCase,
     GenerationInputError,
@@ -283,6 +287,26 @@ def cmd_evaluate_generation(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_analyse_errors(args: argparse.Namespace) -> int:
+    """Create one report from saved retrieval and generation runs."""
+    try:
+        path = write_error_analysis(
+            args.out,
+            load_collection(args.data),
+            args.qrels,
+            args.bm25_retrieval,
+            args.mpnet_retrieval,
+            args.bm25_generation,
+            args.mpnet_generation,
+            args.no_context_generation,
+        )
+    except (CollectionError, ErrorAnalysisError, OSError, ValueError) as exc:
+        print(str(exc), file=sys.stderr)
+        return 1
+    print(f"wrote {path}")
+    return 0
+
+
 def cmd_compare(args: argparse.Namespace) -> int:
     left_manifest = read_manifest(args.left)
     right_manifest = read_manifest(args.right)
@@ -542,6 +566,16 @@ def main(argv: list[str] | None = None) -> int:
     generation_workflow.add_argument("--offline", action="store_true")
     generation_workflow.add_argument("--runs-dir", default="runs/generation")
     generation_workflow.set_defaults(func=cmd_evaluate_generation)
+
+    analysis = sub.add_parser("analyse-errors")
+    analysis.add_argument("--qrels", required=True)
+    analysis.add_argument("--bm25-retrieval", required=True)
+    analysis.add_argument("--mpnet-retrieval", required=True)
+    analysis.add_argument("--bm25-generation", required=True)
+    analysis.add_argument("--mpnet-generation", required=True)
+    analysis.add_argument("--no-context-generation", required=True)
+    analysis.add_argument("--out", required=True)
+    analysis.set_defaults(func=cmd_analyse_errors)
 
     compare = sub.add_parser("compare")
     compare.add_argument("--left", required=True)

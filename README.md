@@ -120,6 +120,25 @@ mm --data data/v1 evaluate-generation \
 This creates BM25s, MPNet, and no-context runs with the same 66 questions and
 settings. Use a new prefix when repeating the test.
 
+## Error analysis
+
+Build the final error report from saved runs. This does not rerun retrieval or
+Ollama.
+
+```bash
+mm --data data/v1 analyse-errors \
+  --qrels review/targeted-qrels/qrels-final.txt \
+  --bm25-retrieval runs/retrieval/s9-final-bm25-test \
+  --mpnet-retrieval runs/retrieval/s9-final-mpnet-test \
+  --bm25-generation runs/generation/s9-qwen25-20260927-bm25 \
+  --mpnet-generation runs/generation/s9-qwen25-20260927-mpnet \
+  --no-context-generation runs/generation/s9-qwen25-20260927-no-context \
+  --out runs/analysis/recheck-yourname
+```
+
+The report uses the shared high-risk categories in
+`src/melbourne_mate/evaluation/risk.py`.
+
 Create the 37-pair review sheet from the saved MPNet top-five rankings:
 
 ```bash

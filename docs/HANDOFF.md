@@ -74,6 +74,13 @@ mm --data data/v1 evaluate-generation \
 The command creates `-bm25`, `-mpnet`, and `-no-context` run folders. A new
 prefix is required for every repeat. Human answer review is a separate task.
 
+## Error analysis
+
+Use `mm analyse-errors` after the final retrieval and generation runs exist.
+The submitted output is under `runs/analysis/s9-error-analysis/`. It records
+retrieval gaps, refusals, invalid citations and high-risk failures without
+rerunning a model.
+
 ## Checks
 
 ```bash
