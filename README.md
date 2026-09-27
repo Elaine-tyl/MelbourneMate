@@ -103,6 +103,23 @@ The final submitted results are in `runs/retrieval/s9-final-bm25-test/`,
 `runs/retrieval/s9-final-mpnet-test/` and
 `runs/retrieval/s9-final-comparison.csv`. Each run ID is write-once.
 
+## Generation evaluation
+
+Install the local model, then run all three methods with one command:
+
+```bash
+ollama pull qwen2.5:7b-instruct
+mm --data data/v1 validate
+mm --data data/v1 evaluate-generation \
+  --sample generation-sample.csv \
+  --qrels review/targeted-qrels/qrels-final.txt \
+  --run-prefix recheck-yourname \
+  --model qwen2.5:7b-instruct
+```
+
+This creates BM25s, MPNet, and no-context runs with the same 66 questions and
+settings. Use a new prefix when repeating the test.
+
 Create the 37-pair review sheet from the saved MPNet top-five rankings:
 
 ```bash

@@ -1,0 +1,5 @@
+cell,count,reads_as
+hit_answered,33,working as intended
+hit_refused,3,generator too conservative
+miss_answered,0,answered without evidence
+miss_refused,0,retrieval is the bottleneck
