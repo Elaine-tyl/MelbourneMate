@@ -101,6 +101,26 @@ def test_compare_rejects_different_qrels_fingerprints(tmp_path, capsys):
     assert "different qrels" in capsys.readouterr().err
 
 
+def test_compare_rejects_collection_that_does_not_match_runs(tmp_path, capsys):
+    left, _ = _source_run(tmp_path / "left")
+    right, _ = _source_run(tmp_path / "right")
+
+    result = cli.main(
+        [
+            "--data",
+            "data/v1",
+            "compare",
+            "--left",
+            str(left),
+            "--right",
+            str(right),
+        ]
+    )
+
+    assert result == 1
+    assert "different collection" in capsys.readouterr().err
+
+
 def test_compare_can_save_the_paired_result(tmp_path):
     left, _ = _source_run(tmp_path / "left")
     right, _ = _source_run(tmp_path / "right")

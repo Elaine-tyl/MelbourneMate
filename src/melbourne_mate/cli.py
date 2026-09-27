@@ -213,6 +213,9 @@ def cmd_compare(args: argparse.Namespace) -> int:
         return 1
 
     collection = load_collection(args.data)
+    if collection.fingerprint() != left_manifest.collection_fingerprint:
+        print("data uses a different collection from the runs", file=sys.stderr)
+        return 1
     clusters = {
         question.question_id: question.topic_id
         for question in collection.questions.values()
