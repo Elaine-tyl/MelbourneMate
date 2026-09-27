@@ -207,6 +207,7 @@ def cmd_compare(args: argparse.Namespace) -> int:
     if left_manifest.ndcg_gain != right_manifest.ndcg_gain:
         print("runs use different NDCG gain settings", file=sys.stderr)
         return 1
+    # Scores from different qrels are not comparable.
     if left_manifest.qrels_fingerprint != right_manifest.qrels_fingerprint:
         print("runs use different qrels", file=sys.stderr)
         return 1
@@ -266,6 +267,7 @@ def cmd_rescore_retrieval(args: argparse.Namespace) -> int:
         print("source run uses a different configuration", file=sys.stderr)
         return 1
 
+    # Reuse saved rankings; only the qrels and scores change.
     rankings = read_run_file(source)
     questions = collection.questions_in_split(manifest.split)
     question_ids = [question.question_id for question in questions]
@@ -295,7 +297,7 @@ def cmd_rescore_retrieval(args: argparse.Namespace) -> int:
         }
         for question in questions
     }
-    qrels_fingerprint = hashlib.sha256(qrels_path.read_bytes()).hexdigest()[:16]
+    qrels_fp = hashlib.sha256(qrels_path.read_bytes()).hexdigest()[:16]
     path = write_run(
         Path(args.runs_dir) / args.run_id,
         run_id=args.run_id,
@@ -306,8 +308,8 @@ def cmd_rescore_retrieval(args: argparse.Namespace) -> int:
         rankings=rankings,
         per_question=scores,
         question_meta=meta,
-        note=f"Rescored from {manifest.run_id} using qrels-{qrels_fingerprint}",
-        qrels_fingerprint=qrels_fingerprint,
+        note=f"Rescored from {manifest.run_id} using qrels-{qrels_fp}",
+        qrels_fingerprint=qrels_fp,
     )
     print(f"wrote {path}")
     for metric, value in metrics_mod.aggregate(scores).items():

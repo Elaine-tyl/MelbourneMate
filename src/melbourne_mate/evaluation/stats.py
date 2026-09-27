@@ -56,6 +56,7 @@ def cluster_bootstrap_ci(
         return sum(values) / len(values)
 
     observed = mean_of(keys)
+    # Sample topics, not individual question variants.
     draws = sorted(
         mean_of([keys[rng.randrange(len(keys))] for _ in range(len(keys))])
         for _ in range(resamples)

@@ -169,6 +169,7 @@ def build_targeted_qrels(
         seen.add(pair)
 
         grade = _grade(row.get("grade", ""), f"row {index}")
+        # Only verified positive pairs extend the seed qrels.
         if grade > 0:
             qrels.setdefault(question_id, {})[passage_id] = grade
             added += 1
