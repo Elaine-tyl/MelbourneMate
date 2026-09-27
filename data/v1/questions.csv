@@ -2,15 +2,15 @@ question_id,topic_id,question_form,language,text
 Q01C,T01,canonical,en,How many hours may a Student visa holder work while classes are in session?
 Q01P1,T01,paraphrased,en,I have lectures this week and a casual job. How much can I work without exceeding my student visa limit?
 Q01P2,T01,paraphrased,en,My roster has shifts at two employers during semester; how do I know whether the total is allowed?
-Q02C,T02,canonical,en,Does a compulsory course placement count toward the Student visa work-hour limit?
-Q02P1,T02,paraphrased,en,I have an internship as part of my course. Does it use up my work hours?
-Q02P2,T02,paraphrased,en,My program requires a placement; could those rostered hours reduce my casual-job allowance?
+Q02C,T02,canonical,en,"Does a mandatory CRICOS placement count toward the student visa work limit, and what fortnightly limit applies to other paid or unpaid work experience while the course is in session?"
+Q02P1,T02,paraphrased,en,"I have a mandatory placement in my course and I also do unpaid work experience. Which of those hours count toward my visa work limit, and what is that limit while classes are in session?"
+Q02P2,T02,paraphrased,en,"My program requires a CRICOS placement and I also want casual shifts. Do the placement hours reduce that allowance, and how many other hours can I work per fortnight while the course is in session?"
 Q03C,T03,canonical,en,What minimum pay rate should an international student check for casual work?
 Q03P1,T03,paraphrased,en,How do I tell if my café is paying me at least the legal minimum?
 Q03P2,T03,paraphrased,en,I received less than expected for a shift. Which official pay rate should I check?
 Q04C,T04,canonical,en,What can an international student do about underpayment or a missing payslip?
 Q04P1,T04,paraphrased,en,My employer paid me below the rate I expected and gave no payslip. Where can I ask for help?
-Q04P2,T04,paraphrased,en,I am worried my visa status affects a workplace complaint. Can I still ask about my pay rights?
+Q04P2,T04,paraphrased,en,"Does my visa status change my minimum pay rights, and can I ask the Fair Work Ombudsman about underpayment without risking my visa?"
 Q05C,T05,canonical,en,How should a student check work rights after completing a course but before a visa expires?
 Q05P1,T05,paraphrased,en,"My course has finished, but my visa date is later. Can I assume I can work unlimited hours?"
 Q05P2,T05,paraphrased,en,Where can I verify my exact work conditions after my studies end?
@@ -33,7 +33,7 @@ Q11C,T11,canonical,en,How should I tap on and off with myki on Melbourne public 
 Q11P1,T11,paraphrased,en,I am new to trams and trains. When do I touch my card on the reader?
 Q11P2,T11,paraphrased,en,I changed from a train to a tram and forgot to tap off. What are the normal myki rules?
 Q12C,T12,canonical,en,"Which international students may qualify for the International Student Travel Pass, and what does it offer?"
-Q12P1,T12,paraphrased,en,I study full time on an international student visa. Do I automatically get concession fares?
+Q12P1,T12,paraphrased,en,"I study full time on an international student visa. Do I automatically get concession fares, and what course and institution conditions apply before I can buy an International Student Travel Pass?"
 Q12P2,T12,paraphrased,en,"How can I check if my provider and course make me eligible for the student travel discount, and how much could I save?"
 Q13C,T13,canonical,en,What are the transport options from Melbourne Airport to the city?
 Q13P1,T13,paraphrased,en,I land at Melbourne Airport with luggage. What is a straightforward way to reach the CBD?
@@ -52,7 +52,7 @@ Q17P1,T17,paraphrased,en,I just got keys to a rental. What paperwork should I ch
 Q17P2,T17,paraphrased,en,The property has marks already. How do I record the condition when I move in?
 Q18C,T18,canonical,en,What counts as an urgent rental repair and what can a renter do if the provider does not respond?
 Q18P1,T18,paraphrased,en,There is no hot water and the agent is not answering. What should I do first?
-Q18P2,T18,paraphrased,en,A dangerous fault needs fixing. Can I arrange a repair myself and what limit applies?
+Q18P2,T18,paraphrased,en,"There is a dangerous electrical fault and the agent has not called back. What should I do first, and if they still do not arrange it, can I pay for the repair myself and what cost limit applies?"
 Q19C,T19,canonical,en,How is rent paid in advance different from a rental bond in Victoria?
 Q19P1,T19,paraphrased,en,The agent wants several weeks of money before I move. Is all of that a bond?
 Q19P2,T19,paraphrased,en,"What does advance rent pay for, and how is it different from money held by the RTBA?"
@@ -75,7 +75,7 @@ Q25C,T25,canonical,en,What should an international student prepare before leavin
 Q25P1,T25,paraphrased,en,"My flight to Melbourne is next month. Which documents, insurance and money matters should I sort out first?"
 Q25P2,T25,paraphrased,en,"Before I fly out for my course, what should I confirm about where I will stay and who to notify?"
 Q26C,T26,canonical,en,"Without an Australian driver licence, what can prove a student's age, and how do they apply for a Victorian Proof of Age card?"
-Q26P1,T26,paraphrased,en,"I need local photo ID but I do not drive. Can my passport work, and what card can I apply for?"
+Q26P1,T26,paraphrased,en,"I do not drive. Can my passport prove my age at a venue, and what are the steps and fee for a Victorian Proof of Age card?"
 Q26P2,T26,paraphrased,en,"Which documents prove my age at a venue, and what steps apply for a Proof of Age card?"
 Q27C,T27,canonical,en,What student support services may be available through an Australian education provider?
 Q27P1,T27,paraphrased,en,I am overwhelmed by classes and settling in. Which university services could I contact?
