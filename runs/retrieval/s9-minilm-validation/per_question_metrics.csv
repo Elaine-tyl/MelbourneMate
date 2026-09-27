@@ -1,0 +1,55 @@
+question_id,category,containment,containment_bin,knowledge_type,question_form,topic_id,ndcg@1,ndcg@3,ndcg@5,recall@5,mrr,retrieval_failure@5
+Q01C,Work rights,0.700,high,known,canonical,T01,1.0,1.0,1.0,1.0,1.0,0.0
+Q01P1,Work rights,0.364,low,known,paraphrased,T01,0.0,0.5,0.5,1.0,0.333333,0.0
+Q01P2,Work rights,0.000,low,known,paraphrased,T01,0.0,0.0,0.386853,1.0,0.2,0.0
+Q02C,Work rights,0.000,low,inferred,canonical,T02,1.0,1.0,1.0,1.0,1.0,0.0
+Q02P1,Work rights,0.000,low,inferred,paraphrased,T02,1.0,0.613147,0.877215,1.0,1.0,0.0
+Q02P2,Work rights,0.000,low,inferred,paraphrased,T02,1.0,1.0,1.0,1.0,1.0,0.0
+Q03C,Work rights,0.556,medium,known,canonical,T03,1.0,1.0,1.0,1.0,1.0,0.0
+Q03P1,Work rights,0.167,low,known,paraphrased,T03,0.0,0.63093,0.63093,1.0,0.5,0.0
+Q03P2,Work rights,0.400,medium,known,paraphrased,T03,1.0,1.0,1.0,1.0,1.0,0.0
+Q05C,Work rights,0.636,medium,known,canonical,T05,1.0,1.0,1.0,1.0,1.0,0.0
+Q05P1,Work rights,0.556,medium,known,paraphrased,T05,1.0,1.0,1.0,1.0,1.0,0.0
+Q05P2,Work rights,0.429,medium,known,paraphrased,T05,1.0,1.0,1.0,1.0,1.0,0.0
+Q06C,Health cover,0.667,medium,known,canonical,T06,1.0,1.0,1.0,1.0,1.0,0.0
+Q06P1,Health cover,0.571,medium,known,paraphrased,T06,0.0,0.63093,0.63093,1.0,0.5,0.0
+Q06P2,Health cover,0.375,low,known,paraphrased,T06,0.0,0.5,0.5,1.0,0.333333,0.0
+Q07C,Health cover,0.286,low,known,canonical,T07,1.0,1.0,1.0,1.0,1.0,0.0
+Q07P1,Health cover,0.300,low,known,paraphrased,T07,1.0,1.0,1.0,1.0,1.0,0.0
+Q07P2,Health cover,0.875,high,known,paraphrased,T07,1.0,1.0,1.0,1.0,1.0,0.0
+Q09C,Health cover,0.000,low,inferred,canonical,T09,1.0,0.613147,0.613147,0.5,1.0,0.0
+Q09P1,Health cover,0.000,low,inferred,paraphrased,T09,1.0,0.919721,0.919721,1.0,1.0,0.0
+Q09P2,Health cover,0.000,low,inferred,paraphrased,T09,1.0,0.613147,0.613147,0.5,1.0,0.0
+Q11C,Transport,0.571,medium,known,canonical,T11,1.0,1.0,1.0,1.0,1.0,0.0
+Q11P1,Transport,0.143,low,known,paraphrased,T11,1.0,1.0,1.0,1.0,1.0,0.0
+Q11P2,Transport,0.444,medium,known,paraphrased,T11,1.0,1.0,1.0,1.0,1.0,0.0
+Q12C,Transport,0.000,low,inferred,canonical,T12,1.0,1.0,1.0,1.0,1.0,0.0
+Q12P1,Transport,0.000,low,inferred,paraphrased,T12,1.0,1.0,1.0,1.0,1.0,0.0
+Q12P2,Transport,0.000,low,inferred,paraphrased,T12,1.0,1.0,1.0,1.0,1.0,0.0
+Q13C,Transport,0.800,high,known,canonical,T13,1.0,1.0,1.0,1.0,1.0,0.0
+Q13P1,Transport,0.250,low,known,paraphrased,T13,1.0,1.0,1.0,1.0,1.0,0.0
+Q13P2,Transport,0.545,medium,known,paraphrased,T13,1.0,1.0,1.0,1.0,1.0,0.0
+Q15C,Housing,0.714,high,known,canonical,T15,1.0,1.0,1.0,1.0,1.0,0.0
+Q15P1,Housing,0.250,low,known,paraphrased,T15,1.0,1.0,1.0,1.0,1.0,0.0
+Q15P2,Housing,0.750,high,known,paraphrased,T15,1.0,1.0,1.0,1.0,1.0,0.0
+Q16C,Housing,0.000,low,inferred,canonical,T16,1.0,1.0,1.0,1.0,1.0,0.0
+Q16P1,Housing,0.000,low,inferred,paraphrased,T16,1.0,0.919721,0.919721,1.0,1.0,0.0
+Q16P2,Housing,0.000,low,inferred,paraphrased,T16,1.0,1.0,1.0,1.0,1.0,0.0
+Q19C,Housing,0.857,high,known,canonical,T19,1.0,1.0,1.0,1.0,1.0,0.0
+Q19P1,Housing,0.333,low,known,paraphrased,T19,0.0,0.0,0.430677,1.0,0.25,0.0
+Q19P2,Housing,0.571,medium,known,paraphrased,T19,1.0,1.0,1.0,1.0,1.0,0.0
+Q21C,Money and tax,0.625,medium,known,canonical,T21,1.0,1.0,1.0,1.0,1.0,0.0
+Q21P1,Money and tax,0.333,low,known,paraphrased,T21,1.0,1.0,1.0,1.0,1.0,0.0
+Q21P2,Money and tax,0.429,medium,known,paraphrased,T21,1.0,1.0,1.0,1.0,1.0,0.0
+Q22C,Money and tax,0.600,medium,known,canonical,T22,0.0,0.63093,0.63093,1.0,0.5,0.0
+Q22P1,Money and tax,0.333,low,known,paraphrased,T22,1.0,1.0,1.0,1.0,1.0,0.0
+Q22P2,Money and tax,0.600,medium,known,paraphrased,T22,1.0,1.0,1.0,1.0,1.0,0.0
+Q24C,Arrival,0.571,medium,known,canonical,T24,1.0,1.0,1.0,1.0,1.0,0.0
+Q24P1,Arrival,0.000,low,known,paraphrased,T24,1.0,1.0,1.0,1.0,1.0,0.0
+Q24P2,Arrival,0.714,high,known,paraphrased,T24,1.0,1.0,1.0,1.0,1.0,0.0
+Q27C,Study and support,0.667,medium,known,canonical,T27,1.0,1.0,1.0,1.0,1.0,0.0
+Q27P1,Study and support,0.125,low,known,paraphrased,T27,1.0,1.0,1.0,1.0,1.0,0.0
+Q27P2,Study and support,0.667,medium,known,paraphrased,T27,0.0,0.63093,0.63093,1.0,0.5,0.0
+Q29C,Safety and legal,0.286,low,known,canonical,T29,0.0,0.63093,0.63093,1.0,0.5,0.0
+Q29P1,Safety and legal,0.556,medium,known,paraphrased,T29,1.0,1.0,1.0,1.0,1.0,0.0
+Q29P2,Safety and legal,0.400,medium,known,paraphrased,T29,0.0,0.63093,0.63093,1.0,0.5,0.0
