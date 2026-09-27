@@ -1,0 +1,31 @@
+source_id,organisation,title,url,access_date,risk_category
+S01,Department of Home Affairs,Student visa (subclass 500),https://immi.homeaffairs.gov.au/visas/getting-a-visa/visa-listing/student-500,2026-09-27,visa
+S02,Department of Home Affairs,Visa conditions list,https://immi.homeaffairs.gov.au/visas/already-have-a-visa/check-visa-details-and-conditions/conditions-list,2026-09-27,visa
+S03,Fair Work Ombudsman,International students fact sheet,https://www.fairwork.gov.au/tools-and-resources/fact-sheets/rights-and-obligations/international-students,2026-09-27,employment
+S04,Fair Work Ombudsman,Minimum wages,https://www.fairwork.gov.au/tools-and-resources/fact-sheets/minimum-workplace-entitlements/minimum-wages,2026-09-27,employment
+S05,Study Australia (Austrade),OSHC: what international students need to know,https://www.studyaustralia.gov.au/en/tools-and-resources/tips-and-advice-for-students/oshc-what-international-students-need-to-know,2026-09-27,health
+S06,Study Melbourne,Overseas Student Health Cover,https://studymelbourne.vic.gov.au/study-with-us/enrolments-and-student-visas/overseas-student-health-cover,2026-09-27,health
+S07,Services Australia,Reciprocal Health Care Agreements,https://www.servicesaustralia.gov.au/about-reciprocal-health-care-agreements?context=22481,2026-09-27,health
+S08,Department of Health Victoria,Ambulance and non-emergency patient transport,https://www.health.vic.gov.au/patient-care/ambulance-and-non-emergency-patient-transport,2026-09-27,health
+S09,Transport Victoria,Tap on and off with myki,https://transport.vic.gov.au/tickets-and-payments/myki/tap-on-and-off-with-myki,2026-09-27,general
+S10,Study Melbourne,International Student Travel Pass,https://studymelbourne.vic.gov.au/about-study-melbourne/our-student-programs/international-student-travel-pass,2026-09-27,general
+S11,Study Melbourne,Flying into Melbourne,https://studymelbourne.vic.gov.au/living-here/transport/flying-into-melbourne,2026-09-27,general
+S12,Transport Victoria,Fines and authorised officers on public transport,https://transport.vic.gov.au/plan-a-journey/travel-tips-and-resources/public-transport-safety-and-security/fines-and-authorised-officers-on-public-transport,2026-09-27,general
+S13,Consumer Affairs Victoria,Lodging the bond with the RTBA,https://www.consumer.vic.gov.au/housing/renting/rent-bond-bills-and-condition-reports/bond/lodging-the-bond-with-the-rtba,2026-09-27,housing
+S14,Consumer Affairs Victoria,Bond claims and refunds,https://www.consumer.vic.gov.au/housing/renting/rent-bond-bills-and-condition-reports/bond/bond-claims-and-refunds,2026-09-27,housing
+S15,Consumer Affairs Victoria,Starting and signing a rental agreement,https://www.consumer.vic.gov.au/housing/renting/starting-and-changing-rental-agreements/applying-signing-and-moving-in/knowing-your-rights-when-signing-an-agreement,2026-09-27,housing
+S16,Consumer Affairs Victoria,Repairs in rental properties,https://www.consumer.vic.gov.au/housing/renting/repairs-alterations-safety-and-pets/repairs/repairs-in-rental-properties,2026-09-27,housing
+S17,Consumer Affairs Victoria,Rent payments and rent in advance,https://www.consumer.vic.gov.au/housing/renting/rent-bond-bills-and-condition-reports/rent/rent-payments-and-rent-in-advance,2026-09-27,housing
+S18,Study Melbourne,How to find accommodation,https://studymelbourne.vic.gov.au/living-here/accommodation/how-to-find-accommodation,2026-09-27,housing
+S19,Study Melbourne,Open a bank account,https://studymelbourne.vic.gov.au/living-here/money-and-budgeting/open-a-bank-account,2026-09-27,general
+S20,Australian Taxation Office,TFN application for foreign passport holders and temporary visitors,https://www.ato.gov.au/individuals-and-families/tax-file-number/apply-for-a-tfn/foreign-passport-holders-permanent-migrants-and-temporary-visitors-tfn-application,2026-09-27,employment
+S21,Australian Taxation Office,Residency – the resides test,https://www.ato.gov.au/individuals-and-families/coming-to-australia-or-going-overseas/residency-tests/residency-the-resides-test,2026-09-27,employment
+S22,Australian Taxation Office,Do I need to lodge a tax return?,https://www.ato.gov.au/calculators-and-tools/tax-return-do-i-need-to-lodge,2026-09-27,employment
+S23,Australian Border Force,Food,https://www.abf.gov.au/entering-leaving-australia/Pages/can-bring-it-in/Food.aspx,2026-09-27,general
+S24,Study Melbourne,Pre-Departure Checklist,https://studymelbourne.vic.gov.au/study-with-us/pre-arrival-guide/checklist,2026-09-27,general
+S25,Service Victoria,Apply for a Proof of Age card,https://service.vic.gov.au/find-services/personal/apply-for-a-proof-of-age-card,2026-09-27,general
+S26,Study Melbourne,Identification and proof of age,https://studymelbourne.vic.gov.au/living-here/identification-and-proof-of-age,2026-09-27,general
+S27,Study Australia (Austrade),On-campus and local support,https://www.studyaustralia.gov.au/en/life-in-australia/student-support-services/on-campus-and-local-support,2026-09-27,general
+S28,Department of Home Affairs,Meet course requirements (condition 8202),https://immi.homeaffairs.gov.au/visas/already-have-a-visa/check-visa-details-and-conditions/conditions-list,2026-09-27,visa
+S29,Study Melbourne,Medical and emergency services,https://studymelbourne.vic.gov.au/living-here/your-health-and-wellbeing/medical-and-emergency-services,2026-09-27,emergency
+S30,Study Melbourne,Free employment and accommodation legal advice,https://studymelbourne.vic.gov.au/living-here/help-in-tough-times/get-legal-advice/free-employment-and-accommodation-legal-advice,2026-09-27,general
