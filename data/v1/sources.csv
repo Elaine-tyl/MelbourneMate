@@ -1,6 +1,6 @@
 source_id,organisation,title,url,access_date,risk_category
 S01,Department of Home Affairs,Student visa (subclass 500),https://immi.homeaffairs.gov.au/visas/getting-a-visa/visa-listing/student-500,2026-09-27,visa
-S02,Department of Home Affairs,Visa conditions list,https://immi.homeaffairs.gov.au/visas/already-have-a-visa/check-visa-details-and-conditions/conditions-list,2026-09-27,visa
+S02,Department of Home Affairs,Work limitation (condition 8105),https://immi.homeaffairs.gov.au/visas/already-have-a-visa/check-visa-details-and-conditions/see-your-visa-conditions?cno=8105&product=500,2026-09-27,visa
 S03,Fair Work Ombudsman,International students fact sheet,https://www.fairwork.gov.au/tools-and-resources/fact-sheets/rights-and-obligations/international-students,2026-09-27,employment
 S04,Fair Work Ombudsman,Minimum wages,https://www.fairwork.gov.au/tools-and-resources/fact-sheets/minimum-workplace-entitlements/minimum-wages,2026-09-27,employment
 S05,Study Australia (Austrade),OSHC: what international students need to know,https://www.studyaustralia.gov.au/en/tools-and-resources/tips-and-advice-for-students/oshc-what-international-students-need-to-know,2026-09-27,health
@@ -26,7 +26,7 @@ S24,Study Melbourne,Pre-Departure Checklist,https://studymelbourne.vic.gov.au/st
 S25,Service Victoria,Apply for a Proof of Age card,https://service.vic.gov.au/find-services/personal/apply-for-a-proof-of-age-card,2026-09-27,general
 S26,Study Melbourne,Identification and proof of age,https://studymelbourne.vic.gov.au/living-here/identification-and-proof-of-age,2026-09-27,general
 S27,Study Australia (Austrade),On-campus and local support,https://www.studyaustralia.gov.au/en/life-in-australia/student-support-services/on-campus-and-local-support,2026-09-27,general
-S28,Department of Home Affairs,Meet course requirements (condition 8202),https://immi.homeaffairs.gov.au/visas/already-have-a-visa/check-visa-details-and-conditions/conditions-list,2026-09-27,visa
+S28,Department of Home Affairs,Meet course requirements (condition 8202),https://immi.homeaffairs.gov.au/visas/already-have-a-visa/check-visa-details-and-conditions/see-your-visa-conditions?cno=8202&product=500,2026-09-27,visa
 S29,Study Melbourne,Medical and emergency services,https://studymelbourne.vic.gov.au/living-here/your-health-and-wellbeing/medical-and-emergency-services,2026-09-27,emergency
 S30,Study Melbourne,Free employment and accommodation legal advice,https://studymelbourne.vic.gov.au/living-here/help-in-tough-times/get-legal-advice/free-employment-and-accommodation-legal-advice,2026-09-27,general
 S31,Transport Victoria,Students,https://transport.vic.gov.au/tickets-and-payments/myki/myki-types/students,2026-09-27,general
