@@ -1,0 +1,10 @@
+metric,value
+answerable_n,36
+ookb_n,30
+truncated_n,0
+truncation_rate,0.0
+correct_refusal_rate,0.0
+false_refusal_rate,
+unsupported_answer_rate,1.0
+citation_validity_rate,
+high_risk_unsupported_rate,1.0
