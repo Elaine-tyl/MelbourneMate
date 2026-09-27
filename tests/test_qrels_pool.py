@@ -1,9 +1,27 @@
 import csv
 from types import SimpleNamespace
 
+import pytest
+
 from melbourne_mate import cli
 from melbourne_mate.corpus import load_collection
+from melbourne_mate.evaluation.metrics import METRICS
+from melbourne_mate.evaluation.runs import write_run
 from melbourne_mate.evaluation.targeted_qrels import build_review_pool
+
+
+def _save_run(tmp_path, collection, rankings):
+    scores = {qid: {metric: 0.0 for metric in METRICS} for qid in rankings}
+    return write_run(
+        tmp_path / "run",
+        run_id="edge-case",
+        arm="dense",
+        split="test",
+        encoder="test-encoder@fixed",
+        collection_fingerprint=collection.fingerprint(),
+        rankings=rankings,
+        per_question=scores,
+    )
 
 
 def test_formal_mpnet_pool_keeps_only_plausible_new_pairs(tmp_path):
@@ -38,6 +56,22 @@ def test_review_pool_rejects_a_collection_mismatch(tmp_path):
         assert "collection fingerprint" in str(exc)
     else:
         raise AssertionError("mismatched collection should fail")
+
+
+def test_review_pool_rejects_an_unknown_passage(tmp_path):
+    collection = load_collection("data/sample")
+    run = _save_run(tmp_path, collection, {"Q007": ["P999"]})
+
+    with pytest.raises(ValueError, match="unknown passage P999"):
+        build_review_pool(collection, run, tmp_path / "pairs.csv")
+
+
+def test_review_pool_rejects_an_empty_candidate_set(tmp_path):
+    collection = load_collection("data/sample")
+    run = _save_run(tmp_path, collection, {"Q007": ["P005"]})
+
+    with pytest.raises(ValueError, match="no review candidates"):
+        build_review_pool(collection, run, tmp_path / "pairs.csv")
 
 
 def test_targeted_qrels_can_use_question_ids_from_the_saved_run(

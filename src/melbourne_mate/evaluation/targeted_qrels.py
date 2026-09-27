@@ -49,7 +49,9 @@ def build_review_pool(
         for rank, pid in enumerate(passage_ids[:5], start=1):
             if pid in collection.qrels.get(qid, {}):
                 continue
-            passage = collection.passages[pid]
+            passage = collection.passages.get(pid)
+            if passage is None:
+                raise ValueError(f"{qid}: run contains unknown passage {pid}")
             ptopic = collection.topics[passage.topic_id]
             same_category = qtopic.category == ptopic.category
             is_confusable = frozenset((qtopic.topic_id, ptopic.topic_id)) in confusable
@@ -72,6 +74,9 @@ def build_review_pool(
                     "note": "",
                 }
             )
+
+    if not rows:
+        raise ValueError("no review candidates matched the targeted rule")
 
     out = Path(output_path)
     if out.exists():
