@@ -139,6 +139,19 @@ mm --data data/v1 analyse-errors \
 The report uses the shared high-risk categories in
 `src/melbourne_mate/evaluation/risk.py`.
 
+## Streamlit demo
+
+Start Ollama, then launch the final MPNet chatbot:
+
+```bash
+ollama serve
+streamlit run src/melbourne_mate/interface/app.py
+```
+
+The four checked tasks and one citation warning are recorded in
+`review/chatbot-test-s9/results.csv`. The app uses the same pipeline, final
+qrels, frozen encoder and local model as the evaluation runs.
+
 Create the 37-pair review sheet from the saved MPNet top-five rankings:
 
 ```bash
