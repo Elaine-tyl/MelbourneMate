@@ -110,6 +110,23 @@ def test_streamlit_page_loads_before_models_are_needed():
     assert labels[-1] == "Find an answer"
 
 
+def test_streamlit_shows_saved_evaluation_results_before_models_are_needed():
+    app_path = Path(__file__).parents[1] / "src/melbourne_mate/interface/app.py"
+    app = AppTest.from_file(app_path).run()
+
+    assert [item.label for item in app.expander] == ["Evaluation results"]
+    headings = [item.value for item in app.subheader]
+    assert "Retrieval performance" in headings
+    assert "Generation safety" in headings
+    charts = app.get("vega_lite_chart")
+    assert len(charts) == 2
+    for chart in charts:
+        spec = json.loads(chart.proto.spec)
+        assert spec["encoding"]["xOffset"]["field"] == (
+            "color -- streamlit-generated"
+        )
+
+
 def test_four_task_record_matches_the_saved_mpnet_run():
     root = Path(__file__).parents[1]
     with (root / "review/chatbot-test-s9/results.csv").open(

@@ -6,6 +6,19 @@ The project compares a BM25s lexical baseline with a QA-trained MPNet dense
 retriever and evaluates whether retrieved evidence improves answer quality and
 safe refusal behaviour.
 
+## Contents
+
+Use these links to find the project method, setup, commands and saved evidence.
+
+- [From Walert to MelbourneMate](#from-walert-to-melbournemate)
+- [Walert method and local tooling](#walert-method-and-local-tooling)
+- [Development setup](#development-setup)
+- [Core commands](#core-commands)
+- [Reproduce the evaluation evidence](#reproduce-the-evaluation-evidence)
+- [Generation evaluation](#generation-evaluation)
+- [Error analysis](#error-analysis)
+- [Streamlit demo](#streamlit-demo)
+
 ## From Walert to MelbourneMate
 
 Walert is the methodological baseline for MelbourneMate. The project adapts
@@ -41,6 +54,9 @@ two projects' scores directly comparable.
 
 ## Development setup
 
+Use these steps to create a local environment and install the project, app and
+test dependencies.
+
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
@@ -53,7 +69,9 @@ personal participant data.
 
 ## Core commands
 
-`mm` is the short command installed by MelbourneMate. Validate the formal
+`mm` is the project's local command-line tool. Its entry point is defined in
+[`pyproject.toml`](pyproject.toml), and its commands are implemented in
+[`src/melbourne_mate/cli.py`](src/melbourne_mate/cli.py). Validate the formal
 collection before running an experiment:
 
 ```bash
@@ -103,7 +121,26 @@ The final submitted results are in `runs/retrieval/s9-final-bm25-test/`,
 `runs/retrieval/s9-final-mpnet-test/` and
 `runs/retrieval/s9-final-comparison.csv`. Each run ID is write-once.
 
+## Reproduce the evaluation evidence
+
+This table connects each reported result to its command, implementation and
+saved output. It helps reviewers check the evidence or repeat one experiment.
+
+| Result | Reproduction command | Code | Saved output |
+|---|---|---|---|
+| [Dense encoder choice](#core-commands) | [`mm retrieve` and `mm compare`](#core-commands) | [Retrieval package](src/melbourne_mate/retrieval/) | [MiniLM validation](runs/retrieval/s9-minilm-validation/) and [MPNet validation](runs/retrieval/s9-mpnet-validation/) |
+| [BM25s versus MPNet](#core-commands) | [`mm evaluate-retrieval`](#core-commands) | [Metrics](src/melbourne_mate/evaluation/metrics.py) and [statistics](src/melbourne_mate/evaluation/stats.py) | [BM25s test](runs/retrieval/s9-final-bm25-test/), [MPNet test](runs/retrieval/s9-final-mpnet-test/) and [comparison CSV](runs/retrieval/s9-final-comparison.csv) |
+| [Generation safety](#generation-evaluation) | [`mm evaluate-generation`](#generation-evaluation) | [Generation metrics](src/melbourne_mate/evaluation/generation_metrics.py) | [BM25s summary](runs/generation/s9-qwen25-20260927-bm25/summary.csv), [MPNet summary](runs/generation/s9-qwen25-20260927-mpnet/summary.csv) and [no-context summary](runs/generation/s9-qwen25-20260927-no-context/summary.csv) |
+| [Error analysis](#error-analysis) | [`mm analyse-errors`](#error-analysis) | [Error-analysis code](src/melbourne_mate/evaluation/error_analysis.py) | [Report](runs/analysis/s9-error-analysis/report.md), [summary CSV](runs/analysis/s9-error-analysis/summary.csv) and [cases CSV](runs/analysis/s9-error-analysis/cases.csv) |
+
+The commands below show the full arguments. Saved CSV files are committed so a
+reviewer can inspect the reported values without downloading models or rerunning
+Ollama.
+
 ## Generation evaluation
+
+This section reproduces the BM25s-grounded, MPNet-grounded and no-context
+conditions. All three use the same Qwen2.5 model, questions and settings.
 
 Install the local model, then run all three methods with one command:
 
@@ -122,8 +159,8 @@ settings. Use a new prefix when repeating the test.
 
 ## Error analysis
 
-Build the final error report from saved runs. This does not rerun retrieval or
-Ollama.
+This section builds the final error report from saved retrieval and generation
+runs. It does not rerun retrieval or Ollama.
 
 ```bash
 mm --data data/v1 analyse-errors \
@@ -141,6 +178,9 @@ The report uses the shared high-risk categories in
 
 ## Streamlit demo
 
+This section launches the chatbot and its evaluation charts for a simple project
+demonstration. The app uses the frozen MPNet pipeline and local Ollama model.
+
 Start Ollama, then launch the final MPNet chatbot:
 
 ```bash
@@ -148,9 +188,10 @@ ollama serve
 streamlit run src/melbourne_mate/interface/app.py
 ```
 
-The four checked tasks and one citation warning are recorded in
-`review/chatbot-test-s9/results.csv`. The app uses the same pipeline, final
-qrels, frozen encoder and local model as the evaluation runs.
+The Evaluation results panel reads the committed retrieval and generation CSVs;
+it does not rerun an experiment. The four checked tasks and one citation warning
+are recorded in `review/chatbot-test-s9/results.csv`. The app uses the same
+pipeline, final qrels, frozen encoder and local model as the evaluation runs.
 
 Create the 37-pair review sheet from the saved MPNet top-five rankings:
 
