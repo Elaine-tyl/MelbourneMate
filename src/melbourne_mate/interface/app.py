@@ -3,11 +3,13 @@
 from __future__ import annotations
 
 import os
+from dataclasses import replace
 from pathlib import Path
 
 import streamlit as st
 
 from melbourne_mate.corpus import CollectionError, load_collection
+from melbourne_mate.evaluation.generation_inputs import load_generation_qrels
 from melbourne_mate.generation.gate import EvidenceGate
 from melbourne_mate.generation.ollama import OllamaClient, OllamaError
 from melbourne_mate.pipeline import Answer, RagPipeline, build_retriever
@@ -89,10 +91,23 @@ def _project_root() -> Path:
     return Path(__file__).resolve().parents[3]
 
 
+def _load_app_collection(data_dir: Path, qrels_path: Path):
+    collection = load_collection(data_dir)
+    qrels, _ = load_generation_qrels(qrels_path, collection)
+    return replace(collection, qrels=qrels)
+
+
 @st.cache_resource(show_spinner=False)
 def _build_pipeline() -> RagPipeline:
-    data_dir = Path(os.environ.get("MM_DATA", _project_root() / "data" / "v1"))
-    collection = load_collection(data_dir)
+    root = _project_root()
+    data_dir = Path(os.environ.get("MM_DATA", root / "data" / "v1"))
+    qrels_path = Path(
+        os.environ.get(
+            "MM_QRELS",
+            root / "review" / "targeted-qrels" / "qrels-final.txt",
+        )
+    )
+    collection = _load_app_collection(data_dir, qrels_path)
     encoder = load_encoder("multi-qa-mpnet")
     retriever = build_retriever(collection, "dense", encoder)
     model = OllamaClient()

@@ -1,5 +1,5 @@
 task_id,area,question_id,expected,observed_status,citation_valid,result,finding,action,source_run,checked_utc
-1,work,Q04P1,Answer with relevant official evidence,answered,false,needs review,P30-1 was cited but is outside the current qrels for this question.,The interface now shows a citation warning.,s9-qwen25-20260927-mpnet,2026-09-27T15:32:24Z
+1,work,Q04P1,Answer with relevant official evidence,answered,false,documented limit,P30-1 supports unpaid-wage help but was not judged for Q04P1; this is a qrels coverage gap.,Keep the warning and record the qrels limit.,s9-qwen25-20260927-mpnet,2026-09-27T15:32:24Z
 2,health,Q10C,Answer with emergency and ambulance evidence,answered,true,pass,Emergency action and ambulance cost were supported.,No change needed.,s9-qwen25-20260927-mpnet,2026-09-27T15:32:24Z
 3,housing,Q18P2,Answer with urgent repair steps and cost limit,answered,true,pass,"The steps and $2,500 limit were cited.",No change needed.,s9-qwen25-20260927-mpnet,2026-09-27T15:32:24Z
 4,outside sources,QX19,Refuse because the collection has no live exchange rate,refused,n.a.,pass,"The gate refused at 0.212, below the frozen 0.300 threshold.",No change needed.,s9-qwen25-20260927-mpnet,2026-09-27T15:32:24Z

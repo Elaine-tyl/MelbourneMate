@@ -149,8 +149,8 @@ streamlit run src/melbourne_mate/interface/app.py
 ```
 
 The four checked tasks and one citation warning are recorded in
-`review/chatbot-test-s9/results.csv`. The app uses the same pipeline, frozen
-encoder and local model as the evaluation runs.
+`review/chatbot-test-s9/results.csv`. The app uses the same pipeline, final
+qrels, frozen encoder and local model as the evaluation runs.
 
 Create the 37-pair review sheet from the saved MPNet top-five rankings:
 

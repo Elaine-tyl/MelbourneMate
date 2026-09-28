@@ -7,7 +7,12 @@ from streamlit.testing.v1 import AppTest
 from melbourne_mate.corpus import load_collection
 from melbourne_mate.generation.citations import CitationReport
 from melbourne_mate.generation.prompts import EvidenceItem
-from melbourne_mate.interface.app import EXAMPLE_QUESTIONS, answer_question, answer_view
+from melbourne_mate.interface.app import (
+    EXAMPLE_QUESTIONS,
+    _load_app_collection,
+    answer_question,
+    answer_view,
+)
 from melbourne_mate.pipeline import Answer
 
 
@@ -77,6 +82,17 @@ def test_answer_question_uses_qrels_for_a_saved_example():
     assert pipeline.relevant_ids == tuple(
         sorted(pipeline.collection.qrels["Q04P1"])
     )
+
+
+def test_app_collection_uses_the_formal_qrels():
+    root = Path(__file__).parents[1]
+
+    collection = _load_app_collection(
+        root / "data/v1",
+        root / "review/targeted-qrels/qrels-final.txt",
+    )
+
+    assert "P03-1" in collection.qrels["Q04P1"]
 
 
 def test_four_example_tasks_cover_the_required_cases():
