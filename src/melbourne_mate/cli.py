@@ -60,6 +60,8 @@ def _question_ids(path: str | Path) -> list[str]:
 
 
 def cmd_validate(args: argparse.Namespace) -> int:
+    """Validate the collection and print its reproducibility fingerprints."""
+
     try:
         collection = load_collection(args.data)
     except CollectionError as exc:
@@ -75,17 +77,23 @@ def cmd_validate(args: argparse.Namespace) -> int:
 
 
 def cmd_quality(args: argparse.Namespace) -> int:
+    """Print the collection quality checks used before an experiment."""
+
     for line in build_report(load_collection(args.data)).lines():
         print(line)
     return 0
 
 
 def cmd_config(args: argparse.Namespace) -> int:
+    """Show the frozen experiment configuration."""
+
     print(CONFIG.to_yaml(), end="")
     return 0
 
 
 def cmd_retrieve(args: argparse.Namespace) -> int:
+    """Run one retriever and save its rankings and evaluation scores."""
+
     collection = load_collection(args.data)
     encoder = load_encoder(args.encoder) if args.arm == "dense" else None
     retriever = build_retriever(collection, args.arm, encoder)
@@ -308,6 +316,8 @@ def cmd_analyse_errors(args: argparse.Namespace) -> int:
 
 
 def cmd_compare(args: argparse.Namespace) -> int:
+    """Compare two compatible saved runs with topic-level statistics."""
+
     left_manifest = read_manifest(args.left)
     right_manifest = read_manifest(args.right)
     if left_manifest.split != right_manifest.split:
@@ -433,6 +443,8 @@ def cmd_rescore_retrieval(args: argparse.Namespace) -> int:
 
 
 def cmd_targeted_qrels(args: argparse.Namespace) -> int:
+    """Apply checked candidate grades to the seed qrels."""
+
     question_ids = (
         sorted(read_run_file(args.run)) if args.run else _question_ids(args.questions)
     )
@@ -451,6 +463,8 @@ def cmd_targeted_qrels(args: argparse.Namespace) -> int:
 
 
 def cmd_qrels_pool(args: argparse.Namespace) -> int:
+    """Create the small MPNet candidate sheet for targeted review."""
+
     result = build_review_pool(load_collection(args.data), args.run, args.out)
     print(f"wrote {result.path}")
     print(f"  candidates: {result.candidates}")
@@ -512,10 +526,13 @@ def cmd_evaluate_retrieval(args: argparse.Namespace) -> int:
 
 
 def main(argv: list[str] | None = None) -> int:
+    """Register the ``mm`` commands and dispatch the selected workflow."""
+
     parser = argparse.ArgumentParser(prog="mm", description="MelbourneMate experiment")
     parser.add_argument("--data", default="data/sample")
     sub = parser.add_subparsers(dest="command", required=True)
 
+    # Collection checks run before model experiments.
     validate = sub.add_parser("validate")
     validate.set_defaults(func=cmd_validate)
 
@@ -525,6 +542,7 @@ def main(argv: list[str] | None = None) -> int:
     config = sub.add_parser("config")
     config.set_defaults(func=cmd_config)
 
+    # Run and save one retrieval method.
     retrieve = sub.add_parser("retrieve")
     retrieve.add_argument("--arm", required=True, choices=["bm25", "dense"])
     retrieve.add_argument(
@@ -539,6 +557,7 @@ def main(argv: list[str] | None = None) -> int:
     retrieve.add_argument("--runs-dir", default="runs/retrieval")
     retrieve.set_defaults(func=cmd_retrieve)
 
+    # Run one generation arm or the full three-arm comparison.
     generate = sub.add_parser("generate")
     generate.add_argument("--arm", required=True, choices=ARMS)
     generate.add_argument("--split", default="test", choices=["validation", "test"])
@@ -567,6 +586,7 @@ def main(argv: list[str] | None = None) -> int:
     generation_workflow.add_argument("--runs-dir", default="runs/generation")
     generation_workflow.set_defaults(func=cmd_evaluate_generation)
 
+    # Analyse, compare or rescore results already saved on disk.
     analysis = sub.add_parser("analyse-errors")
     analysis.add_argument("--qrels", required=True)
     analysis.add_argument("--bm25-retrieval", required=True)
@@ -591,6 +611,7 @@ def main(argv: list[str] | None = None) -> int:
     rescore.add_argument("--runs-dir", default="runs/retrieval")
     rescore.set_defaults(func=cmd_rescore_retrieval)
 
+    # Keep manual qrels work limited to new MPNet candidates.
     qrels = sub.add_parser("targeted-qrels")
     qrels.add_argument("--base-qrels", required=True)
     qrels.add_argument("--verification", required=True)
@@ -605,6 +626,7 @@ def main(argv: list[str] | None = None) -> int:
     pool.add_argument("--out", required=True)
     pool.set_defaults(func=cmd_qrels_pool)
 
+    # Run the complete frozen retrieval workflow in the required order.
     workflow = sub.add_parser("evaluate-retrieval")
     workflow.add_argument(
         "--split", default="validation", choices=["validation", "test"]
