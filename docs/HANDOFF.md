@@ -9,6 +9,8 @@ The current base includes the checked `data/v1` collection from the latest
 - S9-04: saved BM25s and MPNet held-out rankings, metrics and manifests.
 - S9-05: completed the 37-pair targeted qrels check and generated final qrels.
 - S9-06: rescored the saved rankings and compared BM25s with MPNet.
+- S9-07: evaluated BM25s, MPNet and no-context generation with the same local
+  Qwen model and held-out sample.
 
 The model decision is recorded in `docs/dense-encoder-comparison.md`. Saved
 runs are under `runs/retrieval/`.
@@ -21,6 +23,7 @@ runs are under `runs/retrieval/`.
 | S9-04 | [#38](https://github.com/Elaine-tyl/MelbourneMate/issues/38) | [`ff31c35`](https://github.com/Elaine-tyl/MelbourneMate/commit/ff31c35) | [BM25s run](../runs/retrieval/s9-formal-bm25-test/); [MPNet run](../runs/retrieval/s9-formal-mpnet-test/) |
 | S9-05 | [#39](https://github.com/Elaine-tyl/MelbourneMate/issues/39) | [`fe3882d`](https://github.com/Elaine-tyl/MelbourneMate/commit/fe3882d), [`ff229dd`](https://github.com/Elaine-tyl/MelbourneMate/commit/ff229dd), [`46ab029`](https://github.com/Elaine-tyl/MelbourneMate/commit/46ab029), [`79b1a6a`](https://github.com/Elaine-tyl/MelbourneMate/commit/79b1a6a), [`af7021c`](https://github.com/Elaine-tyl/MelbourneMate/commit/af7021c) | [Completed review](../review/targeted-qrels/s9-mpnet-candidates.csv); [final qrels](../review/targeted-qrels/qrels-final.txt) |
 | S9-06 | [#40](https://github.com/Elaine-tyl/MelbourneMate/issues/40) | [`bd4b791`](https://github.com/Elaine-tyl/MelbourneMate/commit/bd4b791), [`265114a`](https://github.com/Elaine-tyl/MelbourneMate/commit/265114a) | [BM25s final run](../runs/retrieval/s9-final-bm25-test/); [MPNet final run](../runs/retrieval/s9-final-mpnet-test/); [paired comparison](../runs/retrieval/s9-final-comparison.csv) |
+| S9-07 | [#41](https://github.com/Elaine-tyl/MelbourneMate/issues/41) | [`a9c0840`](https://github.com/Elaine-tyl/MelbourneMate/commit/a9c0840), [`d9a0aba`](https://github.com/Elaine-tyl/MelbourneMate/commit/d9a0aba), [`562404a`](https://github.com/Elaine-tyl/MelbourneMate/commit/562404a) | [BM25s generation](../runs/generation/s9-qwen25-20260927-bm25/); [MPNet generation](../runs/generation/s9-qwen25-20260927-mpnet/); [no-context generation](../runs/generation/s9-qwen25-20260927-no-context/) |
 
 ## Targeted qrels review
 
@@ -61,7 +64,21 @@ bootstrap resamples and 10,000 randomisation permutations.
 
 ## Generation evaluation
 
-Run the three methods with the same sample and final qrels:
+Sprint 9 used `qwen2.5:7b-instruct` through local Ollama. The saved model
+digest is `845dbda0ea48ed749ca`. All three arms used temperature `0.0`, seed
+`20260923` and the same 66-question test sample: 36 answerable questions and
+30 OOKB questions.
+
+The three arms were BM25s-grounded, MPNet-grounded and no-context. Their main
+results were:
+
+| Arm | Correct refusal | Unsupported answer |
+| --- | ---: | ---: |
+| BM25s | 96.7% | 3.3% |
+| MPNet | 86.7% | 13.3% |
+| No-context | 0.0% | 100.0% |
+
+Run the three methods with the same sample, final qrels and frozen model:
 
 ```bash
 mm --data data/v1 evaluate-generation \
