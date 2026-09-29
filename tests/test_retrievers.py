@@ -51,7 +51,8 @@ def test_bm25_drops_passages_with_no_shared_terms():
 def test_bm25_limits_k_to_the_collection_size():
     hits = BM25Retriever(IDS, TEXTS).search("student course bond emergency", k=10)
 
-    assert len(hits) <= len(IDS)
+    assert sorted(hit.passage_id for hit in hits) == IDS
+    assert [hit.rank for hit in hits] == [1, 2, 3]
 
 
 @pytest.mark.parametrize(

@@ -16,6 +16,7 @@ Trello S10-08, GitHub #45. Checked by Siriporn on 29 September 2026 against
 | streamlit | 1.64.0 |
 | pytest | 9.1.1 |
 | ruff | 0.16.9 |
+| build | 1.6.1 |
 | Ollama model | `qwen2.5:7b-instruct`, ID `845dbda0ea48` |
 
 The formal runs were produced on a different machine with Python 3.12. The
@@ -37,12 +38,54 @@ Ollama model ID matches the digest recorded in the generation run manifests.
 The rerun outputs were written to a scratch folder, so no saved run was
 replaced.
 
+## Package build
+
+The package was built from this branch, and the wheel was installed into a
+new virtual environment. The installed `mm` command then validated the
+collection and reproduced the retrieval comparison.
+
+| Output | Size |
+| --- | --- |
+| `melbourne_mate-0.1.0-py3-none-any.whl` | 55,444 bytes |
+| `melbourne_mate-0.1.0.tar.gz` | 55,978 bytes |
+
+The wheel contains all 33 modules and the `mm` entry point. Run these commands
+from the repository root to repeat the check.
+
+```bash
+python3 -m venv /tmp/mm-build
+/tmp/mm-build/bin/pip install build
+/tmp/mm-build/bin/python -m build --outdir /tmp/mm-dist .
+python3 -m venv /tmp/mm-wheel
+/tmp/mm-wheel/bin/pip install /tmp/mm-dist/melbourne_mate-0.1.0-py3-none-any.whl
+/tmp/mm-wheel/bin/mm --data data/v1 validate
+/tmp/mm-wheel/bin/mm --data data/v1 compare \
+  --left runs/retrieval/s9-final-bm25-test \
+  --right runs/retrieval/s9-final-mpnet-test
+```
+
+Expected output is `VALID` with fingerprint `1f04bcc7ed2cd814`, then a mean
+difference of +0.1356 with p = 0.0065.
+
+To repeat the development checks, run these from the repository root.
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -e ".[app,dev]"
+python -m pytest -q
+ruff check src tests
+mm --data data/v1 validate
+mm --data data/v1 quality
+```
+
 ## Tests added
 
 `tests/test_retrievers.py` adds direct tests for both retrievers.
 
 - BM25s ranks the matching passage first, uses the stemmer, drops passages
-  with no shared terms, limits `k` and rejects bad input.
+  with no shared terms, returns all three matches when `k` is larger than the
+  collection and rejects bad input.
 - Dense ranks by similarity, breaks equal scores by passage ID, works with the
   offline hashing encoder and rejects a wrong number of passage vectors.
 
@@ -51,9 +94,8 @@ replaced.
 - No caches, compiled files or system files are tracked in Git.
 - Local `__pycache__`, `.pytest_cache` and `.ruff_cache` folders were removed
   and are covered by `.gitignore`.
-- `src/melbourne_mate/evaluation/proportions.py` is not imported or tested. It
-  was left in place for the team to decide whether rate intervals are needed
-  in the report.
+- `src/melbourne_mate/evaluation/proportions.py` was removed. No code, test
+  or document used it, and the reported comparisons use `evaluation/stats.py`.
 
 ## Limits
 
