@@ -16,7 +16,7 @@ source URL.
 | `sources.csv` | official page | `source_id, organisation, title, url, access_date, risk_category` |
 | `passages.csv` | passage | `passage_id, topic_id, source_id, section_heading, text` |
 | `topics.csv` | information need | `topic_id, category, knowledge_type, information_need` |
-| `questions.csv` | question | `question_id, topic_id, question_form, language, text` |
+| `questions.csv` | question | `question_id, topic_id, question_form, text` |
 | `qrels.txt` | judgement | `question_id 0 passage_id grade` |
 | `judgements.csv` | reviewed question-passage pair | `question_id, passage_id, grade, judge, note` |
 | `gold.csv` | optional reference answer | `question_id, answer, support, judge` |

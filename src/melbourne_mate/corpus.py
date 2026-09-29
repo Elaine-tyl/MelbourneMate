@@ -294,7 +294,7 @@ def load_collection(data_dir: str | Path) -> Collection:
             question_id=row["question_id"],
             topic_id=row["topic_id"],
             question_form=row["question_form"],
-            language=row["language"],
+            language="en",
             text=row["text"],
         )
         for row in _read_csv(root / "questions.csv")
