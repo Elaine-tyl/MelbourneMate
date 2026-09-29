@@ -12,8 +12,10 @@ from melbourne_mate.corpus import CollectionError, load_collection
 from melbourne_mate.evaluation.generation_inputs import load_generation_qrels
 from melbourne_mate.evaluation.visuals import (
     EvaluationVisualError,
+    generation_chart,
     generation_chart_data,
-    retrieval_chart_data,
+    retrieval_slice_chart,
+    retrieval_slice_chart_data,
 )
 from melbourne_mate.generation.gate import EvidenceGate
 from melbourne_mate.generation.ollama import OllamaClient, OllamaError
@@ -152,9 +154,9 @@ def main() -> None:
 
     root = _project_root()
     try:
-        retrieval = retrieval_chart_data(
-            root / "runs/retrieval/s9-final-bm25-test/aggregate_metrics.csv",
-            root / "runs/retrieval/s9-final-mpnet-test/aggregate_metrics.csv",
+        retrieval_slices = retrieval_slice_chart_data(
+            root / "runs/retrieval/s9-final-bm25-test/per_question_metrics.csv",
+            root / "runs/retrieval/s9-final-mpnet-test/per_question_metrics.csv",
         )
         generation = generation_chart_data(
             root / "runs/generation/s9-qwen25-20260927-bm25/summary.csv",
@@ -166,15 +168,18 @@ def main() -> None:
         st.caption(f"Saved evaluation results are unavailable: {exc}")
     else:
         with st.expander("Evaluation results"):
-            st.subheader("Retrieval performance")
-            st.caption("Saved held-out test results. Higher is better.")
-            # Grouped bars compare methods directly; these metrics are not additive.
-            st.bar_chart(retrieval, stack=False)
+            st.subheader("Retrieval by question type")
+            st.caption(
+                "Mean NDCG@5 for known and inferred held-out questions. "
+                "Higher is better."
+            )
+            st.altair_chart(retrieval_slice_chart(retrieval_slices), width="stretch")
             st.subheader("Generation safety")
             st.caption(
-                "Correct refusal should be high; unsupported answers should be low."
+                "Unsupported answer rate on out-of-knowledge-base questions. "
+                "Lower is better."
             )
-            st.bar_chart(generation, stack=False)
+            st.altair_chart(generation_chart(generation), width="stretch")
 
     st.subheader("Try an example")
     cols = st.columns(2)

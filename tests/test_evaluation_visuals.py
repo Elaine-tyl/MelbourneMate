@@ -3,11 +3,7 @@ from pathlib import Path
 import pandas as pd
 import pytest
 
-from melbourne_mate.evaluation.visuals import (
-    EvaluationVisualError,
-    generation_chart_data,
-    retrieval_chart_data,
-)
+from melbourne_mate.evaluation import visuals
 
 
 def _write_metrics(path: Path, rows: list[tuple[str, float]]) -> None:
@@ -15,29 +11,61 @@ def _write_metrics(path: Path, rows: list[tuple[str, float]]) -> None:
     pd.DataFrame(rows, columns=["metric", "value"]).to_csv(path, index=False)
 
 
-def test_retrieval_chart_data_uses_the_three_reported_metrics(tmp_path):
+def test_retrieval_slice_chart_data_groups_known_and_inferred_questions(tmp_path):
     bm25 = tmp_path / "bm25.csv"
     mpnet = tmp_path / "mpnet.csv"
-    _write_metrics(
-        bm25,
-        [("ndcg@5", 0.835286), ("recall@5", 0.875), ("mrr", 0.884259)],
+    rows = [
+        ("Q1", "known", 0.6),
+        ("Q2", "known", 0.8),
+        ("Q3", "inferred", 0.7),
+        ("Q4", "inferred", 0.9),
+    ]
+    pd.DataFrame(rows, columns=["question_id", "knowledge_type", "ndcg@5"]).to_csv(
+        bm25, index=False
     )
-    _write_metrics(
-        mpnet,
-        [("ndcg@5", 0.970878), ("recall@5", 1.0), ("mrr", 0.981481)],
-    )
+    pd.DataFrame(
+        [(qid, kind, score + 0.1) for qid, kind, score in rows],
+        columns=["question_id", "knowledge_type", "ndcg@5"],
+    ).to_csv(mpnet, index=False)
 
-    chart = retrieval_chart_data(bm25, mpnet)
+    assert callable(getattr(visuals, "retrieval_slice_chart_data", None))
+    chart = visuals.retrieval_slice_chart_data(bm25, mpnet)
 
-    assert list(chart.index) == ["NDCG@5", "Recall@5", "MRR"]
-    assert list(chart.columns) == ["BM25s", "MPNet"]
-    assert chart.loc["NDCG@5"].to_dict() == {
-        "BM25s": pytest.approx(0.835286),
-        "MPNet": pytest.approx(0.970878),
-    }
+    assert list(chart.columns) == [
+        "Question type",
+        "Method",
+        "NDCG@5",
+        "Questions",
+    ]
+    assert chart.to_dict("records") == [
+        {
+            "Question type": "Known (n=2)",
+            "Method": "BM25s",
+            "NDCG@5": pytest.approx(0.7),
+            "Questions": 2,
+        },
+        {
+            "Question type": "Known (n=2)",
+            "Method": "MPNet",
+            "NDCG@5": pytest.approx(0.8),
+            "Questions": 2,
+        },
+        {
+            "Question type": "Inferred (n=2)",
+            "Method": "BM25s",
+            "NDCG@5": pytest.approx(0.8),
+            "Questions": 2,
+        },
+        {
+            "Question type": "Inferred (n=2)",
+            "Method": "MPNet",
+            "NDCG@5": pytest.approx(0.9),
+            "Questions": 2,
+        },
+    ]
 
 
-def test_generation_chart_data_uses_safety_rates(tmp_path):
+def test_generation_chart_data_uses_unsupported_answer_rates(tmp_path):
     bm25 = tmp_path / "bm25.csv"
     mpnet = tmp_path / "mpnet.csv"
     no_context = tmp_path / "none.csv"
@@ -54,25 +82,99 @@ def test_generation_chart_data_uses_safety_rates(tmp_path):
         [("correct_refusal_rate", 0.0), ("unsupported_answer_rate", 1.0)],
     )
 
-    chart = generation_chart_data(bm25, mpnet, no_context)
+    chart = visuals.generation_chart_data(bm25, mpnet, no_context)
 
-    assert list(chart.index) == ["Correct refusal", "Unsupported answer"]
-    assert list(chart.columns) == ["BM25s", "MPNet", "No context"]
-    assert chart.loc["Unsupported answer"].to_dict() == {
-        "BM25s": pytest.approx(0.033333),
-        "MPNet": pytest.approx(0.133333),
-        "No context": pytest.approx(1.0),
-    }
+    assert list(chart.columns) == ["Arm", "Rate"]
+    assert chart.to_dict("records") == [
+        {"Arm": "BM25s", "Rate": 0.033333},
+        {"Arm": "MPNet", "Rate": 0.133333},
+        {"Arm": "No context", "Rate": 1.0},
+    ]
+
+
+def test_retrieval_slice_chart_groups_methods_and_labels_values():
+    data = pd.DataFrame(
+        [
+            ("Known (n=2)", "BM25s", 0.7, 2),
+            ("Known (n=2)", "MPNet", 0.8, 2),
+            ("Inferred (n=2)", "BM25s", 0.8, 2),
+            ("Inferred (n=2)", "MPNet", 0.9, 2),
+        ],
+        columns=["Question type", "Method", "NDCG@5", "Questions"],
+    )
+    assert callable(getattr(visuals, "retrieval_slice_chart", None))
+    spec = visuals.retrieval_slice_chart(data).to_dict()
+
+    bar = spec["layer"][0]
+    label = spec["layer"][1]
+    assert bar["encoding"]["xOffset"]["field"] == "Method"
+    assert bar["encoding"]["x"]["axis"]["title"] == "Question type"
+    assert bar["encoding"]["y"]["scale"]["domain"] == [0, 1]
+    assert bar["encoding"]["y"]["axis"]["title"] == "Mean NDCG@5"
+    assert bar["mark"]["size"] == 48
+    assert spec["height"] == 340
+    assert spec["padding"]["left"] == 55
+    assert label["encoding"]["y"]["field"] == "NDCG@5"
+    assert label["mark"]["dy"] == -8
+    assert label["mark"]["align"] == "center"
+    assert label["mark"]["baseline"] == "bottom"
+    assert label["mark"]["color"] == "black"
+    assert label["encoding"]["text"]["format"] == ".3f"
+    assert bar["encoding"]["color"]["scale"]["range"] == ["#4C78A8", "#F58518"]
+    assert [{}] not in spec.get("datasets", {}).values()
+
+
+def test_generation_chart_uses_vertical_risk_bars_and_percentage_labels():
+    data = pd.DataFrame(
+        [
+            ("BM25s", 0.033333),
+            ("MPNet", 0.133333),
+            ("No context", 1.0),
+        ],
+        columns=["Arm", "Rate"],
+    )
+    assert callable(getattr(visuals, "generation_chart", None))
+    spec = visuals.generation_chart(data).to_dict()
+
+    bar = spec["layer"][0]
+    label = spec["layer"][1]
+    assert bar["encoding"]["x"]["field"] == "Arm"
+    assert bar["encoding"]["x"]["axis"]["title"] == "Generation arm"
+    assert bar["encoding"]["y"]["field"] == "Rate"
+    assert bar["encoding"]["y"]["scale"]["domain"] == [0, 1.15]
+    assert bar["encoding"]["y"]["axis"]["title"] == "Unsupported answer rate"
+    assert bar["mark"]["size"] == 48
+    assert spec["height"] == 340
+    assert spec["padding"]["left"] == 55
+    assert bar["encoding"]["color"]["scale"]["domain"] == [
+        "BM25s",
+        "MPNet",
+        "No context",
+    ]
+    assert bar["encoding"]["color"]["scale"]["range"] == [
+        "#4C78A8",
+        "#F58518",
+        "#6B7280",
+    ]
+    assert label["mark"]["color"] == "black"
+    assert label["encoding"]["text"]["format"] == ".1%"
+    assert "transform" not in spec
+    assert [{}] not in spec.get("datasets", {}).values()
 
 
 def test_chart_data_rejects_a_missing_required_metric(tmp_path):
     bm25 = tmp_path / "bm25.csv"
     mpnet = tmp_path / "mpnet.csv"
-    _write_metrics(bm25, [("ndcg@5", 0.8), ("recall@5", 0.9)])
+    no_context = tmp_path / "none.csv"
+    _write_metrics(bm25, [("correct_refusal_rate", 0.9)])
     _write_metrics(
         mpnet,
-        [("ndcg@5", 0.9), ("recall@5", 1.0), ("mrr", 0.95)],
+        [("correct_refusal_rate", 0.8), ("unsupported_answer_rate", 0.2)],
+    )
+    _write_metrics(
+        no_context,
+        [("correct_refusal_rate", 0.0), ("unsupported_answer_rate", 1.0)],
     )
 
-    with pytest.raises(EvaluationVisualError, match="mrr"):
-        retrieval_chart_data(bm25, mpnet)
+    with pytest.raises(visuals.EvaluationVisualError, match="unsupported_answer_rate"):
+        visuals.generation_chart_data(bm25, mpnet, no_context)
