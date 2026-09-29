@@ -116,15 +116,16 @@ def test_streamlit_shows_saved_evaluation_results_before_models_are_needed():
 
     assert [item.label for item in app.expander] == ["Evaluation results"]
     headings = [item.value for item in app.subheader]
-    assert "Retrieval performance" in headings
+    assert "Retrieval performance" not in headings
+    assert "Retrieval by question type" in headings
     assert "Generation safety" in headings
-    charts = app.get("vega_lite_chart")
+    charts = app.get("arrow_vega_lite_chart") or app.get("vega_lite_chart")
     assert len(charts) == 2
-    for chart in charts:
-        spec = json.loads(chart.proto.spec)
-        assert spec["encoding"]["xOffset"]["field"] == (
-            "color -- streamlit-generated"
-        )
+    sliced = json.loads(charts[0].proto.spec)
+    safety = json.loads(charts[1].proto.spec)
+    assert sliced["layer"][0]["encoding"]["xOffset"]["field"] == "Method"
+    assert safety["layer"][0]["encoding"]["x"]["field"] == "Arm"
+    assert safety["layer"][0]["encoding"]["y"]["field"] == "Rate"
 
 
 def test_four_task_record_matches_the_saved_mpnet_run():

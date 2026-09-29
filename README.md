@@ -201,10 +201,13 @@ ollama serve
 streamlit run src/melbourne_mate/interface/app.py
 ```
 
-The Evaluation results panel reads the committed retrieval and generation CSVs;
-it does not rerun an experiment. The four checked tasks and one citation warning
-are recorded in `review/chatbot-test-s9/results.csv`. The app uses the same
-pipeline, final qrels, frozen encoder and local model as the evaluation runs.
+The Evaluation results panel reads the committed CSVs and does not rerun an
+experiment. It shows NDCG@5 for known and inferred questions, plus the
+unsupported-answer rate for each generation arm on out-of-knowledge-base
+questions. The four checked tasks and one
+citation warning are recorded in `review/chatbot-test-s9/results.csv`. The app
+uses the same pipeline, final qrels, frozen encoder and local model as the
+evaluation runs.
 
 Create the 37-pair review sheet from the saved MPNet top-five rankings:
 
