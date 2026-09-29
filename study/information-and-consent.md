@@ -1,8 +1,5 @@
 # Participant information and consent
 
-Check with the teaching team before use. If the course provides its own
-consent form, use that form instead of this one.
-
 ## About the study
 
 We are two students building MelbourneMate, a prototype that answers questions
@@ -34,14 +31,14 @@ Taking part is voluntary. You can skip any task or stop at any time without
 giving a reason. MelbourneMate is a student prototype, so please do not rely on
 its answers for real decisions. Check the official source instead.
 
+Contact for questions: _team contact to be added before use_
+
 ## Consent
 
-Read aloud and record the answer next to the participant code, outside the
-`study` folder.
+The participant ticks these three boxes on the study page before the session
+starts. The page records only the participant code and the time.
 
 - I have read this information and my questions have been answered.
 - I agree to take part and understand I can stop at any time.
 - I agree that my anonymous results can be used in the course report and
   presentation.
-
-Contact for questions: _team contact to be added before use_

@@ -7,9 +7,11 @@ reported descriptively.
 ## Before recruiting
 
 - Confirm with the teaching team whether this study needs course approval or a
-  set consent form. Update `information-and-consent.md` if it does.
-- Run sessions on a machine that answers in seconds. The chatbot uses the final
-  MPNet pipeline and the local `qwen2.5:7b-instruct` model.
+  set consent form. If the course has its own form, use it and update
+  `information-and-consent.md` to match. Add the team contact before use.
+- Run sessions on Elaine's computer. The chatbot uses the final MPNet pipeline
+  and the local `qwen2.5:7b-instruct` model, which is too slow on an 8 GB
+  CPU-only laptop for timed tasks.
 - Run one internal pilot with a team member and record it outside this folder.
 - After the first participant, do not change the model, prompts, tasks,
   collection or recording fields. If a change is unavoidable, stop, record why
@@ -19,10 +21,11 @@ reported descriptively.
 
 | File | Use |
 | --- | --- |
-| `information-and-consent.md` | Read with the participant before starting |
+| `information-and-consent.md` | Information shown on the study page before consent |
 | `tasks.csv` | The four tasks and the rule for judging completion |
 | `schedule.csv` | Task order and method for P01 to P06 |
-| `responses.csv` | One row per task, filled in during the session |
+| `responses.csv` | One row per task, filled in by the study page |
+| `consent.csv` | Created by the study page, one row per consenting code |
 
 The schedule is counterbalanced. Each participant does two tasks with
 MelbourneMate and two with official websites. Across P01 to P04, and again
@@ -31,21 +34,31 @@ the participants start with each method.
 
 ## Session
 
-1. Read the information sheet and record consent. Do not write the
-   participant's name anywhere in this folder.
-2. Give the tasks in the order listed in `schedule.csv`.
-3. For `melbournemate`, start the chatbot with
-   `streamlit run src/melbourne_mate/interface/app.py`. For
-   `official-search`, the participant may use any search engine and any
-   official website, but not MelbourneMate.
-4. Allow up to 10 minutes per task. Start timing when the task is read and
-   stop when the participant gives an answer or gives up.
+Start the study page and the chatbot in two terminals.
+
+```bash
+streamlit run src/melbourne_mate/interface/study_app.py
+streamlit run src/melbourne_mate/interface/app.py --server.port 8502
+```
+
+1. On the study page, choose the participant code. Never enter a name.
+2. Show the information to the participant. The three consent boxes must all
+   be ticked before **Start session** works. The page saves the code and time
+   in `consent.csv`.
+3. The page lists the tasks in schedule order. For `melbournemate`, the
+   participant uses the chatbot tab. For `official-search`, they may use any
+   search engine and any official website, but not MelbourneMate.
+4. Allow up to 10 minutes per task. Press **Start timer** when the task is
+   read and **Stop timer** when the participant answers or gives up. The time
+   can be corrected by hand.
 5. After each task, ask how confident they are in their answer and how much
-   they trust the information, each from 1 (not at all) to 5 (fully).
+   they trust the information, each from 1 (not at all) to 5 (fully). Judge
+   completion against the rule shown under the task, then press **Save task**.
 
 ## Recording
 
-Fill in the blank columns of `responses.csv`.
+The study page fills in `responses.csv`. The columns can also be edited by
+hand.
 
 | Column | Values |
 | --- | --- |

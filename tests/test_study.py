@@ -4,17 +4,24 @@ from collections import Counter
 from pathlib import Path
 
 import pytest
+from streamlit.testing.v1 import AppTest
 
 from melbourne_mate import cli
 from melbourne_mate.corpus import load_collection
 from melbourne_mate.evaluation.study import (
+    CONSENT_ITEMS,
     RESPONSE_COLUMNS,
     StudyError,
+    has_consent,
     load_responses,
+    participant_tasks,
+    record_consent,
+    save_response,
     summarise_study,
 )
 
 STUDY = Path("study")
+STUDY_APP = Path(__file__).parents[1] / "src/melbourne_mate/interface/study_app.py"
 
 
 def read(path):
@@ -120,3 +127,78 @@ def test_cli_writes_the_summary(tmp_path, capsys):
     assert cli.main(["study-summary", "--study-dir", str(study)]) == 0
     assert (study / "summary.md").exists()
     assert "wrote" in capsys.readouterr().out
+
+
+CONSENT = {item: True for item in CONSENT_ITEMS}
+
+
+def test_consent_is_needed_before_saving_and_is_recorded_once(tmp_path):
+    study = copy_study(tmp_path, {})
+    values = {"completed": "yes", "time_seconds": 95, "confidence": 4, "trust": 5}
+
+    with pytest.raises(StudyError, match="no recorded consent"):
+        save_response(study, "P01", "1", values)
+    with pytest.raises(StudyError, match="all consent items"):
+        record_consent(study, "P01", {**CONSENT, "agrees_to_take_part": False})
+
+    assert record_consent(study, "P01", CONSENT) is True
+    assert record_consent(study, "P01", CONSENT) is False
+    consent = read(study / "consent.csv")
+    assert [row["participant_id"] for row in consent] == ["P01"]
+    assert set(consent[0]) == {"participant_id", "consented_utc", *CONSENT_ITEMS}
+
+
+def test_saved_response_updates_only_its_row(tmp_path):
+    study = copy_study(tmp_path, {})
+    record_consent(study, "P03", CONSENT)
+
+    save_response(
+        study, "P03", "2", {"completed": "partial", "time_seconds": 240, "confidence": 3, "trust": 4}
+    )
+
+    attempts = load_responses(study)
+    assert attempts == [
+        {
+            "participant_id": "P03",
+            "task_id": "TK6",
+            "method": "official-search",
+            "completed": "partial",
+            "time_seconds": 240,
+            "confidence": 3,
+            "trust": 4,
+        }
+    ]
+    assert participant_tasks(study, "P03")[1]["completed"] == "partial"
+    with pytest.raises(StudyError, match="outside 1-5"):
+        save_response(
+            study, "P03", "1", {"completed": "yes", "time_seconds": 60, "confidence": 9, "trust": 4}
+        )
+
+
+def test_study_page_needs_all_consent_boxes_then_saves_a_task(tmp_path, monkeypatch):
+    study = copy_study(tmp_path, {})
+    monkeypatch.setenv("MM_STUDY_DIR", str(study))
+    app = AppTest.from_file(str(STUDY_APP)).run()
+    assert not app.exception
+
+    app.selectbox[0].select("P02").run()
+    start = next(button for button in app.button if button.label == "Start session")
+    assert start.disabled
+    for box in app.checkbox:
+        box.check()
+    app.run()
+    next(button for button in app.button if button.label == "Start session").click().run()
+    assert has_consent(study, "P02")
+
+    app.number_input(key="P02-1-time").set_value(75)
+    app.radio(key="P02-1-done").set_value("yes")
+    app.radio(key="P02-1-conf").set_value(4)
+    app.radio(key="P02-1-trust").set_value(5)
+    app.run()
+    next(button for button in app.button if button.key == "P02-1-save").click().run()
+
+    assert not app.exception
+    saved = [row for row in read(study / "responses.csv") if row["completed"]]
+    assert [(r["participant_id"], r["task_id"], r["time_seconds"]) for r in saved] == [
+        ("P02", "TK4", "75")
+    ]

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import csv
 from collections.abc import Sequence
+from datetime import datetime, timezone
 from pathlib import Path
 from statistics import mean, median
 
@@ -11,6 +12,8 @@ METHODS = ("melbournemate", "official-search")
 COMPLETION = ("yes", "partial", "no")
 MEASURES = ("completed", "time_seconds", "confidence", "trust")
 RESPONSE_COLUMNS = ("participant_id", "position", "task_id", "method", *MEASURES, "note")
+CONSENT_ITEMS = ("information_read", "agrees_to_take_part", "agrees_to_anonymous_use")
+CONSENT_COLUMNS = ("participant_id", "consented_utc", *CONSENT_ITEMS)
 MAX_SECONDS = 600
 MIN_PARTICIPANTS = 4
 
@@ -79,6 +82,91 @@ def load_responses(study_dir: str | Path) -> list[dict[str, object]]:
             }
         )
     return attempts
+
+
+def participants(study_dir: str | Path) -> list[str]:
+    """Participant codes in schedule order."""
+    codes = [row["participant_id"] for row in _read_csv(Path(study_dir) / "schedule.csv")]
+    return list(dict.fromkeys(codes))
+
+
+def has_consent(study_dir: str | Path, participant_id: str) -> bool:
+    path = Path(study_dir) / "consent.csv"
+    return path.exists() and any(
+        row["participant_id"] == participant_id for row in _read_csv(path)
+    )
+
+
+def record_consent(study_dir: str | Path, participant_id: str, answers: dict) -> bool:
+    """Save consent once per participant code. Returns False if already saved."""
+    root = Path(study_dir)
+    if participant_id not in participants(root):
+        raise StudyError(f"{participant_id} is not in schedule.csv")
+    if not all(answers.get(item) for item in CONSENT_ITEMS):
+        raise StudyError("all consent items must be agreed before starting")
+    if has_consent(root, participant_id):
+        return False
+
+    path = root / "consent.csv"
+    new_file = not path.exists()
+    with path.open("a", newline="", encoding="utf-8") as handle:
+        writer = csv.writer(handle, lineterminator="\n")
+        if new_file:
+            writer.writerow(CONSENT_COLUMNS)
+        stamp = datetime.now(timezone.utc).isoformat(timespec="seconds")
+        writer.writerow([participant_id, stamp, *("yes" for _ in CONSENT_ITEMS)])
+    return True
+
+
+def participant_tasks(study_dir: str | Path, participant_id: str) -> list[dict[str, str]]:
+    """Scheduled tasks for one participant, with prompts and any saved answers."""
+    root = Path(study_dir)
+    tasks = {row["task_id"]: row for row in _read_csv(root / "tasks.csv")}
+    saved = {
+        row["position"]: row
+        for row in _read_csv(root / "responses.csv")
+        if row["participant_id"] == participant_id
+    }
+    return [
+        {**tasks[row["task_id"]], **saved.get(row["position"], {}), **row}
+        for row in _read_csv(root / "schedule.csv")
+        if row["participant_id"] == participant_id
+    ]
+
+
+def save_response(
+    study_dir: str | Path,
+    participant_id: str,
+    position: str,
+    values: dict[str, object],
+) -> None:
+    """Write one task result into responses.csv after checking it."""
+    root = Path(study_dir)
+    if not has_consent(root, participant_id):
+        raise StudyError(f"{participant_id} has no recorded consent")
+    path = root / "responses.csv"
+    rows = _read_csv(path)
+    matches = [
+        row
+        for row in rows
+        if row["participant_id"] == participant_id and row["position"] == str(position)
+    ]
+    if len(matches) != 1:
+        raise StudyError(f"{participant_id} position {position} is not in responses.csv")
+
+    updated = {**matches[0], **{key: str(values.get(key, "")).strip() for key in (*MEASURES, "note")}}
+    where = f"{participant_id} position {position}"
+    if updated["completed"] not in COMPLETION:
+        raise StudyError(f"{where}: completed must be one of {', '.join(COMPLETION)}")
+    _whole_number(updated["time_seconds"], 1, MAX_SECONDS, where)
+    _whole_number(updated["confidence"], 1, 5, where)
+    _whole_number(updated["trust"], 1, 5, where)
+
+    matches[0].update(updated)
+    with path.open("w", newline="", encoding="utf-8") as handle:
+        writer = csv.DictWriter(handle, fieldnames=RESPONSE_COLUMNS, lineterminator="\n")
+        writer.writeheader()
+        writer.writerows(rows)
 
 
 def _summary_row(group: str, method: str, attempts: Sequence[dict]) -> dict[str, object]:
