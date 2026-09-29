@@ -12,10 +12,8 @@ Arm-level means are in `summary.csv`. Agreement is calculated before any discuss
 
 ## Adjudication
 
-The reviewers discussed the only score difference and agreed on
-`evidence_support = 2` for item `b711a9f214`. Every claim in the answer is
-supported by P18-2. The missing first-contact step is already reflected in its
-`correctness = 1` score.
+The reviewers resolved 1 score difference(s). Final agreed means are in `agreed-summary.csv`.
 
-The original independent sheets remain unchanged. The final decision is saved
-in `adjudication.csv`.
+- bm25 evidence_support: 1.350 before discussion; 1.400 agreed.
+
+The original independent sheets remain unchanged. Final decisions are saved in `adjudication.csv`.

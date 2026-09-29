@@ -126,6 +126,66 @@ def test_score_answer_review_writes_agreement_and_arm_means(tmp_path, review_run
     assert (out / "report.md").exists()
 
 
+def test_score_answer_review_writes_adjudicated_arm_means(tmp_path, review_runs):
+    collection, runs = review_runs
+    out = tmp_path / "review"
+    prepare_answer_review(out, collection, runs, size=6, seed=7)
+    key = read_csv(out / "key.csv")
+    bm25_item = next(row["item_id"] for row in key if row["arm"] == "bm25")
+
+    for reviewer in ("elaine", "sriporn"):
+        path = out / f"review-{reviewer}.csv"
+        rows = read_csv(path)
+        with path.open("w", newline="", encoding="utf-8") as handle:
+            writer = csv.DictWriter(handle, fieldnames=list(rows[0]))
+            writer.writeheader()
+            for row in rows:
+                row.update(
+                    correctness="2",
+                    evidence_support="1"
+                    if reviewer == "elaine" and row["item_id"] == bm25_item
+                    else "2",
+                    fallback_appropriateness="2",
+                )
+                writer.writerow(row)
+
+    with (out / "adjudication.csv").open("w", newline="", encoding="utf-8") as handle:
+        writer = csv.DictWriter(
+            handle,
+            fieldnames=(
+                "item_id",
+                "criterion",
+                "elaine_score",
+                "sriporn_score",
+                "agreed_score",
+                "rationale",
+            ),
+        )
+        writer.writeheader()
+        writer.writerow(
+            {
+                "item_id": bm25_item,
+                "criterion": "evidence_support",
+                "elaine_score": "1",
+                "sriporn_score": "2",
+                "agreed_score": "2",
+                "rationale": "The answer's claims are supported.",
+            }
+        )
+
+    score_answer_review(out)
+
+    agreed = read_csv(out / "agreed-summary.csv")
+    bm25_evidence = next(
+        row
+        for row in agreed
+        if row["arm"] == "bm25" and row["criterion"] == "evidence_support"
+    )
+    assert bm25_evidence["agreed_mean"] == "2.0"
+    report = (out / "report.md").read_text(encoding="utf-8")
+    assert "1.750 before discussion; 2.000 agreed" in report
+
+
 def test_cli_prepares_current_answer_review(tmp_path, review_runs):
     _, runs = review_runs
     out = tmp_path / "review"
