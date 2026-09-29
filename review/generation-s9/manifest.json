@@ -1,0 +1,14 @@
+{
+  "review_id": "generation-s9",
+  "reviewers": [
+    "elaine",
+    "sriporn"
+  ],
+  "sample_size": 30,
+  "seed": 20260923,
+  "source_runs": {
+    "bm25": "s9-qwen25-20260927-bm25",
+    "mpnet": "s9-qwen25-20260927-mpnet",
+    "no-context": "s9-qwen25-20260927-no-context"
+  }
+}

@@ -11,6 +11,11 @@ from pathlib import Path
 from melbourne_mate.config import CONFIG
 from melbourne_mate.corpus import CollectionError, load_collection, load_qrels
 from melbourne_mate.evaluation import metrics as metrics_mod
+from melbourne_mate.evaluation.answer_review import (
+    AnswerReviewError,
+    prepare_answer_review,
+    score_answer_review,
+)
 from melbourne_mate.evaluation.collection_quality import (
     build_report,
     containment_bin,
@@ -315,6 +320,37 @@ def cmd_analyse_errors(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_prepare_answer_review(args: argparse.Namespace) -> int:
+    """Create the fixed answer-review sheets from saved runs."""
+    try:
+        path = prepare_answer_review(
+            args.out,
+            load_collection(args.data),
+            {
+                "bm25": args.bm25_run,
+                "mpnet": args.mpnet_run,
+                "no-context": args.no_context_run,
+            },
+            size=args.size,
+        )
+    except (AnswerReviewError, CollectionError, OSError, ValueError) as exc:
+        print(str(exc), file=sys.stderr)
+        return 1
+    print(f"wrote {path}")
+    return 0
+
+
+def cmd_score_answer_review(args: argparse.Namespace) -> int:
+    """Summarise two completed answer-review sheets."""
+    try:
+        path = score_answer_review(args.review_dir)
+    except (AnswerReviewError, OSError, ValueError) as exc:
+        print(str(exc), file=sys.stderr)
+        return 1
+    print(f"wrote {path}")
+    return 0
+
+
 def cmd_compare(args: argparse.Namespace) -> int:
     """Compare two compatible saved runs with topic-level statistics."""
 
@@ -596,6 +632,18 @@ def main(argv: list[str] | None = None) -> int:
     analysis.add_argument("--no-context-generation", required=True)
     analysis.add_argument("--out", required=True)
     analysis.set_defaults(func=cmd_analyse_errors)
+
+    prepare_review = sub.add_parser("prepare-answer-review")
+    prepare_review.add_argument("--bm25-run", required=True)
+    prepare_review.add_argument("--mpnet-run", required=True)
+    prepare_review.add_argument("--no-context-run", required=True)
+    prepare_review.add_argument("--size", type=int, default=30)
+    prepare_review.add_argument("--out", required=True)
+    prepare_review.set_defaults(func=cmd_prepare_answer_review)
+
+    score_review = sub.add_parser("score-answer-review")
+    score_review.add_argument("--review-dir", required=True)
+    score_review.set_defaults(func=cmd_score_answer_review)
 
     compare = sub.add_parser("compare")
     compare.add_argument("--left", required=True)

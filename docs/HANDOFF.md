@@ -91,6 +91,17 @@ mm --data data/v1 evaluate-generation \
 The command creates `-bm25`, `-mpnet`, and `-no-context` run folders. A new
 prefix is required for every repeat. Human answer review is a separate task.
 
+## Answer review
+
+Use `review/generation-s9/review-elaine.csv` and
+`review/generation-s9/review-sriporn.csv`. Both reviewers score the same 30
+saved answers from 0 to 2. Keep `key.csv` closed until both sheets are complete,
+then run:
+
+```bash
+mm score-answer-review --review-dir review/generation-s9
+```
+
 ## Error analysis
 
 Use `mm analyse-errors` after the final retrieval and generation runs exist.

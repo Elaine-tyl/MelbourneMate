@@ -157,6 +157,19 @@ mm --data data/v1 evaluate-generation \
 This creates BM25s, MPNet, and no-context runs with the same 66 questions and
 settings. Use a new prefix when repeating the test.
 
+Prepare the fixed 30-answer review from those saved runs:
+
+```bash
+mm --data data/v1 prepare-answer-review \
+  --bm25-run runs/generation/s9-qwen25-20260927-bm25 \
+  --mpnet-run runs/generation/s9-qwen25-20260927-mpnet \
+  --no-context-run runs/generation/s9-qwen25-20260927-no-context \
+  --out review/generation-s9
+```
+
+Elaine and Siriporn fill their own sheet without opening `key.csv`. After both
+are complete, run `mm score-answer-review --review-dir review/generation-s9`.
+
 ## Error analysis
 
 This section builds the final error report from saved retrieval and generation
