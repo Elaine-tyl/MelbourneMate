@@ -244,6 +244,35 @@ def score_answer_review(directory: str | Path) -> Path:
             for item_id, row in sheet.items()
         }
 
+    adjudications: dict[tuple[str, str], int] = {}
+    adjudication_path = path / "adjudication.csv"
+    if adjudication_path.exists():
+        for row in _read_csv(adjudication_path):
+            item_id = row["item_id"]
+            criterion = row["criterion"]
+            if item_id not in key or criterion not in CRITERIA:
+                raise AnswerReviewError("adjudication refers to an unknown score")
+            score_key = (item_id, criterion)
+            if score_key in adjudications:
+                raise AnswerReviewError("adjudication contains a duplicate score")
+            for reviewer in REVIEWERS:
+                recorded = _score(row[f"{reviewer}_score"], item_id, criterion)
+                if recorded != scores[reviewer][item_id][criterion]:
+                    raise AnswerReviewError("adjudication does not match review sheets")
+            adjudications[score_key] = _score(
+                row["agreed_score"], item_id, criterion
+            )
+
+        differences = {
+            (item_id, criterion)
+            for item_id in key
+            for criterion in CRITERIA
+            if scores["elaine"][item_id][criterion]
+            != scores["sriporn"][item_id][criterion]
+        }
+        if set(adjudications) != differences:
+            raise AnswerReviewError("adjudication must cover every score difference")
+
     agreement_rows = []
     for criterion in CRITERIA:
         left = [scores["elaine"][item][criterion] for item in key]
@@ -259,6 +288,7 @@ def score_answer_review(directory: str | Path) -> Path:
         )
 
     summary_rows = []
+    agreed_summary_rows = []
     for arm in ARMS:
         item_ids = [item_id for item_id, row in key.items() if row["arm"] == arm]
         for criterion in CRITERIA:
@@ -275,6 +305,21 @@ def score_answer_review(directory: str | Path) -> Path:
                     / (2 * len(item_ids)),
                 }
             )
+            if adjudications:
+                agreed = [
+                    left_score
+                    if left_score == right_score
+                    else adjudications[(item_id, criterion)]
+                    for item_id, left_score, right_score in zip(item_ids, left, right)
+                ]
+                agreed_summary_rows.append(
+                    {
+                        "arm": arm,
+                        "criterion": criterion,
+                        "items": len(item_ids),
+                        "agreed_mean": sum(agreed) / len(agreed),
+                    }
+                )
 
     _write_csv(
         path / "agreement.csv",
@@ -293,6 +338,12 @@ def score_answer_review(directory: str | Path) -> Path:
         ),
         summary_rows,
     )
+    if agreed_summary_rows:
+        _write_csv(
+            path / "agreed-summary.csv",
+            ("arm", "criterion", "items", "agreed_mean"),
+            agreed_summary_rows,
+        )
     lines = [
         "# Blind answer review",
         "",
@@ -313,5 +364,38 @@ def score_answer_review(directory: str | Path) -> Path:
             "",
         ]
     )
+    if agreed_summary_rows:
+        lines.extend(
+            [
+                "## Adjudication",
+                "",
+                (
+                    f"The reviewers resolved {len(adjudications)} score difference(s). "
+                    "Final agreed means are in `agreed-summary.csv`."
+                ),
+                "",
+            ]
+        )
+        before = {
+            (row["arm"], row["criterion"]): row["combined_mean"]
+            for row in summary_rows
+        }
+        for row in agreed_summary_rows:
+            original = before[(row["arm"], row["criterion"])]
+            if original != row["agreed_mean"]:
+                lines.append(
+                    f"- {row['arm']} {row['criterion']}: {original:.3f} before "
+                    f"discussion; {row['agreed_mean']:.3f} agreed."
+                )
+        lines.extend(
+            [
+                "",
+                (
+                    "The original independent sheets remain unchanged. Final decisions "
+                    "are saved in `adjudication.csv`."
+                ),
+                "",
+            ]
+        )
     (path / "report.md").write_text("\n".join(lines), encoding="utf-8")
     return path
