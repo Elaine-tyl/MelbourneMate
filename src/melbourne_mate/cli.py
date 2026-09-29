@@ -54,6 +54,33 @@ from melbourne_mate.retrieval.encoders import load_encoder
 from melbourne_mate.testing import EchoModel
 
 ENCODER_CHOICES = ["multi-qa-mpnet", "all-minilm", "hashing"]
+_PROGRESS_WIDTH = 24
+_PROGRESS_LABELS = {
+    "bm25": "BM25s",
+    "dense": "MPNet",
+    "none": "No context",
+}
+
+
+def _write_generation_progress(
+    arm: str,
+    completed: int,
+    total: int,
+    question_id: str = "",
+) -> None:
+    """Update one compact terminal line while an arm generates answers."""
+    ratio = completed / total if total else 1.0
+    filled = min(_PROGRESS_WIDTH, int(_PROGRESS_WIDTH * ratio))
+    bar = "#" * filled + "-" * (_PROGRESS_WIDTH - filled)
+    suffix = f" {question_id}" if question_id else ""
+    end = "\n" if completed >= total else ""
+    label = _PROGRESS_LABELS.get(arm, arm)
+    print(
+        f"\r{label:<10} [{bar}] {completed}/{total}{suffix}",
+        end=end,
+        file=sys.stderr,
+        flush=True,
+    )
 
 
 def _question_ids(path: str | Path) -> list[str]:
@@ -182,6 +209,12 @@ def cmd_generate(args: argparse.Namespace) -> int:
         return 1
 
     sample_fingerprint = generation_sample_fingerprint(cases)
+    progress_label = _PROGRESS_LABELS.get(args.arm, args.arm)
+    print(
+        f"{progress_label}: preparing retrieval and model resources...",
+        file=sys.stderr,
+        flush=True,
+    )
     encoder = load_encoder(args.encoder) if args.arm == "dense" else None
     retriever = build_retriever(collection, args.arm, encoder)
     gate = None
@@ -208,6 +241,7 @@ def cmd_generate(args: argparse.Namespace) -> int:
     )
 
     answers: list[GenerationRunItem] = []
+    _write_generation_progress(args.arm, 0, len(cases))
     for case in cases:
         question = collection.questions.get(case.question_id)
         if question is None:
@@ -230,6 +264,12 @@ def cmd_generate(args: argparse.Namespace) -> int:
                 language=question.language,
                 question_form=question.question_form,
             )
+        )
+        _write_generation_progress(
+            args.arm,
+            len(answers),
+            len(cases),
+            case.question_id,
         )
 
     model_label = "offline" if args.offline else model.model

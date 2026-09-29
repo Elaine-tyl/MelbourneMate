@@ -85,6 +85,39 @@ def test_evaluate_generation_creates_three_matching_runs(tmp_path):
     assert len({item["model"] for item in manifests}) == 1
 
 
+def test_evaluate_generation_reports_progress_for_each_arm(tmp_path, capsys):
+    sample = tmp_path / "sample.csv"
+    qrels = tmp_path / "qrels.txt"
+    runs = tmp_path / "runs"
+    write_sample(sample)
+    qrels.write_text("Q001 0 P001 2\n", encoding="utf-8")
+
+    result = cli.main(
+        [
+            "--data",
+            "data/sample",
+            "evaluate-generation",
+            "--run-prefix",
+            "progress",
+            "--sample",
+            str(sample),
+            "--qrels",
+            str(qrels),
+            "--encoder",
+            "hashing",
+            "--offline",
+            "--runs-dir",
+            str(runs),
+        ]
+    )
+
+    progress = capsys.readouterr().err
+    assert result == 0
+    for label in ("BM25s", "MPNet", "No context"):
+        assert f"{label:<10} [------------------------] 0/1" in progress
+        assert f"{label:<10} [########################] 1/1 Q001" in progress
+
+
 def test_evaluate_generation_stops_when_a_target_run_exists(tmp_path, capsys):
     sample = tmp_path / "sample.csv"
     qrels = tmp_path / "qrels.txt"
