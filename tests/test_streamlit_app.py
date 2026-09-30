@@ -72,7 +72,7 @@ def test_answer_question_uses_qrels_for_a_saved_example():
         collection = load_collection("data/v1")
         relevant_ids = ()
 
-        def answer(self, question, relevant_ids=()):
+        def answer(self, question, relevant_ids=(), on_chunk=None):
             self.relevant_ids = relevant_ids
             return Answer(question, "answered", "Answer")
 
@@ -82,6 +82,27 @@ def test_answer_question_uses_qrels_for_a_saved_example():
     assert pipeline.relevant_ids == tuple(
         sorted(pipeline.collection.qrels["Q04P1"])
     )
+
+
+def test_answer_question_forwards_streamed_text_to_the_ui():
+    class PipelineStub:
+        collection = load_collection("data/v1")
+
+        def answer(self, question, relevant_ids=(), on_chunk=None):
+            assert on_chunk is not None
+            on_chunk("First ")
+            on_chunk("sentence.")
+            return Answer(question, "answered", "First sentence.")
+
+    pieces = []
+    answer = answer_question(
+        PipelineStub(),
+        "A question not in the saved collection",
+        on_chunk=pieces.append,
+    )
+
+    assert pieces == ["First ", "sentence."]
+    assert answer.text == "First sentence."
 
 
 def test_app_collection_uses_the_formal_qrels():
@@ -104,7 +125,13 @@ def test_streamlit_page_loads_before_models_are_needed():
     app = AppTest.from_file(app_path).run()
 
     assert not app.exception
-    assert app.title[0].value == "🧭 MelbourneMate"
+    assert app.title[0].value == "MelbourneMate"
+    assert app.segmented_control[0].options == [
+        "Ask MelbourneMate",
+        "Evaluation Results",
+    ]
+    assert app.segmented_control[0].value == "Ask MelbourneMate"
+    assert not app.header
     labels = [button.label for button in app.button]
     assert set(labels[:4]) == set(EXAMPLE_QUESTIONS)
     assert labels[-1] == "Find an answer"
@@ -113,22 +140,39 @@ def test_streamlit_page_loads_before_models_are_needed():
 def test_streamlit_shows_saved_evaluation_results_before_models_are_needed():
     app_path = Path(__file__).parents[1] / "src/melbourne_mate/interface/app.py"
     app = AppTest.from_file(app_path).run()
+    app.segmented_control[0].select("Evaluation Results").run()
 
-    assert [item.label for item in app.expander] == ["Evaluation results"]
+    assert not app.expander
+    assert [item.value for item in app.header] == ["Evaluation Results"]
+    assert not app.text_area
+    assert all(button.label != "Find an answer" for button in app.button)
+    assert [item.label for item in app.tabs] == ["Retrieval", "Generation"]
     headings = [item.value for item in app.subheader]
     assert "Dense encoder selection" not in headings
     assert "Held-out retrieval performance" not in headings
-    assert "Retrieval by question type" in headings
+    assert "Retrieval by question type" not in headings
+    assert "Retrieval Metrics for Known and Inferred Questions" in headings
     assert "NDCG@5 differences and uncertainty" not in headings
-    assert "Generation safety" in headings
+    assert "Generation Behaviour by Question Type" in headings
     charts = app.get("arrow_vega_lite_chart") or app.get("vega_lite_chart")
     assert len(charts) == 2
     sliced = json.loads(charts[0].proto.spec)
     safety = json.loads(charts[1].proto.spec)
-    assert sliced["layer"][0]["encoding"]["xOffset"]["field"] == "Method"
+    assert sliced["facet"]["column"]["field"] == "Metric"
+    assert sliced["spec"]["layer"][0]["encoding"]["x"]["field"] == "Method"
+    assert (
+        sliced["spec"]["layer"][0]["encoding"]["xOffset"]["field"]
+        == "Question type"
+    )
+    assert sliced["spec"]["layer"][0]["encoding"]["y"]["field"] == "Score"
+    assert any(
+        "Retrieval method" in item.value
+        for item in app.markdown
+    )
     assert safety["layer"][0]["encoding"]["x"]["field"] == "Arm"
+    assert safety["layer"][0]["encoding"]["xOffset"]["field"] == "Question type"
     assert safety["layer"][0]["encoding"]["y"]["field"] == "Rate"
-    assert len(app.table) == 1
+    assert len(app.table) == 2
 
 
 def test_four_task_record_matches_the_saved_mpnet_run():
