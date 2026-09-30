@@ -116,8 +116,10 @@ def test_streamlit_shows_saved_evaluation_results_before_models_are_needed():
 
     assert [item.label for item in app.expander] == ["Evaluation results"]
     headings = [item.value for item in app.subheader]
-    assert "Retrieval performance" not in headings
+    assert "Dense encoder selection" not in headings
+    assert "Held-out retrieval performance" not in headings
     assert "Retrieval by question type" in headings
+    assert "NDCG@5 differences and uncertainty" not in headings
     assert "Generation safety" in headings
     charts = app.get("arrow_vega_lite_chart") or app.get("vega_lite_chart")
     assert len(charts) == 2
@@ -126,6 +128,7 @@ def test_streamlit_shows_saved_evaluation_results_before_models_are_needed():
     assert sliced["layer"][0]["encoding"]["xOffset"]["field"] == "Method"
     assert safety["layer"][0]["encoding"]["x"]["field"] == "Arm"
     assert safety["layer"][0]["encoding"]["y"]["field"] == "Rate"
+    assert len(app.table) == 1
 
 
 def test_four_task_record_matches_the_saved_mpnet_run():

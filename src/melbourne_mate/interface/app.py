@@ -14,6 +14,7 @@ from melbourne_mate.evaluation.visuals import (
     EvaluationVisualError,
     generation_chart,
     generation_chart_data,
+    held_out_summary_data,
     retrieval_slice_chart,
     retrieval_slice_chart_data,
 )
@@ -158,6 +159,9 @@ def main() -> None:
             root / "runs/retrieval/s9-final-bm25-test/per_question_metrics.csv",
             root / "runs/retrieval/s9-final-mpnet-test/per_question_metrics.csv",
         )
+        held_out_summary = held_out_summary_data(
+            root / "runs/retrieval/s9-final-comparison.csv"
+        )
         generation = generation_chart_data(
             root / "runs/generation/s9-qwen25-20260927-bm25/summary.csv",
             root / "runs/generation/s9-qwen25-20260927-mpnet/summary.csv",
@@ -170,10 +174,18 @@ def main() -> None:
         with st.expander("Evaluation results"):
             st.subheader("Retrieval by question type")
             st.caption(
+                "MPNet was selected over MiniLM on validation data; the difference "
+                "was not statistically significant. "
                 "Mean NDCG@5 for known and inferred held-out questions. "
                 "Higher is better."
             )
             st.altair_chart(retrieval_slice_chart(retrieval_slices), width="stretch")
+            st.table(
+                held_out_summary,
+                border="horizontal",
+                width="stretch",
+                hide_index=True,
+            )
             st.subheader("Generation safety")
             st.caption(
                 "Unsupported answer rate on out-of-knowledge-base questions. "

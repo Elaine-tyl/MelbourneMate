@@ -72,6 +72,37 @@ def retrieval_slice_chart_data(bm25_path: Path, mpnet_path: Path) -> pd.DataFram
     return pd.DataFrame(rows)
 
 
+def held_out_summary_data(path: Path) -> pd.DataFrame:
+    """Format the saved held-out NDCG@5 comparison as a compact table."""
+
+    if not path.is_file():
+        raise EvaluationVisualError(f"missing evaluation file: {path}")
+    frame = pd.read_csv(path)
+    required = {"metric", "mean_difference", "ci_low", "ci_high", "p_value"}
+    missing = required.difference(frame.columns)
+    if missing:
+        raise EvaluationVisualError(
+            f"missing column(s) in {path}: {', '.join(sorted(missing))}"
+        )
+    matches = frame.loc[frame["metric"] == "ndcg@5"]
+    if len(matches) != 1:
+        raise EvaluationVisualError(
+            f"expected one ndcg@5 comparison in {path}, found {len(matches)}"
+        )
+    saved = matches.iloc[0]
+    return pd.DataFrame(
+        [
+            ("Δ NDCG@5, MPNet − BM25s", f"{float(saved['mean_difference']):+.4f}"),
+            (
+                "Topic-clustered 95% CI",
+                f"[{float(saved['ci_low']):.4f}, {float(saved['ci_high']):.4f}]",
+            ),
+            ("Paired test p-value", f"{float(saved['p_value']):.4f}"),
+        ],
+        columns=["Overall held-out comparison", "Result"],
+    )
+
+
 def retrieval_slice_chart(data: pd.DataFrame) -> alt.LayerChart:
     """Compare retrieval methods within each answerable question type."""
 

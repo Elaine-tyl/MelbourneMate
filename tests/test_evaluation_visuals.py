@@ -65,6 +65,43 @@ def test_retrieval_slice_chart_data_groups_known_and_inferred_questions(tmp_path
     ]
 
 
+def test_held_out_summary_data_formats_saved_statistical_result(tmp_path):
+    held_out = tmp_path / "held-out.csv"
+    columns = [
+        "metric",
+        "left_run",
+        "right_run",
+        "mean_difference",
+        "ci_low",
+        "ci_high",
+        "p_value",
+        "clusters",
+        "observations",
+    ]
+    pd.DataFrame(
+        [["ndcg@5", "bm25", "mpnet", 0.1356, 0.0486, 0.2519, 0.0065, 12, 36]],
+        columns=columns,
+    ).to_csv(held_out, index=False)
+
+    data = visuals.held_out_summary_data(held_out)
+
+    assert list(data.columns) == ["Overall held-out comparison", "Result"]
+    assert data.to_dict("records") == [
+        {
+            "Overall held-out comparison": "Δ NDCG@5, MPNet − BM25s",
+            "Result": "+0.1356",
+        },
+        {
+            "Overall held-out comparison": "Topic-clustered 95% CI",
+            "Result": "[0.0486, 0.2519]",
+        },
+        {
+            "Overall held-out comparison": "Paired test p-value",
+            "Result": "0.0065",
+        },
+    ]
+
+
 def test_generation_chart_data_uses_unsupported_answer_rates(tmp_path):
     bm25 = tmp_path / "bm25.csv"
     mpnet = tmp_path / "mpnet.csv"
