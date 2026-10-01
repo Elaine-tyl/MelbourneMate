@@ -104,7 +104,7 @@ def held_out_summary_data(path: Path) -> pd.DataFrame:
             ),
             ("Paired test p-value", f"{float(saved['p_value']):.4f}"),
         ],
-        columns=["Overall held-out comparison", "Result"],
+        columns=["Overall NDCG@5 statistical comparison", "Result"],
     )
 
 
@@ -367,12 +367,12 @@ def generation_summary_data(
     mpnet_path: Path,
     no_context_path: Path,
 ) -> pd.DataFrame:
-    """Format saved generation safety and citation metrics for display."""
+    """Format the complementary generation error and citation metrics."""
 
     metrics = (
         "unsupported_answer_rate",
+        "false_refusal_rate",
         "citation_validity_rate",
-        "truncation_rate",
     )
     rows = []
     for arm, path in (
@@ -388,19 +388,19 @@ def generation_summary_data(
                 "OOKB unsupported answer": _format_percent(
                     values["unsupported_answer_rate"]
                 ),
+                "False refusal": _format_percent(values["false_refusal_rate"]),
                 "Citation validity": _format_percent(
                     values["citation_validity_rate"]
                 ),
-                "Truncation": _format_percent(values["truncation_rate"]),
             }
         )
     return pd.DataFrame(rows)
 
 
 def generation_chart(data: pd.DataFrame) -> alt.LayerChart:
-    """Compare appropriate response behaviour across question types."""
+    """Compare correct-refusal rates for out-of-knowledge-base questions."""
 
-    chart_data = data.assign(Percent=data["Rate"] * 100)
+    chart_data = data.loc[data["Question type"] == "OOKB"]
     x = alt.X(
         "Arm:N",
         sort=["BM25s", "MPNet", "No context"],
@@ -417,7 +417,7 @@ def generation_chart(data: pd.DataFrame) -> alt.LayerChart:
         "Rate:Q",
         scale=alt.Scale(domain=[0, 1]),
         axis=alt.Axis(
-            title="Appropriate response rate",
+            title="Correct-refusal rate",
             format=".0%",
             labelFontSize=14,
             titleFontSize=16,
@@ -426,35 +426,18 @@ def generation_chart(data: pd.DataFrame) -> alt.LayerChart:
     )
     base = alt.Chart(chart_data).encode(
         x=x,
-        xOffset=alt.XOffset(
-            "Question type:N",
-            sort=["Known", "Inferred", "OOKB"],
-        ),
         y=y,
     )
     bars = base.mark_bar(
+        color="#4C78A8",
         cornerRadiusTopLeft=3,
         cornerRadiusTopRight=3,
-        size=48,
+        size=76,
     ).encode(
-        color=alt.Color(
-            "Question type:N",
-            scale=alt.Scale(
-                domain=["Known", "Inferred", "OOKB"],
-                range=["#4C78A8", "#F58518", "#6B7280"],
-            ),
-            legend=alt.Legend(
-                orient="bottom",
-                title=None,
-                labelFontSize=14,
-                symbolSize=200,
-            ),
-        ),
         tooltip=[
             alt.Tooltip("Arm:N"),
-            alt.Tooltip("Question type:N"),
-            alt.Tooltip("Rate:Q", title="Appropriate response", format=".1%"),
-            alt.Tooltip("Questions:Q", format="d"),
+            alt.Tooltip("Rate:Q", title="Correct refusal", format=".1%"),
+            alt.Tooltip("Questions:Q", title="OOKB questions", format="d"),
         ],
     )
     labels = base.mark_text(
@@ -465,10 +448,9 @@ def generation_chart(data: pd.DataFrame) -> alt.LayerChart:
         fontSize=14,
         fontWeight="bold",
     ).encode(
-        text=alt.Text("Percent:Q", format=".0f"),
-        detail="Question type:N",
+        text=alt.Text("Rate:Q", format=".0%"),
     )
     return (bars + labels).properties(
-        height=430,
+        height=390,
         padding={"left": 65, "right": 18, "top": 30, "bottom": 12},
     )

@@ -146,14 +146,14 @@ def test_streamlit_shows_saved_evaluation_results_before_models_are_needed():
     assert [item.value for item in app.header] == ["Evaluation Results"]
     assert not app.text_area
     assert all(button.label != "Find an answer" for button in app.button)
-    assert [item.label for item in app.tabs] == ["Retrieval", "Generation"]
+    assert not app.tabs
     headings = [item.value for item in app.subheader]
     assert "Dense encoder selection" not in headings
     assert "Held-out retrieval performance" not in headings
     assert "Retrieval by question type" not in headings
     assert "Retrieval Metrics for Known and Inferred Questions" in headings
     assert "NDCG@5 differences and uncertainty" not in headings
-    assert "Generation Behaviour by Question Type" in headings
+    assert "OOKB Refusal Safety by Generation Arm" in headings
     charts = app.get("arrow_vega_lite_chart") or app.get("vega_lite_chart")
     assert len(charts) == 2
     sliced = json.loads(charts[0].proto.spec)
@@ -170,7 +170,7 @@ def test_streamlit_shows_saved_evaluation_results_before_models_are_needed():
         for item in app.markdown
     )
     assert safety["layer"][0]["encoding"]["x"]["field"] == "Arm"
-    assert safety["layer"][0]["encoding"]["xOffset"]["field"] == "Question type"
+    assert "xOffset" not in safety["layer"][0]["encoding"]
     assert safety["layer"][0]["encoding"]["y"]["field"] == "Rate"
     assert len(app.table) == 2
 

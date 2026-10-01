@@ -86,18 +86,21 @@ def test_held_out_summary_data_formats_saved_statistical_result(tmp_path):
 
     data = visuals.held_out_summary_data(held_out)
 
-    assert list(data.columns) == ["Overall held-out comparison", "Result"]
+    assert list(data.columns) == [
+        "Overall NDCG@5 statistical comparison",
+        "Result",
+    ]
     assert data.to_dict("records") == [
         {
-            "Overall held-out comparison": "Δ NDCG@5, MPNet − BM25s",
+            "Overall NDCG@5 statistical comparison": "Δ NDCG@5, MPNet − BM25s",
             "Result": "+0.1356",
         },
         {
-            "Overall held-out comparison": "Topic-clustered 95% CI",
+            "Overall NDCG@5 statistical comparison": "Topic-clustered 95% CI",
             "Result": "[0.0486, 0.2519]",
         },
         {
-            "Overall held-out comparison": "Paired test p-value",
+            "Overall NDCG@5 statistical comparison": "Paired test p-value",
             "Result": "0.0065",
         },
     ]
@@ -312,14 +315,14 @@ def test_generation_chart_data_groups_appropriate_behaviour_by_question_type(
     ]
 
 
-def test_generation_summary_formats_safety_citation_and_truncation_rates(tmp_path):
+def test_generation_summary_formats_error_and_citation_rates(tmp_path):
     paths = [tmp_path / name for name in ("bm25.csv", "mpnet.csv", "none.csv")]
     for path, values in zip(
         paths,
         [
-            (0.033333, 0.823529, 0.0),
-            (0.133333, 0.787879, 0.0),
-            (1.0, float("nan"), 0.0),
+            (0.033333, 0.058824, 0.823529),
+            (0.133333, 0.083333, 0.787879),
+            (1.0, float("nan"), float("nan")),
         ],
         strict=True,
     ):
@@ -329,8 +332,8 @@ def test_generation_summary_formats_safety_citation_and_truncation_rates(tmp_pat
                 zip(
                     (
                         "unsupported_answer_rate",
+                        "false_refusal_rate",
                         "citation_validity_rate",
-                        "truncation_rate",
                     ),
                     values,
                     strict=True,
@@ -344,20 +347,20 @@ def test_generation_summary_formats_safety_citation_and_truncation_rates(tmp_pat
         {
             "Generation arm": "BM25s",
             "OOKB unsupported answer": "3.3%",
+            "False refusal": "5.9%",
             "Citation validity": "82.4%",
-            "Truncation": "0.0%",
         },
         {
             "Generation arm": "MPNet",
             "OOKB unsupported answer": "13.3%",
+            "False refusal": "8.3%",
             "Citation validity": "78.8%",
-            "Truncation": "0.0%",
         },
         {
             "Generation arm": "No context",
             "OOKB unsupported answer": "100.0%",
+            "False refusal": "N/A",
             "Citation validity": "N/A",
-            "Truncation": "0.0%",
         },
     ]
 
@@ -431,7 +434,7 @@ def test_retrieval_metric_chart_facets_metrics_and_groups_question_types():
     assert spec["facet"]["column"]["header"]["labelFontSize"] >= 17
 
 
-def test_generation_chart_groups_question_types_and_labels_rates():
+def test_generation_chart_focuses_on_ookb_correct_refusal():
     data = pd.DataFrame(
         [
             ("BM25s", "Known", 0.95, 15),
@@ -447,32 +450,24 @@ def test_generation_chart_groups_question_types_and_labels_rates():
     label = spec["layer"][1]
     assert bar["encoding"]["x"]["field"] == "Arm"
     assert bar["encoding"]["x"]["axis"]["title"] == "Generation arm"
-    assert bar["encoding"]["xOffset"]["field"] == "Question type"
+    assert "xOffset" not in bar["encoding"]
     assert bar["encoding"]["y"]["field"] == "Rate"
     assert bar["encoding"]["y"]["scale"]["domain"] == [0, 1]
-    assert bar["encoding"]["y"]["axis"]["title"] == "Appropriate response rate"
-    assert bar["mark"]["size"] >= 44
-    assert spec["height"] >= 420
+    assert bar["encoding"]["y"]["axis"]["title"] == "Correct-refusal rate"
+    assert bar["mark"]["size"] >= 70
+    assert bar["mark"]["color"] == "#4C78A8"
+    assert "color" not in bar["encoding"]
+    assert spec["height"] >= 380
     assert spec["padding"]["left"] >= 55
-    assert bar["encoding"]["color"]["scale"]["domain"] == [
-        "Known",
-        "Inferred",
-        "OOKB",
-    ]
-    assert bar["encoding"]["color"]["scale"]["range"] == [
-        "#4C78A8",
-        "#F58518",
-        "#6B7280",
-    ]
     assert label["mark"]["color"] == "black"
-    assert label["encoding"]["text"]["field"] == "Percent"
-    assert label["encoding"]["text"]["format"] == ".0f"
+    assert label["encoding"]["text"]["field"] == "Rate"
+    assert label["encoding"]["text"]["format"] == ".0%"
     assert label["mark"]["fontSize"] >= 14
     assert bar["encoding"]["x"]["axis"]["labelFontSize"] >= 13
     assert bar["encoding"]["y"]["axis"]["labelFontSize"] >= 13
-    assert bar["encoding"]["color"]["legend"]["labelFontSize"] >= 13
     assert "transform" not in spec
-    assert [{}] not in spec.get("datasets", {}).values()
+    datasets = list(spec.get("datasets", {}).values())
+    assert all(row["Question type"] == "OOKB" for row in datasets[0])
 
 
 def test_chart_data_rejects_a_missing_required_metric(tmp_path):

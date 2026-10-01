@@ -1,29 +1,19 @@
 # Relationship to Walert
 
-MelbourneMate uses Walert as a methodological baseline, but it is an independent
-implementation for a different domain. Walert studies a conversational agent
-for RMIT School of Computing Technologies FAQs and reports retrieval and answer
-evaluation using known, inferred and out-of-knowledge-base scenarios. Its
-published repository highlights NDCG, the percentage of unanswered
-out-of-knowledge-base questions, BERTScore and ROUGE-1.
+MelbourneMate is a methodological adaptation of Walert, not an exact
+reproduction. Walert evaluates a conversational agent for RMIT computing FAQs.
+MelbourneMate applies the same broad evaluation structure to **international
+students adjusting to life in Melbourne**, including transport, health and
+OSHC, renting and bonds, visa conditions, employment and arrival tasks.
 
-MelbourneMate keeps the parts of that design that answer the WIL project's core
-question: can a RAG system retrieve useful evidence, answer when evidence is
-available and avoid answering when it is not? It then extends the protocol to
-make a smaller two-person project easier to audit and reproduce.
-
-The knowledge-base design also follows Walert's general pattern: curated
-passages are organised by information need, questions are classified as known,
-inferred or out of knowledge base, and graded topic-passage mappings are
-converted into qrels. MelbourneMate reuses that structure only. Its passages,
-questions, official URLs and reference answers are newly authored for the
-international-student domain.
+The collection is independent: its official URLs, passages, questions,
+judgements and reference answers were newly authored for MelbourneMate.
 
 ## Methodology mapping
 
 | Walert evaluation idea | MelbourneMate implementation | Status |
 |---|---|---|
-| Manually curated domain knowledge | A new English-only collection of dated official information for international students settling in Melbourne | Adapted to a new domain |
+| Manually curated domain knowledge | Dated official information for international students adjusting to life in Melbourne | Adapted to a new domain |
 | Known questions | Questions answerable from one principal evidence passage | Retained |
 | Inferred questions | Questions requiring evidence from two or more passages | Retained |
 | Out-of-knowledge-base questions | Thirty questions with no approved answer in the collection | Retained |
@@ -34,28 +24,26 @@ international-student domain.
 
 ## Extensions beyond the baseline
 
-1. **Lexical versus semantic retrieval.** BM25s and a pinned QA-trained MPNet
-   bi-encoder are evaluated on the same passages, questions, qrels and top-k.
-2. **Frozen topic-level hold-out.** Canonical and paraphrased versions of one
-   information need remain in the same split. Configuration choices use
-   validation only; the held-out test is not used for tuning.
-3. **Targeted qrels verification.** Following Walert, qrels are generated from
-   curated topic-passage mappings. The small check keeps missing MPNet top-five
-   candidates in the same category or a listed confusable topic pair. Each pair
-   receives one primary grade; a teammate checks only flagged cases. Retrieval
-   qrels do not use full double review, Cohen's kappa or complex adjudication.
-4. **Uncertainty that respects the data structure.** Confidence intervals and
-   paired randomisation operate on topic clusters rather than treating three
-   phrasings of one topic as independent observations.
-5. **No-context ablation.** The same local generator is evaluated with BM25s
-   context, Dense context and no retrieved context. This separates retrieval
-   value from the quality of the language model alone.
-6. **Traceable evidence.** Formal runs are write-once. Their manifests record
-   collection, qrels, configuration and model fingerprints so every reported
-   number resolves to a specific experiment.
-7. **Blind manual assessment.** Two reviewers score an anonymised answer sample
-   for correctness, evidence support and fallback appropriateness, with
-   agreement reported.
+- BM25s and MPNet are tested on the same passages, questions, qrels and top-k.
+- Topic-level splitting keeps canonical and paraphrased questions together and
+  prevents test leakage.
+- Topic-clustered confidence intervals and paired testing report uncertainty.
+- BM25s, MPNet and no-context generation use one frozen question sample.
+- Saved manifests and fingerprints make reported results traceable.
+- Two reviewers independently score correctness, evidence support and fallback
+  appropriateness.
+
+## Generation safety metrics
+
+- **Correct-refusal rate:** among OOKB questions, the proportion correctly
+  refused. Higher is better.
+- **Unsupported-answer rate:** among OOKB questions, the proportion answered
+  without approved evidence. Lower is better.
+- **False-refusal rate:** among answerable questions where relevant evidence
+  was retrieved, the proportion incorrectly refused. Lower is better.
+
+These metrics must be read together. A system that refuses every question can
+look safe on OOKB questions while failing to answer supported questions.
 
 ## Deliberate differences
 
@@ -69,13 +57,6 @@ international-student domain.
 - ROUGE and BERTScore are not treated as primary evidence. For this safety- and
   source-sensitive domain, refusal behaviour, citation checks and blind human
   judgement answer the project questions more directly.
-
-## Claim boundary
-
-The project should be described as a **methodological adaptation and extension
-of Walert**, not as an exact reproduction. MelbourneMate's scores must not be
-compared numerically with Walert's published scores because the corpus,
-questions, relevance labels, models and evaluation protocol differ.
 
 ## References
 

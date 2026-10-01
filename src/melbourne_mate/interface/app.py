@@ -144,8 +144,7 @@ def _render_evaluation_results(root: Path) -> None:
         st.warning(f"Saved evaluation results are unavailable: {exc}")
         return
 
-    retrieval_tab, generation_tab = st.tabs(["Retrieval", "Generation"])
-    with retrieval_tab, st.container(border=True):
+    with st.container(border=True):
         st.subheader("Retrieval Metrics for Known and Inferred Questions")
         st.caption(
             "Mean NDCG@5, Recall@5 and MRR across 15 known and 21 inferred "
@@ -169,12 +168,13 @@ def _render_evaluation_results(root: Path) -> None:
             width="stretch",
             hide_index=True,
         )
-    with generation_tab, st.container(border=True):
-        st.subheader("Generation Behaviour by Question Type")
+    with st.container(border=True):
+        st.subheader("OOKB Refusal Safety by Generation Arm")
         st.caption(
-            "Appropriate response means answering Known and Inferred questions "
-            "and refusing OOKB questions. It measures response behaviour, not "
-            "answer correctness or citation quality. Higher is better."
+            "Correct-refusal rate across the same 30 out-of-knowledge-base "
+            "questions. Higher bars are better. The table adds unsupported "
+            "answers, false refusals and citation validity; lower error rates "
+            "are better."
         )
         st.altair_chart(generation_chart(generation), width="stretch")
         st.table(
