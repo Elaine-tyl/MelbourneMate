@@ -160,7 +160,9 @@ generation-safety comparison:
 The Streamlit evaluation view renders the committed run files. It does not
 rerun retrieval or generation:
 
-![Streamlit evaluation results](docs/figures/streamlit-evaluation-results.png)
+![Retrieval evaluation results](docs/figures/retrieval-evaluation-results.png)
+
+![Generation safety evaluation results](docs/figures/generation-safety-results.png)
 
 ## Generation evaluation
 
