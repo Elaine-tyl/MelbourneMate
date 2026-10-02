@@ -18,6 +18,7 @@ from melbourne_mate.evaluation.study import (
     load_would_use,
     participant_tasks,
     participants,
+    reset_response,
     save_response,
     save_would_use,
     warm_up,
@@ -71,9 +72,12 @@ MISSING_DENSE = (
 )
 STYLE = """
 <style>
-.block-container {max-width: 760px; padding-top: 2rem;}
-.mm-task {font-size: 1.2rem; line-height: 1.5; margin: .4rem 0 .8rem;}
+.block-container {max-width: 820px; padding: 2rem 1.25rem 4rem;}
+.mm-task {font-size: 1.2rem; font-weight: 600; line-height: 1.55; margin: .55rem 0 1rem;}
 .mm-muted {color: #607080; font-size: .95rem;}
+[data-testid="stSidebar"] {background: #eef4fa; border-right: 1px solid #d8e3ed;}
+[data-testid="stButton"] button {border-radius: .55rem; min-height: 2.75rem;}
+[data-testid="stProgress"] {margin: .35rem 0 1.2rem;}
 </style>
 """
 
@@ -164,24 +168,40 @@ def task_picker(participant_id: str, tasks: list[dict], final_saved: bool) -> st
 # ---------- participant view ----------
 
 
-def timer(key: str, ready: bool) -> None:
-    left, right, status = st.columns([1, 1, 2], vertical_alignment="center")
-    if left.button("Start timer", key=f"{key}-start", disabled=not ready, use_container_width=True):
+def start_timer(key: str, ready: bool) -> None:
+    button_col, status = st.columns([1, 3], vertical_alignment="center")
+    if button_col.button(
+        "Start timer", key=f"{key}-start", disabled=not ready, use_container_width=True
+    ):
         st.session_state[f"{key}-began"] = time.monotonic()
         st.session_state[f"{key}-began-clock"] = time.strftime("%H:%M:%S")
+    if f"{key}-began" in st.session_state:
+        status.badge("Timer running", color="orange")
+        status.caption(f"Started at {st.session_state[f'{key}-began-clock']}")
+    elif not ready:
+        status.caption("Waiting for the researcher to prepare MelbourneMate.")
+    else:
+        status.badge("Ready to start", color="gray")
+
+
+def stop_timer(key: str) -> None:
+    button_col, status = st.columns([1, 3], vertical_alignment="center")
     running = f"{key}-began" in st.session_state
-    stopped = right.button(
+    stopped = button_col.button(
         "Stop timer", key=f"{key}-stop", disabled=not running, use_container_width=True
     )
     if stopped and running:
         elapsed = time.monotonic() - st.session_state.pop(f"{key}-began")
         st.session_state[f"{key}-time"] = max(1, min(MAX_SECONDS, round(elapsed)))
     if f"{key}-began" in st.session_state:
-        status.markdown(f"⏱️ Running since {st.session_state[f'{key}-began-clock']}")
+        status.badge("Timer running", color="orange")
     elif stopped or st.session_state.get(f"{key}-time", 1) > 1:
-        status.markdown(f"⏱️ {st.session_state.get(f'{key}-time', 1)} seconds")
-    elif not ready:
-        status.caption("Waiting for the researcher to prepare MelbourneMate.")
+        status.badge(
+            f"{st.session_state.get(f'{key}-time', 1)} seconds recorded",
+            color="green",
+        )
+    else:
+        status.badge("Stop after the ratings", color="gray")
 
 
 def melbournemate_box(key: str, prompt: str, ready: bool) -> None:
@@ -222,7 +242,7 @@ def task_card(root: Path, participant_id: str, task: dict, last: bool) -> None:
     with st.container(border=True):
         st.badge(name, color=colour)
         st.markdown(f"<div class='mm-task'>{task['prompt']}</div>", unsafe_allow_html=True)
-        timer(key, ready)
+        start_timer(key, ready)
         if uses_chatbot:
             melbournemate_box(key, task["prompt"], ready)
         else:
@@ -248,14 +268,48 @@ def task_card(root: Path, participant_id: str, task: dict, last: bool) -> None:
             key=f"{key}-trust",
         )
         st.caption(SCALE_HELP)
+        stop_timer(key)
 
     with st.container(border=True):
-        st.markdown("**Researcher**")
+        st.markdown("#### Researcher controls")
+        st.caption("Only the researcher uses this section to check time, save, or reset.")
         if is_saved(task):
             st.caption(
                 f"Saved with {task['time_seconds']} s, confidence {task['confidence']} and "
                 f"trust {task['trust']}. Saving again replaces it."
             )
+            confirm_key = f"{key}-reset-confirming"
+            if st.button("Reset this task", key=f"{key}-reset"):
+                st.session_state[confirm_key] = True
+            if st.session_state.get(confirm_key):
+                st.warning("This clears the saved task and its final rating, if present.")
+                confirm, cancel = st.columns(2)
+                if confirm.button(
+                    "Confirm reset", key=f"{key}-reset-confirm", type="primary"
+                ):
+                    try:
+                        reset_response(root, participant_id, task["position"])
+                    except StudyError as exc:
+                        st.error(str(exc))
+                    else:
+                        for suffix in (
+                            "began",
+                            "began-clock",
+                            "time",
+                            "answer",
+                            "conf",
+                            "trust",
+                            "note",
+                            "answer-view",
+                            "judge",
+                            "reset-confirming",
+                        ):
+                            st.session_state.pop(f"{key}-{suffix}", None)
+                        st.session_state.pop(f"{participant_id}-use", None)
+                        st.rerun()
+                if cancel.button("Cancel", key=f"{key}-reset-cancel"):
+                    st.session_state.pop(confirm_key, None)
+                    st.rerun()
         left, right = st.columns([1, 2])
         st.session_state.setdefault(f"{key}-time", int(task.get("time_seconds") or 1))
         seconds = left.number_input(

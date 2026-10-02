@@ -277,6 +277,10 @@ def test_study_page_warms_up_then_saves_a_task_and_moves_on(tmp_path, monkeypatc
     assert not button(app, "P02-1-start").disabled
     assert app.text_area(key="P02-1-question").value == task_text
     assert any("based on what MelbourneMate showed" in item.value for item in app.caption)
+    button_keys = [item.key for item in app.button]
+    assert button_keys.index("P02-1-start") < button_keys.index("P02-1-ask")
+    assert button_keys.index("P02-1-ask") < button_keys.index("P02-1-stop")
+    assert button_keys.index("P02-1-stop") < button_keys.index("P02-1-save")
     button(app, "P02-1-ask").click().run()
     assert asked == [WARM_UP_QUESTION, task_text]
     assert any("Use the RTBA." in item.value for item in app.markdown)
@@ -297,6 +301,20 @@ def test_study_page_warms_up_then_saves_a_task_and_moves_on(tmp_path, monkeypatc
     assert saved[0]["answer"] == "Lodge it with the RTBA within 14 days."
     assert any(item.value == "#### Task 2 of 4" for item in app.markdown)
     assert app.get("progress")[0].proto.value == 25
+
+
+def test_timer_status_and_researcher_controls_are_clear(tmp_path, monkeypatch):
+    study = copy_study(tmp_path, {})
+    app = open_page(study, monkeypatch, "P03")  # starts with official search
+
+    assert any(item.value == "#### Researcher controls" for item in app.markdown)
+    assert any("Only the researcher" in item.value for item in app.caption)
+
+    button(app, "P03-1-start").click().run()
+    assert any("Timer running" in item.value for item in app.markdown)
+
+    button(app, "P03-1-stop").click().run()
+    assert any("seconds recorded" in item.value for item in app.markdown)
 
 
 def test_melbournemate_answer_remains_after_streamlit_rerun(tmp_path, monkeypatch):
@@ -330,6 +348,43 @@ def test_melbournemate_answer_remains_after_streamlit_rerun(tmp_path, monkeypatc
 
     assert any("Use the RTBA." in item.value for item in app.markdown)
     assert any("Consumer Affairs Victoria" in item.value for item in app.markdown)
+
+
+def test_researcher_can_confirm_reset_of_one_saved_task(tmp_path, monkeypatch):
+    saved = ("yes", "120", "4", "4")
+    study = copy_study(tmp_path, {("P01", str(n)): saved for n in range(1, 5)})
+    save_would_use(study, "P01", 5)
+    save_would_use(study, "P02", 3)
+    app = open_page(study, monkeypatch, "P01")
+    app.sidebar.radio[0].set_value("1").run()
+
+    assert any(item.key == "P01-1-reset" for item in app.button)
+    button(app, "P01-1-reset").click().run()
+    assert any(item.key == "P01-1-reset-confirm" for item in app.button)
+    before = next(
+        row
+        for row in read(study / "responses.csv")
+        if row["participant_id"] == "P01" and row["position"] == "1"
+    )
+    assert before["time_seconds"] == "120"  # first click does not delete data
+
+    button(app, "P01-1-reset-confirm").click().run()
+
+    rows = read(study / "responses.csv")
+    reset = next(
+        row
+        for row in rows
+        if row["participant_id"] == "P01" and row["position"] == "1"
+    )
+    untouched = next(
+        row
+        for row in rows
+        if row["participant_id"] == "P01" and row["position"] == "2"
+    )
+    assert all(not reset[field] for field in (*MEASURES, "answer", "note"))
+    assert untouched["time_seconds"] == "120"
+    assert load_would_use(study) == {"P02": 3}
+    assert app.get("progress")[0].proto.value == 75
 
 
 def test_completion_is_judged_after_the_session(tmp_path):

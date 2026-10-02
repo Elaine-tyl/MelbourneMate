@@ -173,6 +173,38 @@ def save_response(
         writer.writerows(rows)
 
 
+def reset_response(study_dir: str | Path, participant_id: str, position: str) -> None:
+    """Clear one saved task and any final rating for the participant."""
+    root = Path(study_dir)
+    path = root / RESPONSES
+    rows = _read_csv(path) if path.exists() else []
+    matches = [
+        row
+        for row in rows
+        if row["participant_id"] == participant_id and row["position"] == str(position)
+    ]
+    where = f"{participant_id} position {position}"
+    if len(matches) != 1 or not matches[0]["time_seconds"].strip():
+        raise StudyError(f"{where}: no saved attempt to reset")
+    for field in (*MEASURES, "answer", "note"):
+        matches[0][field] = ""
+    with path.open("w", newline="", encoding="utf-8") as handle:
+        writer = csv.DictWriter(handle, fieldnames=RESPONSE_COLUMNS, lineterminator="\n")
+        writer.writeheader()
+        writer.writerows(rows)
+
+    final_path = root / FINAL
+    if final_path.exists():
+        final_rows = _read_csv(final_path)
+        for row in final_rows:
+            if row["participant_id"] == participant_id:
+                row["would_use"] = ""
+        with final_path.open("w", newline="", encoding="utf-8") as handle:
+            writer = csv.DictWriter(handle, fieldnames=FINAL_COLUMNS, lineterminator="\n")
+            writer.writeheader()
+            writer.writerows(final_rows)
+
+
 def judge_completion(
     study_dir: str | Path, participant_id: str, position: str, completed: str
 ) -> None:
