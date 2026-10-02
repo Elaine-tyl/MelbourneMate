@@ -9,21 +9,19 @@ from streamlit.testing.v1 import AppTest
 
 from melbourne_mate import cli
 from melbourne_mate.corpus import load_collection
-from melbourne_mate.evaluation import study as study_module
 from melbourne_mate.evaluation.study import (
-    CONSENT_ITEMS,
     MEASURES,
     RESPONSE_COLUMNS,
-    WARM_UP_PROMPT,
+    WARM_UP_QUESTION,
     StudyError,
     ensure_responses,
-    has_consent,
     load_responses,
     participant_tasks,
-    record_consent,
     save_response,
     summarise_study,
+    warm_up,
 )
+from melbourne_mate.interface import app as chatbot
 
 STUDY = Path("study")
 STUDY_APP = Path(__file__).parents[1] / "src/melbourne_mate/interface/study_app.py"
@@ -37,7 +35,7 @@ def read(path):
 def copy_study(tmp_path, answers):
     """Copy the study templates and fill rows as {(participant, position): values}."""
     target = tmp_path / "study"
-    shutil.copytree(STUDY, target, ignore=shutil.ignore_patterns("responses.csv", "consent.csv"))
+    shutil.copytree(STUDY, target, ignore=shutil.ignore_patterns("responses.csv"))
     rows = read(ensure_responses(target))
     for row in rows:
         values = answers.get((row["participant_id"], row["position"]))
@@ -82,7 +80,7 @@ def test_blank_template_has_no_attempts(tmp_path):
 
 def test_participant_files_are_kept_out_of_git():
     ignored = subprocess.run(
-        ["git", "check-ignore", "study/responses.csv", "study/consent.csv"],
+        ["git", "check-ignore", "study/responses.csv"],
         capture_output=True,
         text=True,
         check=True,
@@ -91,21 +89,21 @@ def test_participant_files_are_kept_out_of_git():
         ["git", "ls-files", "study"], capture_output=True, text=True, check=True
     ).stdout.split()
 
-    assert ignored == ["study/responses.csv", "study/consent.csv"]
-    assert "study/responses.csv" not in tracked
-    assert "study/consent.csv" not in tracked
+    assert ignored == ["study/responses.csv"]
+    assert sorted(tracked) == [
+        "study/README.md",
+        "study/responses-template.csv",
+        "study/schedule.csv",
+        "study/tasks.csv",
+    ]
 
 
-def test_warm_up_sends_the_fixed_prompt():
-    class FakeModel:
-        def generate(self, request):
-            self.request = request
+def test_warm_up_runs_one_fixed_question_through_the_pipeline():
+    asked = []
 
-    model = FakeModel()
-
-    assert study_module.warm_up(model) >= 0
-    assert model.request.prompt == WARM_UP_PROMPT
-    assert model.request.max_output_tokens == 8
+    assert warm_up(asked.append) >= 0
+    assert asked == [WARM_UP_QUESTION]
+    assert all(WARM_UP_QUESTION != task["prompt"] for task in read(STUDY / "tasks.csv"))
 
 
 def test_summary_reports_each_method(tmp_path):
@@ -167,28 +165,9 @@ def test_cli_writes_the_summary(tmp_path, capsys):
     assert "wrote" in capsys.readouterr().out
 
 
-CONSENT = {item: True for item in CONSENT_ITEMS}
-
-
-def test_consent_is_needed_before_saving_and_is_recorded_once(tmp_path):
-    study = copy_study(tmp_path, {})
-    values = {"completed": "yes", "time_seconds": 95, "confidence": 4, "trust": 5}
-
-    with pytest.raises(StudyError, match="no recorded consent"):
-        save_response(study, "P01", "1", values)
-    with pytest.raises(StudyError, match="all consent items"):
-        record_consent(study, "P01", {**CONSENT, "agrees_to_take_part": False})
-
-    assert record_consent(study, "P01", CONSENT) is True
-    assert record_consent(study, "P01", CONSENT) is False
-    consent = read(study / "consent.csv")
-    assert [row["participant_id"] for row in consent] == ["P01"]
-    assert set(consent[0]) == {"participant_id", "consented_utc", *CONSENT_ITEMS}
-
-
 def test_saved_response_updates_only_its_row(tmp_path):
     study = copy_study(tmp_path, {})
-    record_consent(study, "P03", CONSENT)
+    (study / "responses.csv").unlink()  # the page creates it from the template
 
     save_response(
         study, "P03", "2", {"completed": "partial", "time_seconds": 240, "confidence": 3, "trust": 4}
@@ -211,36 +190,49 @@ def test_saved_response_updates_only_its_row(tmp_path):
         save_response(
             study, "P03", "1", {"completed": "yes", "time_seconds": 60, "confidence": 9, "trust": 4}
         )
+    with pytest.raises(StudyError, match="not in schedule"):
+        save_response(
+            study, "P09", "1", {"completed": "yes", "time_seconds": 60, "confidence": 3, "trust": 4}
+        )
 
 
-def test_study_page_needs_consent_and_warm_up_then_saves_a_task(tmp_path, monkeypatch):
+def test_study_page_warms_up_the_pipeline_then_saves_a_task(tmp_path, monkeypatch):
     study = copy_study(tmp_path, {})
     monkeypatch.setenv("MM_STUDY_DIR", str(study))
+    asked = []
+    monkeypatch.setattr(chatbot, "_build_pipeline", lambda: "pipeline")
+    monkeypatch.setattr(chatbot, "answer_question", lambda pipeline, q: asked.append(q) or q)
+    monkeypatch.setattr(
+        chatbot,
+        "answer_view",
+        lambda answer: {"tone": "success", "label": "Answer ready", "text": "Use the RTBA.", "sources": ()},
+    )
     app = AppTest.from_file(str(STUDY_APP)).run()
     assert not app.exception
+    assert "voluntary" in app.info[0].value
+    assert not app.checkbox  # no consent form
 
     app.selectbox[0].select("P02").run()
-    start = next(button for button in app.button if button.label == "Start session")
-    assert start.disabled
-    for box in app.checkbox:
-        box.check()
-    app.run()
-    next(button for button in app.button if button.label == "Start session").click().run()
-    assert has_consent(study, "P02")
+    button = {item.key: item for item in app.button}
+    assert button["P02-1-start"].disabled  # P02 starts with MelbourneMate
+    assert button["P02-1-ask"].disabled
+    button["P02-warm-button"].click().run()
+    assert asked == [WARM_UP_QUESTION]
+    assert any("warmed up in" in item.value for item in app.success)
 
-    timer_start = next(button for button in app.button if button.key == "P02-1-start")
-    assert timer_start.disabled  # P02 starts with MelbourneMate, so warm-up comes first
-    monkeypatch.setattr(study_module, "warm_up", lambda: 3)
-    next(button for button in app.button if button.key == "P02-warm-button").click().run()
-    assert not next(button for button in app.button if button.key == "P02-1-start").disabled
-    assert any("warmed up in 3 seconds" in item.value for item in app.success)
+    button = {item.key: item for item in app.button}
+    assert not button["P02-1-start"].disabled
+    app.text_area(key="P02-1-question").input("Where do I lodge my bond?")
+    button["P02-1-ask"].click().run()
+    assert asked == [WARM_UP_QUESTION, "Where do I lodge my bond?"]
+    assert any("Use the RTBA." in item.value for item in app.markdown)
 
     app.number_input(key="P02-1-time").set_value(75)
     app.radio(key="P02-1-done").set_value("yes")
     app.radio(key="P02-1-conf").set_value(4)
     app.radio(key="P02-1-trust").set_value(5)
     app.run()
-    next(button for button in app.button if button.key == "P02-1-save").click().run()
+    next(item for item in app.button if item.key == "P02-1-save").click().run()
 
     assert not app.exception
     saved = [row for row in read(study / "responses.csv") if row["completed"]]

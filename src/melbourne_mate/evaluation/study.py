@@ -5,8 +5,7 @@ from __future__ import annotations
 import csv
 import shutil
 import time
-from collections.abc import Sequence
-from datetime import datetime, timezone
+from collections.abc import Callable, Sequence
 from pathlib import Path
 from statistics import mean, median
 
@@ -14,12 +13,10 @@ METHODS = ("melbournemate", "official-search")
 COMPLETION = ("yes", "partial", "no")
 MEASURES = ("completed", "time_seconds", "confidence", "trust")
 RESPONSE_COLUMNS = ("participant_id", "position", "task_id", "method", *MEASURES, "note")
-CONSENT_ITEMS = ("information_read", "agrees_to_take_part", "agrees_to_anonymous_use")
-CONSENT_COLUMNS = ("participant_id", "consented_utc", *CONSENT_ITEMS)
 MAX_SECONDS = 600
 MIN_PARTICIPANTS = 4
 TEMPLATE = "responses-template.csv"
-WARM_UP_PROMPT = "Reply with the single word ready."
+WARM_UP_QUESTION = "How do I get from Melbourne Airport to the city?"
 RESPONSES = "responses.csv"
 
 
@@ -111,34 +108,6 @@ def participants(study_dir: str | Path) -> list[str]:
     return list(dict.fromkeys(codes))
 
 
-def has_consent(study_dir: str | Path, participant_id: str) -> bool:
-    path = Path(study_dir) / "consent.csv"
-    return path.exists() and any(
-        row["participant_id"] == participant_id for row in _read_csv(path)
-    )
-
-
-def record_consent(study_dir: str | Path, participant_id: str, answers: dict) -> bool:
-    """Save consent once per participant code. Returns False if already saved."""
-    root = Path(study_dir)
-    if participant_id not in participants(root):
-        raise StudyError(f"{participant_id} is not in schedule.csv")
-    if not all(answers.get(item) for item in CONSENT_ITEMS):
-        raise StudyError("all consent items must be agreed before starting")
-    if has_consent(root, participant_id):
-        return False
-
-    path = root / "consent.csv"
-    new_file = not path.exists()
-    with path.open("a", newline="", encoding="utf-8") as handle:
-        writer = csv.writer(handle, lineterminator="\n")
-        if new_file:
-            writer.writerow(CONSENT_COLUMNS)
-        stamp = datetime.now(timezone.utc).isoformat(timespec="seconds")
-        writer.writerow([participant_id, stamp, *("yes" for _ in CONSENT_ITEMS)])
-    return True
-
-
 def participant_tasks(study_dir: str | Path, participant_id: str) -> list[dict[str, str]]:
     """Scheduled tasks for one participant, with prompts and any saved answers."""
     root = Path(study_dir)
@@ -163,8 +132,8 @@ def save_response(
 ) -> None:
     """Write one task result into responses.csv after checking it."""
     root = Path(study_dir)
-    if not has_consent(root, participant_id):
-        raise StudyError(f"{participant_id} has no recorded consent")
+    if participant_id not in participants(root):
+        raise StudyError(f"{participant_id} is not in schedule.csv")
     path = ensure_responses(root)
     rows = _read_csv(path)
     matches = [
@@ -190,16 +159,14 @@ def save_response(
         writer.writerows(rows)
 
 
-def warm_up(model=None) -> int:
-    """Load the local model with a fixed prompt. Returns the seconds taken."""
-    from melbourne_mate.generation.contracts import GenerationRequest
+def warm_up(ask: Callable[[str], object]) -> int:
+    """Run one fixed, untimed question through the full pipeline.
 
-    if model is None:
-        from melbourne_mate.generation.ollama import OllamaClient
-
-        model = OllamaClient()
+    Returns the seconds taken, so model and index loading never fall inside a
+    timed task.
+    """
     started = time.monotonic()
-    model.generate(GenerationRequest(prompt=WARM_UP_PROMPT, max_output_tokens=8))
+    ask(WARM_UP_QUESTION)
     return round(time.monotonic() - started)
 
 

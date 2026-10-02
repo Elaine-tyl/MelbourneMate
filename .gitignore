@@ -24,4 +24,3 @@ runs/demo/
 # Student study runtime files hold participant-level data. Only blank
 # templates are committed.
 study/responses.csv
-study/consent.csv
