@@ -12,9 +12,11 @@ Use these links to find the project method, setup, commands and saved evidence.
 
 - [From Walert to MelbourneMate](#from-walert-to-melbournemate)
 - [Walert method and local tooling](#walert-method-and-local-tooling)
+- [System overview](#system-overview)
 - [Development setup](#development-setup)
 - [Core commands](#core-commands)
 - [Reproduce the evaluation evidence](#reproduce-the-evaluation-evidence)
+- [Evaluation figures](#evaluation-figures)
 - [Generation evaluation](#generation-evaluation)
 - [Error analysis](#error-analysis)
 - [Streamlit demo](#streamlit-demo)
@@ -52,6 +54,16 @@ validate data -> run BM25s -> run Dense -> calculate metrics -> compare runs
 Walert uses separate scripts. MelbourneMate uses the project-local `mm` command
 to automate the same sequence and reduce command errors. This does not make the
 two projects' scores directly comparable.
+
+## System overview
+
+![MelbourneMate overall conceptual diagram](docs/figures/melbournemate-overall-conceptual-diagram.png)
+
+The diagram separates the live RAG path from the evaluation path. Official
+sources are indexed for BM25s and MPNet retrieval, Qwen2.5 generates from the
+retrieved evidence through local Ollama, and the safety gate answers only when
+the available evidence is sufficient. Retrieval effectiveness and generation
+safety are evaluated separately.
 
 ## Development setup
 
@@ -137,6 +149,18 @@ saved output. It helps reviewers check the evidence or repeat one experiment.
 The commands below show the full arguments. Saved CSV files are committed so a
 reviewer can inspect the reported values without downloading models or rerunning
 Ollama.
+
+### Evaluation figures
+
+This summary figure keeps the primary retrieval result separate from the OOKB
+generation-safety comparison:
+
+![Retrieval ranking and generation safety comparison](docs/figures/retrieval-vs-generation-safety.png)
+
+The Streamlit evaluation view renders the committed run files. It does not
+rerun retrieval or generation:
+
+![Streamlit evaluation results](docs/figures/streamlit-evaluation-results.png)
 
 ## Generation evaluation
 
