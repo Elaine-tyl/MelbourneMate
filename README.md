@@ -18,6 +18,7 @@ Use these links to find the project method, setup, commands and saved evidence.
 - [Generation evaluation](#generation-evaluation)
 - [Error analysis](#error-analysis)
 - [Streamlit demo](#streamlit-demo)
+- [Student study](#student-study)
 
 ## From Walert to MelbourneMate
 
@@ -243,3 +244,18 @@ ruff check src tests
 
 Team responsibilities and the reviewed branch order are recorded in
 [`docs/HANDOFF.md`](docs/HANDOFF.md).
+
+## Student study
+
+A small session compares MelbourneMate with searching official websites. The
+study page shows a short voluntary notice, runs one untimed warm-up through the
+full pipeline, then records each task's completion, time, confidence and trust.
+
+```bash
+streamlit run src/melbourne_mate/interface/study_app.py
+mm study-summary --study-dir study
+```
+
+Participant responses stay in `study/responses.csv` on the session computer and
+are not committed. The procedure, tasks and counterbalanced schedule are in
+[`study/README.md`](study/README.md).
