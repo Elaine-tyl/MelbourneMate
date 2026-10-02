@@ -12,12 +12,21 @@ from statistics import mean, median
 METHODS = ("melbournemate", "official-search")
 COMPLETION = ("yes", "partial", "no")
 MEASURES = ("completed", "time_seconds", "confidence", "trust")
-RESPONSE_COLUMNS = ("participant_id", "position", "task_id", "method", *MEASURES, "note")
-MAX_SECONDS = 600
+RESPONSE_COLUMNS = (
+    "participant_id", "position", "task_id", "method", *MEASURES, "answer", "note"
+)
+MAX_SECONDS = 300
 MIN_PARTICIPANTS = 4
 TEMPLATE = "responses-template.csv"
 WARM_UP_QUESTION = "How do I get from Melbourne Airport to the city?"
 RESPONSES = "responses.csv"
+FINAL_TEMPLATE = "final-template.csv"
+FINAL = "final.csv"
+FINAL_COLUMNS = ("participant_id", "would_use")
+WOULD_USE_QUESTION = (
+    "How likely are you to use MelbourneMate instead of searching multiple "
+    "official websites? (1 = very unlikely, 5 = very likely)"
+)
 
 
 class StudyError(ValueError):
@@ -144,7 +153,8 @@ def save_response(
     if len(matches) != 1:
         raise StudyError(f"{participant_id} position {position} is not in responses.csv")
 
-    updated = {**matches[0], **{key: str(values.get(key, "")).strip() for key in (*MEASURES, "note")}}
+    entered = {key: str(values.get(key, "")).strip() for key in (*MEASURES, "answer", "note")}
+    updated = {**matches[0], **entered}
     where = f"{participant_id} position {position}"
     if updated["completed"] not in COMPLETION:
         raise StudyError(f"{where}: completed must be one of {', '.join(COMPLETION)}")
@@ -155,6 +165,35 @@ def save_response(
     matches[0].update(updated)
     with path.open("w", newline="", encoding="utf-8") as handle:
         writer = csv.DictWriter(handle, fieldnames=RESPONSE_COLUMNS, lineterminator="\n")
+        writer.writeheader()
+        writer.writerows(rows)
+
+
+def load_would_use(study_dir: str | Path) -> dict[str, int]:
+    """Final answers saved so far, by participant code."""
+    root = Path(study_dir)
+    path = root / FINAL if (root / FINAL).exists() else root / FINAL_TEMPLATE
+    return {
+        row["participant_id"]: _whole_number(row["would_use"], 1, 5, row["participant_id"])
+        for row in _read_csv(path)
+        if row["would_use"].strip()
+    }
+
+
+def save_would_use(study_dir: str | Path, participant_id: str, value: object) -> None:
+    """Save the participant's final would-use rating from 1 to 5."""
+    root = Path(study_dir)
+    rating = _whole_number(str(value), 1, 5, participant_id)
+    path = root / FINAL
+    if not path.exists():
+        shutil.copyfile(root / FINAL_TEMPLATE, path)
+    rows = _read_csv(path)
+    match = [row for row in rows if row["participant_id"] == participant_id]
+    if len(match) != 1:
+        raise StudyError(f"{participant_id} is not in {FINAL}")
+    match[0]["would_use"] = str(rating)
+    with path.open("w", newline="", encoding="utf-8") as handle:
+        writer = csv.DictWriter(handle, fieldnames=FINAL_COLUMNS, lineterminator="\n")
         writer.writeheader()
         writer.writerows(rows)
 
@@ -224,14 +263,35 @@ def summarise_study(study_dir: str | Path) -> Path:
             f"Fewer than {MIN_PARTICIPANTS} participants took part, so the methods "
             "should only be described, not compared."
         )
-    lines += ["", "| Method | Attempts | Completed | Median seconds | Confidence | Trust |"]
-    lines.append("| --- | ---: | ---: | ---: | ---: | ---: |")
-    for row in rows:
-        if row["group"] == "all":
-            lines.append(
-                f"| {row['method']} | {row['attempts']} | {row['completed_rate']:.0%} "
-                f"| {row['median_seconds']} | {row['mean_confidence']} | {row['mean_trust']} |"
-            )
+    overall = {row["method"]: row for row in rows if row["group"] == "all"}
+
+    def cell(method: str, text: str) -> str:
+        return text.format(**overall[method]) if method in overall else "n/a"
+
+    lines += [
+        "",
+        "| Evidence | MelbourneMate | Official search |",
+        "| --- | ---: | ---: |",
+    ]
+    for label, text in (
+        ("Task attempts", "{attempts}"),
+        ("Task completion", "{completed_rate:.0%}"),
+        ("Median time", "{median_seconds:g} sec"),
+        ("Mean confidence", "{mean_confidence}/5"),
+        ("Mean trust", "{mean_trust}/5"),
+    ):
+        lines.append(
+            f"| {label} | {cell('melbournemate', text)} | {cell('official-search', text)} |"
+        )
+
+    would_use = load_would_use(root)
+    if would_use:
+        average = mean(would_use.values())
+        sentence = (
+            "Would use MelbourneMate instead of searching official websites. Mean "
+            f"{average:.2f}/5 from {len(would_use)} participants."
+        )
+        lines += ["", sentence]
     lines += ["", "Per-task results are in `summary.csv`."]
     (root / "summary.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
     return root
