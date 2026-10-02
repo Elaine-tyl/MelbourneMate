@@ -24,15 +24,22 @@ same side of the validation/test boundary.
 ## Sources and access dates
 
 Every source URL was opened and checked against the passages that cite it on
-27 September 2026, and passages revised after review were checked again against
-their pages. `sources.csv` records that access date. `source-log.csv`
+2 October 2026. `sources.csv` records that access date. `source-log.csv`
 records, for each source, the page's own "last updated" date where shown, the
-passages it supports and the outcome of the check:
+passages it supports, the outcome of the source check, and whether the final
+recheck found a change since the previous check:
 
 - `verified`: the page supports the cited passages as written;
 - `url-updated`: the old URL moved, redirected or no longer returned the page,
   and the current official URL now replaces it;
 - `passage-corrected`: passage wording was changed to match the current page.
+
+The final recheck found 28 sources with no substantive change, two current
+official URLs to update, and one cross-source pricing difference to record.
+Study Melbourne still states a saving over $1,000, while the current Transport
+Victoria page advertises a saving over $550. The formal collection remains the
+frozen snapshot used by the saved evaluation runs, so the difference is logged
+rather than silently changing a tested passage after evaluation.
 
 Passages are concise paraphrased summaries, not verbatim copies. Facts about
 rates, dates, eligibility or procedures are marked `volatile` and must be
