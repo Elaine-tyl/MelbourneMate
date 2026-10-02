@@ -16,7 +16,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dense = ["sentence-transformers>=3.0"]
+dense = ["sentence-transformers>=3.0", "torchvision>=0.29.1"]
 app = ["altair>=5.0", "streamlit>=1.36"]
 dev = ["pytest>=8.0", "ruff>=0.6"]
 
