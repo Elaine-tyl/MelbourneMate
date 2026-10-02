@@ -16,7 +16,7 @@ a defect, and a re-run after that date is recorded as such.
 | 2 | 30 Sep – 6 Oct | Collection finished and frozen | 30 topics, 90 answerable questions and 30 OOKB; Walert-style ground truth converted to `qrels.txt`; new MPNet candidates receive targeted verification; BM25s and Dense validation runs complete |
 | 3 | 7–13 Oct | Parameters frozen, test split scored once | Gate thresholds and top-k chosen on validation; `config.py` tagged `config-frozen`; BM25s and Dense test runs + paired comparison; slice table by question form and containment bin |
 | 4 | 14–19 Oct | Generation evidence and the video | Frozen generation sample run on BM25, Dense and no-context; refusal, citation and 2×2 tables; manual validation of 20–30 answers by both members; one documented refine → re-evaluate cycle; video recorded |
-| 5 | 20–25 Oct | Report | Presentation submitted Mon 19 Oct (a day early); report, evidence appendix, contribution sheet and AI declaration submitted by Fri 23 Oct, leaving the weekend as buffer |
+| 5 | 20–25 Oct | Report | Presentation submitted Mon 19 Oct (a day early); report, evidence appendix and contribution sheet submitted by Fri 23 Oct, leaving the weekend as buffer |
 
 ## The one-way doors
 

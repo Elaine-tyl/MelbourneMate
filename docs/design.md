@@ -195,8 +195,6 @@ in every run manifest.
    what a real deployment would need beyond a student prototype.
 4. **Prompt injection.** Collected page text is delimited and neutralised
    before it enters a prompt; a URL that no citation supports is flagged.
-5. **AI use is declared.** Generative AI use in the code and report is recorded
-   in the Condition 3 declaration.
 
 ## 9. What this design does not claim
 
