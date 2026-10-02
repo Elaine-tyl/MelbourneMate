@@ -12,6 +12,8 @@ from statistics import mean, median
 METHODS = ("melbournemate", "official-search")
 COMPLETION = ("yes", "partial", "no")
 MEASURES = ("completed", "time_seconds", "confidence", "trust")
+# Saved during the session. Completion is judged afterwards in the review step.
+SESSION_MEASURES = ("time_seconds", "confidence", "trust")
 RESPONSE_COLUMNS = (
     "participant_id", "position", "task_id", "method", *MEASURES, "answer", "note"
 )
@@ -90,12 +92,14 @@ def load_responses(study_dir: str | Path) -> list[dict[str, object]]:
         if row["task_id"] not in tasks or row["method"] not in METHODS:
             raise StudyError(f"{where}: unknown task or method")
 
-        filled = [bool(row[column].strip()) for column in MEASURES]
+        filled = [bool(row[column].strip()) for column in SESSION_MEASURES]
         if not any(filled):
+            if row["completed"].strip():
+                raise StudyError(f"{where}: completion is judged only after an attempt")
             continue  # not attempted yet
         if not all(filled):
-            raise StudyError(f"{where}: fill all of {', '.join(MEASURES)} or none")
-        if row["completed"] not in COMPLETION:
+            raise StudyError(f"{where}: fill all of {', '.join(SESSION_MEASURES)} or none")
+        if row["completed"] and row["completed"] not in COMPLETION:
             raise StudyError(f"{where}: completed must be one of {', '.join(COMPLETION)}")
         attempts.append(
             {
@@ -153,16 +157,38 @@ def save_response(
     if len(matches) != 1:
         raise StudyError(f"{participant_id} position {position} is not in responses.csv")
 
-    entered = {key: str(values.get(key, "")).strip() for key in (*MEASURES, "answer", "note")}
-    updated = {**matches[0], **entered}
+    fields = (*SESSION_MEASURES, "answer", "note")
+    entered = {key: str(values.get(key, "")).strip() for key in fields}
+    updated = {**matches[0], **entered}  # keeps any completion judgement
     where = f"{participant_id} position {position}"
-    if updated["completed"] not in COMPLETION:
-        raise StudyError(f"{where}: completed must be one of {', '.join(COMPLETION)}")
     _whole_number(updated["time_seconds"], 1, MAX_SECONDS, where)
     _whole_number(updated["confidence"], 1, 5, where)
     _whole_number(updated["trust"], 1, 5, where)
 
     matches[0].update(updated)
+    with path.open("w", newline="", encoding="utf-8") as handle:
+        writer = csv.DictWriter(handle, fieldnames=RESPONSE_COLUMNS, lineterminator="\n")
+        writer.writeheader()
+        writer.writerows(rows)
+
+
+def judge_completion(
+    study_dir: str | Path, participant_id: str, position: str, completed: str
+) -> None:
+    """Record the researcher's completion judgement for one saved attempt."""
+    where = f"{participant_id} position {position}"
+    if completed not in COMPLETION:
+        raise StudyError(f"{where}: completed must be one of {', '.join(COMPLETION)}")
+    path = Path(study_dir) / RESPONSES
+    rows = _read_csv(path) if path.exists() else []
+    matches = [
+        row
+        for row in rows
+        if row["participant_id"] == participant_id and row["position"] == str(position)
+    ]
+    if len(matches) != 1 or not matches[0]["time_seconds"].strip():
+        raise StudyError(f"{where}: no saved attempt to judge")
+    matches[0]["completed"] = completed
     with path.open("w", newline="", encoding="utf-8") as handle:
         writer = csv.DictWriter(handle, fieldnames=RESPONSE_COLUMNS, lineterminator="\n")
         writer.writeheader()
@@ -233,6 +259,10 @@ def summarise_study(study_dir: str | Path) -> Path:
     attempts = load_responses(root)
     if not attempts:
         raise StudyError("responses.csv has no completed attempts yet")
+    pending = [a for a in attempts if not a["completed"]]
+    if pending:
+        names = ", ".join(f"{a['participant_id']} {a['task_id']}" for a in pending)
+        raise StudyError(f"judge completion in the review step first ({names})")
 
     rows = []
     groups = ["all", *sorted({a["task_id"] for a in attempts})]

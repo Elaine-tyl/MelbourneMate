@@ -16,6 +16,9 @@ other method, because the second attempt would already know the answer.
 - Run sessions on Elaine's computer. MelbourneMate uses the final MPNet
   pipeline and the local `qwen2.5:7b-instruct` model, which is too slow on an
   8 GB CPU-only laptop for timed tasks.
+- On that computer, install the retriever and app extras with
+  `pip install -e ".[dense,app]"`, start Ollama and check that
+  `qwen2.5:7b-instruct` is listed by `ollama list`.
 - Run one internal pilot with a team member and record it outside this folder.
 - After the first participant, do not change the model, prompts, tasks,
   collection or recording fields. If a change is unavoidable, stop, record why
@@ -56,34 +59,38 @@ as Home Affairs, Study Melbourne or Consumer Affairs Victoria. AI summaries, AI
 overviews and chat tools are not allowed. Ask participants to scroll past any
 AI overview the search engine shows.
 
-The page shows a short **For participants** guide at the top. It tells the
-participant to use only the method shown, write a one or two sentence answer,
-rate confidence and trust, and leave out personal details. These researcher
-steps are under **For the researcher**.
+The main area is for the participant. It shows the notice, a short **How it
+works** guide and one task at a time with a progress bar. The sidebar is for
+the researcher. It holds the participant code, the warm-up and the list of
+steps, including **Review** at the end.
 
-1. Choose the participant code. Never enter a name.
-2. The page lists the tasks in schedule order. For `official-search`, the
-   participant follows the official search rule above.
-3. Before the first `melbournemate` task, press **Warm up MelbourneMate**. It
-   runs one fixed question through the full retrieval and generation pipeline,
-   so loading MPNet, the index and the local model is not timed. The timer and
-   the question box for MelbourneMate tasks stay locked until this is done.
-4. For `melbournemate` tasks, the task text is already in the question box, so
-   every participant asks the same question. Press **Ask MelbourneMate**. It
-   uses the same pipeline as the MelbourneMate app.
-5. Allow up to 5 minutes per task. Press **Start timer** when the task is read
-   and **Stop timer** when the participant answers or gives up. The time can be
-   corrected by hand.
-6. After each task, the participant writes their answer in **Your answer** and
-   rates confidence and trust, each from 1 (not at all) to 5 (fully). Judge
-   completion, then press **Save task**.
+1. Choose the participant code in the sidebar. Never enter a name.
+2. Press **Prepare MelbourneMate** before the participant starts. It runs one
+   fixed question through the full retrieval and generation pipeline, so
+   loading MPNet, the index and the local model is not timed. MelbourneMate
+   tasks stay locked until this is done, and it lasts 25 minutes.
+3. Press **Start timer** when the participant starts reading a task. For a
+   MelbourneMate task, the task text is already in the question box, so
+   every participant asks the same question. For official search, the
+   participant follows the rule above.
+4. Press **Stop timer** when the participant answers or gives up. Each task
+   has up to 5 minutes, and the time can be corrected by hand.
+5. The participant writes their answer in **Your answer** and rates confidence
+   and trust from 1 (not at all) to 5 (fully).
+6. Press **Save and continue** in the **Researcher** box. The next task opens
+   automatically. Pick a step in the sidebar to correct a saved task.
 7. After the fourth task, ask the final question and press **Save final
    answer**. *How likely are you to use MelbourneMate instead of searching
    multiple official websites?* 1 means very unlikely and 5 means very likely.
 
-The completion rule for each task gives away the answer, so it is hidden.
-Turn on **Show completion rules (researcher only)** only when judging
-completion out of the participant's view.
+8. When the participant has left, open **Review** in the sidebar. It lists each
+   saved answer next to its completion rule. Choose yes, partial or no for
+   each and press **Save judgements**.
+
+The participant and the researcher share one computer. The completion rule
+gives away the answer, so it only appears in **Review**, after the session.
+Judging from the saved answers also keeps the judgement consistent across
+participants.
 
 ## Recording
 
@@ -92,7 +99,7 @@ hand on the session computer.
 
 | Column | Values |
 | --- | --- |
-| `completed` | `yes`, `partial` or `no`, judged against `complete_when` in `tasks.csv` |
+| `completed` | `yes`, `partial` or `no`, judged in **Review** against `complete_when` in `tasks.csv` |
 | `time_seconds` | whole seconds, 1 to 300 |
 | `confidence` | 1 to 5 |
 | `trust` | 1 to 5 |
@@ -109,7 +116,8 @@ of every file.
 mm study-summary --study-dir study
 ```
 
-This checks `responses.csv` against the schedule and writes `summary.csv` and
+This checks `responses.csv` against the schedule and stops if any saved task
+still needs a completion judgement. It then writes `summary.csv` and
 `summary.md`. The summary table compares task completion, median time, mean
 confidence and mean trust for MelbourneMate and official search, and adds the
 mean would-use rating. Results are descriptive. With fewer than four participants the

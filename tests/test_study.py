@@ -15,6 +15,7 @@ from melbourne_mate.evaluation.study import (
     WARM_UP_QUESTION,
     StudyError,
     ensure_responses,
+    judge_completion,
     load_responses,
     load_would_use,
     participant_tasks,
@@ -194,9 +195,7 @@ def test_saved_response_updates_only_its_row(tmp_path):
     study = copy_study(tmp_path, {})
     (study / "responses.csv").unlink()  # the page creates it from the template
 
-    save_response(
-        study, "P03", "2", {"completed": "partial", "time_seconds": 240, "confidence": 3, "trust": 4}
-    )
+    save_response(study, "P03", "2", {"time_seconds": 240, "confidence": 3, "trust": 4})
 
     attempts = load_responses(study)
     assert attempts == [
@@ -204,13 +203,16 @@ def test_saved_response_updates_only_its_row(tmp_path):
             "participant_id": "P03",
             "task_id": "TK6",
             "method": "official-search",
-            "completed": "partial",
+            "completed": "",
             "time_seconds": 240,
             "confidence": 3,
             "trust": 4,
         }
     ]
-    assert participant_tasks(study, "P03")[1]["completed"] == "partial"
+    judge_completion(study, "P03", "2", "partial")
+    save_response(study, "P03", "2", {"time_seconds": 250, "confidence": 3, "trust": 4})
+    task = participant_tasks(study, "P03")[1]
+    assert (task["completed"], task["time_seconds"]) == ("partial", "250")  # judgement kept
     with pytest.raises(StudyError, match="outside 1-5"):
         save_response(
             study, "P03", "1", {"completed": "yes", "time_seconds": 60, "confidence": 9, "trust": 4}
@@ -221,10 +223,7 @@ def test_saved_response_updates_only_its_row(tmp_path):
         )
 
 
-def test_study_page_warms_up_the_pipeline_then_saves_a_task(tmp_path, monkeypatch):
-    study = copy_study(tmp_path, {})
-    monkeypatch.setenv("MM_STUDY_DIR", str(study))
-    asked = []
+def fake_chatbot(monkeypatch, asked):
     monkeypatch.setattr(chatbot, "_build_pipeline", lambda: "pipeline")
     monkeypatch.setattr(chatbot, "answer_question", lambda pipeline, q: asked.append(q) or q)
     monkeypatch.setattr(
@@ -232,70 +231,146 @@ def test_study_page_warms_up_the_pipeline_then_saves_a_task(tmp_path, monkeypatc
         "answer_view",
         lambda answer: {"tone": "success", "label": "Answer ready", "text": "Use the RTBA.", "sources": ()},
     )
+
+
+def open_page(study, monkeypatch, participant=None):
+    monkeypatch.setenv("MM_STUDY_DIR", str(study))
     app = AppTest.from_file(str(STUDY_APP)).run()
     assert not app.exception
+    if participant:
+        app.sidebar.selectbox[0].select(participant).run()
+    return app
+
+
+def button(app, key):
+    return next(item for item in app.button if item.key == key)
+
+
+def test_study_page_shows_the_participant_guide_and_waits_for_the_researcher(
+    tmp_path, monkeypatch
+):
+    app = open_page(copy_study(tmp_path, {}), monkeypatch)
+
     assert "voluntary" in app.info[0].value
     assert not app.checkbox  # no consent form
-    guides = {item.label: item for item in app.expander[:2]}
-    assert list(guides) == ["For participants", "For the researcher"]
+    assert sorted(item.label for item in app.expander) == ["How it works", "Researcher steps"]
     assert any("one or two sentences" in item.value for item in app.markdown)
+    assert any("researcher will start" in item.value for item in app.caption)
 
-    app.selectbox[0].select("P02").run()
-    button = {item.key: item for item in app.button}
-    assert button["P02-1-start"].disabled  # P02 starts with MelbourneMate
-    assert button["P02-1-ask"].disabled
-    button["P02-warm-button"].click().run()
-    assert asked == [WARM_UP_QUESTION]
-    assert any("warmed up in" in item.value for item in app.success)
 
+def test_study_page_warms_up_then_saves_a_task_and_moves_on(tmp_path, monkeypatch):
+    study = copy_study(tmp_path, {})
+    asked = []
+    fake_chatbot(monkeypatch, asked)
+    app = open_page(study, monkeypatch, "P02")
     task_text = participant_tasks(study, "P02")[0]["prompt"]
-    assert not any("Complete when" in item.value for item in app.caption)
-    button = {item.key: item for item in app.button}
-    assert not button["P02-1-start"].disabled
+
+    assert any(item.value == "#### Task 1 of 4" for item in app.markdown)
+    assert button(app, "P02-1-start").disabled  # P02 starts with MelbourneMate
+    assert button(app, "P02-1-stop").disabled  # nothing to stop yet
+    assert button(app, "P02-1-ask").disabled
+    button(app, "P02-warm-button").click().run()
+    assert asked == [WARM_UP_QUESTION]
+    assert any("ready" in item.value for item in app.success)
+
+    assert not button(app, "P02-1-start").disabled
     assert app.text_area(key="P02-1-question").value == task_text
-    button["P02-1-ask"].click().run()
+    assert any("based on what MelbourneMate showed" in item.value for item in app.caption)
+    button(app, "P02-1-ask").click().run()
     assert asked == [WARM_UP_QUESTION, task_text]
     assert any("Use the RTBA." in item.value for item in app.markdown)
 
-    app.number_input(key="P02-1-time").set_value(75)
-    app.radio(key="P02-1-done").set_value("yes")
+    app.text_area(key="P02-1-answer").input("Lodge it with the RTBA within 14 days.")
     app.radio(key="P02-1-conf").set_value(4)
     app.radio(key="P02-1-trust").set_value(5)
-    app.text_area(key="P02-1-answer").input("Lodge it with the RTBA within 14 days.")
+    app.number_input(key="P02-1-time").set_value(75)
     app.run()
-    next(item for item in app.button if item.key == "P02-1-save").click().run()
+    button(app, "P02-1-save").click().run()
 
     assert not app.exception
-    saved = [row for row in read(study / "responses.csv") if row["completed"]]
+    saved = [row for row in read(study / "responses.csv") if row["time_seconds"]]
     assert [(r["participant_id"], r["task_id"], r["time_seconds"]) for r in saved] == [
         ("P02", "TK4", "75")
     ]
+    assert saved[0]["completed"] == ""  # judged later in the review step
     assert saved[0]["answer"] == "Lodge it with the RTBA within 14 days."
+    assert any(item.value == "#### Task 2 of 4" for item in app.markdown)
+    assert app.get("progress")[0].proto.value == 25
 
 
-def test_completion_rules_only_show_for_the_researcher(tmp_path, monkeypatch):
-    study = copy_study(tmp_path, {})
-    monkeypatch.setenv("MM_STUDY_DIR", str(study))
-    app = AppTest.from_file(str(STUDY_APP)).run()
-    app.selectbox[0].select("P01").run()
-    assert not any("Complete when" in item.value for item in app.caption)
+def test_completion_is_judged_after_the_session(tmp_path):
+    study = copy_study(tmp_path, {("P01", "1"): ("", "120", "4", "4")})
 
-    app.toggle[0].set_value(True).run()
+    with pytest.raises(StudyError, match="review step first"):
+        summarise_study(study)
+    with pytest.raises(StudyError, match="no saved attempt"):
+        judge_completion(study, "P01", "2", "yes")
+    with pytest.raises(StudyError, match="completed must be"):
+        judge_completion(study, "P01", "1", "done")
 
-    assert sum("Complete when" in item.value for item in app.caption) == 4
+    judge_completion(study, "P01", "1", "yes")
+    summarise_study(study)
+    assert (study / "summary.md").exists()
+
+
+def test_completion_without_an_attempt_is_rejected(tmp_path):
+    study = copy_study(tmp_path, {("P01", "1"): ("yes", "", "", "")})
+
+    with pytest.raises(StudyError, match="only after an attempt"):
+        load_responses(study)
+
+
+def test_task_card_never_shows_completion_rules(tmp_path, monkeypatch):
+    app = open_page(copy_study(tmp_path, {}), monkeypatch, "P03")  # starts with official search
+    assert any("based on the official websites you found" in item.value for item in app.caption)
+
+    assert not any("Complete when" in item.value for item in [*app.markdown, *app.caption])
+    assert not app.toggle
+    assert not any(item.key == "P03-1-done" for item in app.radio)
+
+
+def test_review_judges_saved_answers_out_of_view(tmp_path, monkeypatch):
+    saved = ("", "120", "4", "4")
+    study = copy_study(tmp_path, {("P01", "1"): saved, ("P01", "3"): saved})
+    app = open_page(study, monkeypatch, "P01")
+    app.sidebar.radio[0].set_value("review").run()
+
+    assert app.subheader[0].value == "Review (researcher only)"
+    assert sum("Complete when" in item.value for item in app.markdown) == 2
+    assert button(app, "P01-judge-save").disabled
+    app.radio(key="P01-1-judge").set_value("yes")
+    app.radio(key="P01-3-judge").set_value("partial")
+    app.run()
+    button(app, "P01-judge-save").click().run()
+
+    assert not app.exception
+    judged = {r["position"]: r["completed"] for r in read(study / "responses.csv") if r["participant_id"] == "P01"}
+    assert judged == {"1": "yes", "2": "", "3": "partial", "4": ""}
+    assert any("All saved tasks are judged" in item.value for item in app.success)
 
 
 def test_final_question_appears_after_all_tasks_and_is_saved(tmp_path, monkeypatch):
     done = ("yes", "120", "4", "4")
     study = copy_study(tmp_path, {("P03", str(n)): done for n in range(1, 5)})
-    monkeypatch.setenv("MM_STUDY_DIR", str(study))
-    app = AppTest.from_file(str(STUDY_APP)).run()
-    app.selectbox[0].select("P03").run()
+    app = open_page(study, monkeypatch, "P03")
 
     assert app.subheader[-1].value == "Final question"
     app.radio(key="P03-use").set_value(5).run()
-    next(item for item in app.button if item.key == "P03-use-save").click().run()
+    button(app, "P03-use-save").click().run()
 
     assert not app.exception
     assert load_would_use(study) == {"P03": 5}
     assert any("Final answer saved (5/5)" in item.value for item in app.success)
+
+
+def test_missing_retriever_shows_a_clear_message(tmp_path, monkeypatch):
+    def missing():
+        raise ModuleNotFoundError("No module named 'sentence_transformers'")
+
+    monkeypatch.setattr(chatbot, "_build_pipeline", missing)
+    app = open_page(copy_study(tmp_path, {}), monkeypatch, "P01")
+    button(app, "P01-warm-button").click().run()
+
+    assert not app.exception
+    assert any("MPNet retriever is not installed" in item.value for item in app.error)
+    assert button(app, "P01-1-start").disabled
