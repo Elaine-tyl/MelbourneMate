@@ -337,7 +337,7 @@ def review_card(root: Path, participant_id: str, tasks: list[dict]) -> None:
 
 
 def main() -> None:
-    st.set_page_config(page_title="MelbourneMate study", page_icon="🧭", layout="centered")
+    st.set_page_config(page_title="MelbourneMate study", page_icon="📋", layout="centered")
     st.markdown(STYLE, unsafe_allow_html=True)
     root = study_dir()
 
@@ -347,7 +347,7 @@ def main() -> None:
         with st.expander("Researcher steps"):
             st.markdown(RESEARCHER_GUIDE)
 
-    st.title("🧭 MelbourneMate study")
+    st.title("📋 MelbourneMate study")
     st.markdown(
         "<div class='mm-muted'>Thank you for helping us test MelbourneMate.</div>",
         unsafe_allow_html=True,
