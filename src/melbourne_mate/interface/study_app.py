@@ -186,8 +186,10 @@ def timer(key: str, ready: bool) -> None:
 
 def melbournemate_box(key: str, prompt: str, ready: bool) -> None:
     """Ask MelbourneMate. The box starts with the task text."""
-    st.session_state.setdefault(f"{key}-question", prompt)
-    question = st.text_area("Question for MelbourneMate", key=f"{key}-question", height=90)
+    question_key = f"{key}-question"
+    view_key = f"{key}-answer-view"
+    st.session_state.setdefault(question_key, prompt)
+    question = st.text_area("Question for MelbourneMate", key=question_key, height=90)
     if st.button("Ask MelbourneMate", key=f"{key}-ask", disabled=not ready, type="primary"):
         if not question.strip():
             st.warning("Enter a question first.")
@@ -198,6 +200,10 @@ def melbournemate_box(key: str, prompt: str, ready: bool) -> None:
         except SERVICE_ERRORS as exc:
             st.error(service_message(exc, "MelbourneMate is not ready"))
             return
+        st.session_state[view_key] = view
+
+    view = st.session_state.get(view_key)
+    if view:
         with st.container(border=True):
             getattr(st, str(view["tone"]))(str(view["label"]))
             st.markdown(str(view["text"]))

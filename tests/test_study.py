@@ -299,6 +299,39 @@ def test_study_page_warms_up_then_saves_a_task_and_moves_on(tmp_path, monkeypatc
     assert app.get("progress")[0].proto.value == 25
 
 
+def test_melbournemate_answer_remains_after_streamlit_rerun(tmp_path, monkeypatch):
+    study = copy_study(tmp_path, {})
+    asked = []
+    fake_chatbot(monkeypatch, asked)
+    monkeypatch.setattr(
+        chatbot,
+        "answer_view",
+        lambda answer: {
+            "tone": "success",
+            "label": "Answer ready",
+            "text": "Use the RTBA.",
+            "sources": (
+                {
+                    "organisation": "Consumer Affairs Victoria",
+                    "heading": "Rental bonds",
+                    "url": "https://www.consumer.vic.gov.au/housing/renting/rental-bonds",
+                },
+            ),
+        },
+    )
+    app = open_page(study, monkeypatch, "P02")
+    button(app, "P02-warm-button").click().run()
+    button(app, "P02-1-ask").click().run()
+
+    assert any("Use the RTBA." in item.value for item in app.markdown)
+    assert any("Consumer Affairs Victoria" in item.value for item in app.markdown)
+
+    app.radio(key="P02-1-conf").set_value(4).run()
+
+    assert any("Use the RTBA." in item.value for item in app.markdown)
+    assert any("Consumer Affairs Victoria" in item.value for item in app.markdown)
+
+
 def test_completion_is_judged_after_the_session(tmp_path):
     answers = {("P01", str(n)): ("yes", "120", "4", "4") for n in range(2, 5)}
     study = copy_study(tmp_path, {**answers, ("P01", "1"): ("", "120", "4", "4")})
