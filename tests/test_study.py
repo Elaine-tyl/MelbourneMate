@@ -184,7 +184,7 @@ def test_rows_must_match_the_schedule(tmp_path):
 
 
 def test_cli_writes_the_summary(tmp_path, capsys):
-    study = copy_study(tmp_path, {("P02", "1"): ("yes", "90", "4", "4")})
+    study = copy_study(tmp_path, {("P02", str(n)): ("yes", "90", "4", "4") for n in range(1, 5)})
 
     assert cli.main(["study-summary", "--study-dir", str(study)]) == 0
     assert (study / "summary.md").exists()
@@ -300,18 +300,41 @@ def test_study_page_warms_up_then_saves_a_task_and_moves_on(tmp_path, monkeypatc
 
 
 def test_completion_is_judged_after_the_session(tmp_path):
-    study = copy_study(tmp_path, {("P01", "1"): ("", "120", "4", "4")})
+    answers = {("P01", str(n)): ("yes", "120", "4", "4") for n in range(2, 5)}
+    study = copy_study(tmp_path, {**answers, ("P01", "1"): ("", "120", "4", "4")})
 
     with pytest.raises(StudyError, match="review step first"):
         summarise_study(study)
-    with pytest.raises(StudyError, match="no saved attempt"):
-        judge_completion(study, "P01", "2", "yes")
     with pytest.raises(StudyError, match="completed must be"):
         judge_completion(study, "P01", "1", "done")
 
     judge_completion(study, "P01", "1", "yes")
     summarise_study(study)
     assert (study / "summary.md").exists()
+
+
+def test_summary_counts_only_participants_who_finished_all_tasks(tmp_path):
+    finished = {("P01", str(n)): ("yes", "120", "4", "4") for n in range(1, 5)}
+    partial = {("P02", "1"): ("", "60", "2", "2"), ("P02", "2"): ("", "60", "2", "2")}
+    study = copy_study(tmp_path, {**finished, **partial})
+    save_would_use(study, "P01", 5)
+    save_would_use(study, "P02", 1)
+
+    summarise_study(study)  # P02's unjudged tasks do not block the summary
+    report = (study / "summary.md").read_text(encoding="utf-8")
+    rows = {(r["group"], r["method"]): r for r in read(study / "summary.csv")}
+
+    assert "1 participants completed all four tasks (4 task attempts)." in report
+    assert "did not finish all four tasks. P02." in report
+    assert "Mean 5.00/5 from 1 participants." in report
+    assert rows[("all", "melbournemate")]["participants"] == "1"
+
+
+def test_summary_needs_one_finished_participant(tmp_path):
+    study = copy_study(tmp_path, {("P01", "1"): ("yes", "120", "4", "4")})
+
+    with pytest.raises(StudyError, match="no participant has completed all four tasks"):
+        summarise_study(study)
 
 
 def test_completion_without_an_attempt_is_rejected(tmp_path):
@@ -330,23 +353,47 @@ def test_task_card_never_shows_completion_rules(tmp_path, monkeypatch):
     assert not any(item.key == "P03-1-done" for item in app.radio)
 
 
+def step_options(app):
+    return list(app.sidebar.radio[0].options)
+
+
+def test_final_and_review_open_only_in_order(tmp_path, monkeypatch):
+    saved = ("", "120", "4", "4")
+    three = {("P01", str(n)): saved for n in range(1, 4)}
+    study = copy_study(tmp_path, three)
+    app = open_page(study, monkeypatch, "P01")
+    assert len(step_options(app)) == 4  # four tasks, no Final or Review yet
+    assert any("Final question opens after" in item.value for item in app.caption)
+
+    study = copy_study(tmp_path / "all", {**three, ("P01", "4"): saved})
+    app = open_page(study, monkeypatch, "P01")
+    assert len(step_options(app)) == 5  # Final unlocked, Review still hidden
+    assert app.subheader[-1].value == "Final question"
+    assert any("Review opens after" in item.value for item in app.caption)
+
+    save_would_use(study, "P01", 4)
+    app.run()
+    assert len(step_options(app)) == 6
+
+
 def test_review_judges_saved_answers_out_of_view(tmp_path, monkeypatch):
     saved = ("", "120", "4", "4")
-    study = copy_study(tmp_path, {("P01", "1"): saved, ("P01", "3"): saved})
+    study = copy_study(tmp_path, {("P01", str(n)): saved for n in range(1, 5)})
+    save_would_use(study, "P01", 4)
     app = open_page(study, monkeypatch, "P01")
     app.sidebar.radio[0].set_value("review").run()
 
     assert app.subheader[0].value == "Review (researcher only)"
-    assert sum("Complete when" in item.value for item in app.markdown) == 2
+    assert sum("Complete when" in item.value for item in app.markdown) == 4
     assert button(app, "P01-judge-save").disabled
-    app.radio(key="P01-1-judge").set_value("yes")
-    app.radio(key="P01-3-judge").set_value("partial")
+    for position, value in zip("1234", ("yes", "partial", "no", "yes")):
+        app.radio(key=f"P01-{position}-judge").set_value(value)
     app.run()
     button(app, "P01-judge-save").click().run()
 
     assert not app.exception
     judged = {r["position"]: r["completed"] for r in read(study / "responses.csv") if r["participant_id"] == "P01"}
-    assert judged == {"1": "yes", "2": "", "3": "partial", "4": ""}
+    assert judged == {"1": "yes", "2": "partial", "3": "no", "4": "yes"}
     assert any("All saved tasks are judged" in item.value for item in app.success)
 
 

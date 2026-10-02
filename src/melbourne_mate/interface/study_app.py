@@ -128,12 +128,20 @@ def is_saved(task: dict) -> bool:
 def task_picker(participant_id: str, tasks: list[dict], final_saved: bool) -> str:
     """Choose which step to show. Defaults to the first unfinished one."""
     key = f"{participant_id}-step"
-    pending = st.session_state.pop(f"{key}-next", None)
-    if pending is not None:
-        st.session_state[key] = pending
-    options = [task["position"] for task in tasks] + [FINAL, REVIEW]
+    all_saved = all(is_saved(task) for task in tasks)
+    # Final opens only after four saved tasks, and Review only after the final
+    # answer, so the completion rules never appear while the participant works.
+    options = [task["position"] for task in tasks]
+    if all_saved:
+        options.append(FINAL)
+    if all_saved and final_saved:
+        options.append(REVIEW)
     first_open = next((t["position"] for t in tasks if not is_saved(t)), FINAL)
-    st.session_state.setdefault(key, first_open)
+    pending = st.session_state.pop(f"{key}-next", None)
+    if pending in options:
+        st.session_state[key] = pending
+    if st.session_state.get(key) not in options:
+        st.session_state[key] = first_open
 
     def label(option: str) -> str:
         if option == FINAL:
@@ -145,7 +153,12 @@ def task_picker(participant_id: str, tasks: list[dict], final_saved: bool) -> st
         name = METHODS[task["method"]][0]
         return ("✅ " if is_saved(task) else "◻️ ") + f"Task {option} · {name}"
 
-    return st.radio("Steps", options, format_func=label, key=key)
+    step = st.radio("Steps", options, format_func=label, key=key)
+    if not all_saved:
+        st.caption("Final question opens after all four tasks are saved.")
+    elif not final_saved:
+        st.caption("Review opens after the final answer is saved.")
+    return step
 
 
 # ---------- participant view ----------

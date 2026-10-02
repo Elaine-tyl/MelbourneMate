@@ -5,6 +5,7 @@ from __future__ import annotations
 import csv
 import shutil
 import time
+from collections import Counter
 from collections.abc import Callable, Sequence
 from pathlib import Path
 from statistics import mean, median
@@ -259,6 +260,13 @@ def summarise_study(study_dir: str | Path) -> Path:
     attempts = load_responses(root)
     if not attempts:
         raise StudyError("responses.csv has no completed attempts yet")
+    scheduled = Counter(row["participant_id"] for row in _read_csv(root / "schedule.csv"))
+    attempted = Counter(a["participant_id"] for a in attempts)
+    finished = {code for code, count in attempted.items() if count == scheduled[code]}
+    excluded = sorted(set(attempted) - finished)
+    if not finished:
+        raise StudyError("no participant has completed all four tasks yet")
+    attempts = [a for a in attempts if a["participant_id"] in finished]
     pending = [a for a in attempts if not a["completed"]]
     if pending:
         names = ", ".join(f"{a['participant_id']} {a['task_id']}" for a in pending)
@@ -281,13 +289,17 @@ def summarise_study(study_dir: str | Path) -> Path:
         writer.writeheader()
         writer.writerows(rows)
 
-    participants = len({a["participant_id"] for a in attempts})
+    participants = len(finished)
     lines = [
         "# Student study summary",
         "",
-        f"{participants} participants completed {len(attempts)} task attempts.",
+        f"{participants} participants completed all four tasks ({len(attempts)} task attempts).",
         "Results are descriptive and are not tested for significance.",
     ]
+    if excluded:
+        lines.append(
+            "Excluded because they did not finish all four tasks. " + ", ".join(excluded) + "."
+        )
     if participants < MIN_PARTICIPANTS:
         lines.append(
             f"Fewer than {MIN_PARTICIPANTS} participants took part, so the methods "
@@ -314,7 +326,9 @@ def summarise_study(study_dir: str | Path) -> Path:
             f"| {label} | {cell('melbournemate', text)} | {cell('official-search', text)} |"
         )
 
-    would_use = load_would_use(root)
+    would_use = {
+        code: rating for code, rating in load_would_use(root).items() if code in finished
+    }
     if would_use:
         average = mean(would_use.values())
         sentence = (

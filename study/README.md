@@ -83,10 +83,11 @@ steps, including **Review** at the end.
 6. Press **Save and continue** in the **Researcher** box. The next task opens
    automatically. Pick a step in the sidebar to correct a saved task.
 7. After the fourth task, ask the final question and press **Save final
-   answer**. *How likely are you to use MelbourneMate instead of searching
+   answer**. **Final question** only opens once all four tasks are saved. *How likely are you to use MelbourneMate instead of searching
    multiple official websites?* 1 means very unlikely and 5 means very likely.
 
-8. When the participant has left, open **Review** in the sidebar. It lists each
+8. When the participant has left, open **Review** in the sidebar. It only
+   opens after the final answer is saved. It lists each
    saved answer next to its completion rule. Choose yes, partial or no for
    each and press **Save judgements**.
 
@@ -119,8 +120,9 @@ of every file.
 mm study-summary --study-dir study
 ```
 
-This checks `responses.csv` against the schedule and stops if any saved task
-still needs a completion judgement. It then writes `summary.csv` and
+This checks `responses.csv` against the schedule and counts only participants
+who finished all four tasks. Anyone who stopped early is listed as excluded.
+It stops if a counted task still needs a completion judgement. It then writes `summary.csv` and
 `summary.md`. The summary table compares task completion, median time, mean
 confidence and mean trust for MelbourneMate and official search, and adds the
 mean would-use rating. Results are descriptive. With fewer than four participants the
