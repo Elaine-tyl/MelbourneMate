@@ -98,6 +98,8 @@ def test_participant_files_are_kept_out_of_git():
         "study/final-template.csv",
         "study/responses-template.csv",
         "study/schedule.csv",
+        "study/summary.csv",
+        "study/summary.md",
         "study/tasks.csv",
     ]
 
