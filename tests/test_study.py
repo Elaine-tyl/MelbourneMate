@@ -1,5 +1,6 @@
 import csv
 import shutil
+import subprocess
 from collections import Counter
 from pathlib import Path
 
@@ -8,10 +9,14 @@ from streamlit.testing.v1 import AppTest
 
 from melbourne_mate import cli
 from melbourne_mate.corpus import load_collection
+from melbourne_mate.evaluation import study as study_module
 from melbourne_mate.evaluation.study import (
     CONSENT_ITEMS,
+    MEASURES,
     RESPONSE_COLUMNS,
+    WARM_UP_PROMPT,
     StudyError,
+    ensure_responses,
     has_consent,
     load_responses,
     participant_tasks,
@@ -32,8 +37,8 @@ def read(path):
 def copy_study(tmp_path, answers):
     """Copy the study templates and fill rows as {(participant, position): values}."""
     target = tmp_path / "study"
-    shutil.copytree(STUDY, target)
-    rows = read(target / "responses.csv")
+    shutil.copytree(STUDY, target, ignore=shutil.ignore_patterns("responses.csv", "consent.csv"))
+    rows = read(ensure_responses(target))
     for row in rows:
         values = answers.get((row["participant_id"], row["position"]))
         if values:
@@ -64,10 +69,43 @@ def test_tasks_cite_sources_in_the_collection():
         assert set(task["source_ids"].split(";")) <= set(sources)
 
 
-def test_blank_template_has_no_attempts():
-    assert load_responses(STUDY) == []
+def test_blank_template_has_no_attempts(tmp_path):
+    study = copy_study(tmp_path, {})
+    (study / "responses.csv").unlink()
+
+    assert load_responses(study) == []
     with pytest.raises(StudyError, match="no completed attempts"):
-        summarise_study(STUDY)
+        summarise_study(study)
+    template = read(STUDY / "responses-template.csv")
+    assert not any(row[column] for row in template for column in (*MEASURES, "note"))
+
+
+def test_participant_files_are_kept_out_of_git():
+    ignored = subprocess.run(
+        ["git", "check-ignore", "study/responses.csv", "study/consent.csv"],
+        capture_output=True,
+        text=True,
+        check=True,
+    ).stdout.split()
+    tracked = subprocess.run(
+        ["git", "ls-files", "study"], capture_output=True, text=True, check=True
+    ).stdout.split()
+
+    assert ignored == ["study/responses.csv", "study/consent.csv"]
+    assert "study/responses.csv" not in tracked
+    assert "study/consent.csv" not in tracked
+
+
+def test_warm_up_sends_the_fixed_prompt():
+    class FakeModel:
+        def generate(self, request):
+            self.request = request
+
+    model = FakeModel()
+
+    assert study_module.warm_up(model) >= 0
+    assert model.request.prompt == WARM_UP_PROMPT
+    assert model.request.max_output_tokens == 8
 
 
 def test_summary_reports_each_method(tmp_path):
@@ -175,7 +213,7 @@ def test_saved_response_updates_only_its_row(tmp_path):
         )
 
 
-def test_study_page_needs_all_consent_boxes_then_saves_a_task(tmp_path, monkeypatch):
+def test_study_page_needs_consent_and_warm_up_then_saves_a_task(tmp_path, monkeypatch):
     study = copy_study(tmp_path, {})
     monkeypatch.setenv("MM_STUDY_DIR", str(study))
     app = AppTest.from_file(str(STUDY_APP)).run()
@@ -189,6 +227,13 @@ def test_study_page_needs_all_consent_boxes_then_saves_a_task(tmp_path, monkeypa
     app.run()
     next(button for button in app.button if button.label == "Start session").click().run()
     assert has_consent(study, "P02")
+
+    timer_start = next(button for button in app.button if button.key == "P02-1-start")
+    assert timer_start.disabled  # P02 starts with MelbourneMate, so warm-up comes first
+    monkeypatch.setattr(study_module, "warm_up", lambda: 3)
+    next(button for button in app.button if button.key == "P02-warm-button").click().run()
+    assert not next(button for button in app.button if button.key == "P02-1-start").disabled
+    assert any("warmed up in 3 seconds" in item.value for item in app.success)
 
     app.number_input(key="P02-1-time").set_value(75)
     app.radio(key="P02-1-done").set_value("yes")

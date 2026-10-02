@@ -6,9 +6,7 @@ reported descriptively.
 
 ## Before recruiting
 
-- Confirm with the teaching team whether this study needs course approval or a
-  set consent form. If the course has its own form, use it and update
-  `information-and-consent.md` to match. Add the team contact before use.
+- Add the team contact to `information-and-consent.md`.
 - Run sessions on Elaine's computer. The chatbot uses the final MPNet pipeline
   and the local `qwen2.5:7b-instruct` model, which is too slow on an 8 GB
   CPU-only laptop for timed tasks.
@@ -24,8 +22,12 @@ reported descriptively.
 | `information-and-consent.md` | Information shown on the study page before consent |
 | `tasks.csv` | The four tasks and the rule for judging completion |
 | `schedule.csv` | Task order and method for P01 to P06 |
-| `responses.csv` | One row per task, filled in by the study page |
-| `consent.csv` | Created by the study page, one row per consenting code |
+| `responses-template.csv` | Blank sheet with one row per scheduled task |
+
+The study page copies the template to `responses.csv` and writes consent to
+`consent.csv`. Both files hold participant-level data, so they are listed in
+`.gitignore` and stay on the session computer. Only blank templates are
+committed.
 
 The schedule is counterbalanced. Each participant does two tasks with
 MelbourneMate and two with official websites. Across P01 to P04, and again
@@ -41,24 +43,32 @@ streamlit run src/melbourne_mate/interface/study_app.py
 streamlit run src/melbourne_mate/interface/app.py --server.port 8502
 ```
 
+Official search means using a search engine to open official websites, such
+as Home Affairs, Study Melbourne or Consumer Affairs Victoria. AI summaries, AI
+overviews and chat tools are not allowed. Ask participants to scroll past any
+AI overview the search engine shows.
+
 1. On the study page, choose the participant code. Never enter a name.
 2. Show the information to the participant. The three consent boxes must all
    be ticked before **Start session** works. The page saves the code and time
    in `consent.csv`.
-3. The page lists the tasks in schedule order. For `melbournemate`, the
-   participant uses the chatbot tab. For `official-search`, they may use any
-   search engine and any official website, but not MelbourneMate.
-4. Allow up to 10 minutes per task. Press **Start timer** when the task is
+3. The page lists the tasks in schedule order. For `official-search`, the
+   participant follows the official search rule above.
+4. Before the first `melbournemate` task, press **Warm up MelbourneMate**. It
+   sends one fixed prompt to the local model so loading time is not timed.
+   The timer for MelbourneMate tasks stays locked until this is done. The
+   participant then uses the chatbot tab for these tasks.
+5. Allow up to 10 minutes per task. Press **Start timer** when the task is
    read and **Stop timer** when the participant answers or gives up. The time
    can be corrected by hand.
-5. After each task, ask how confident they are in their answer and how much
+6. After each task, ask how confident they are in their answer and how much
    they trust the information, each from 1 (not at all) to 5 (fully). Judge
    completion against the rule shown under the task, then press **Save task**.
 
 ## Recording
 
 The study page fills in `responses.csv`. The columns can also be edited by
-hand.
+hand on the session computer.
 
 | Column | Values |
 | --- | --- |
@@ -82,3 +92,5 @@ This checks `responses.csv` against the schedule and writes `summary.csv` and
 `summary.md`. Results are descriptive. With fewer than four participants the
 summary says so, and the report should not compare the methods beyond
 describing what happened.
+The summary holds only group results, so it can be committed with the report
+evidence.

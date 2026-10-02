@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import csv
+import shutil
+import time
 from collections.abc import Sequence
 from datetime import datetime, timezone
 from pathlib import Path
@@ -16,6 +18,9 @@ CONSENT_ITEMS = ("information_read", "agrees_to_take_part", "agrees_to_anonymous
 CONSENT_COLUMNS = ("participant_id", "consented_utc", *CONSENT_ITEMS)
 MAX_SECONDS = 600
 MIN_PARTICIPANTS = 4
+TEMPLATE = "responses-template.csv"
+WARM_UP_PROMPT = "Reply with the single word ready."
+RESPONSES = "responses.csv"
 
 
 class StudyError(ValueError):
@@ -37,6 +42,22 @@ def _whole_number(value: str, low: int, high: int, where: str) -> int:
     return number
 
 
+def responses_path(study_dir: str | Path) -> Path:
+    """Local responses file, or the blank template before any session."""
+    root = Path(study_dir)
+    local = root / RESPONSES
+    return local if local.exists() else root / TEMPLATE
+
+
+def ensure_responses(study_dir: str | Path) -> Path:
+    """Create the local responses file from the blank template once."""
+    root = Path(study_dir)
+    local = root / RESPONSES
+    if not local.exists():
+        shutil.copyfile(root / TEMPLATE, local)
+    return local
+
+
 def load_responses(study_dir: str | Path) -> list[dict[str, object]]:
     """Return completed attempts after checking them against the schedule."""
     root = Path(study_dir)
@@ -45,7 +66,7 @@ def load_responses(study_dir: str | Path) -> list[dict[str, object]]:
         (row["participant_id"], row["position"]): row
         for row in _read_csv(root / "schedule.csv")
     }
-    with (root / "responses.csv").open(newline="", encoding="utf-8-sig") as handle:
+    with responses_path(root).open(newline="", encoding="utf-8-sig") as handle:
         reader = csv.DictReader(handle)
         if tuple(reader.fieldnames or ()) != RESPONSE_COLUMNS:
             raise StudyError(f"responses.csv columns must be {', '.join(RESPONSE_COLUMNS)}")
@@ -124,7 +145,7 @@ def participant_tasks(study_dir: str | Path, participant_id: str) -> list[dict[s
     tasks = {row["task_id"]: row for row in _read_csv(root / "tasks.csv")}
     saved = {
         row["position"]: row
-        for row in _read_csv(root / "responses.csv")
+        for row in _read_csv(responses_path(root))
         if row["participant_id"] == participant_id
     }
     return [
@@ -144,7 +165,7 @@ def save_response(
     root = Path(study_dir)
     if not has_consent(root, participant_id):
         raise StudyError(f"{participant_id} has no recorded consent")
-    path = root / "responses.csv"
+    path = ensure_responses(root)
     rows = _read_csv(path)
     matches = [
         row
@@ -167,6 +188,19 @@ def save_response(
         writer = csv.DictWriter(handle, fieldnames=RESPONSE_COLUMNS, lineterminator="\n")
         writer.writeheader()
         writer.writerows(rows)
+
+
+def warm_up(model=None) -> int:
+    """Load the local model with a fixed prompt. Returns the seconds taken."""
+    from melbourne_mate.generation.contracts import GenerationRequest
+
+    if model is None:
+        from melbourne_mate.generation.ollama import OllamaClient
+
+        model = OllamaClient()
+    started = time.monotonic()
+    model.generate(GenerationRequest(prompt=WARM_UP_PROMPT, max_output_tokens=8))
+    return round(time.monotonic() - started)
 
 
 def _summary_row(group: str, method: str, attempts: Sequence[dict]) -> dict[str, object]:

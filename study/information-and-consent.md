@@ -9,8 +9,9 @@ see how it compares with searching official websites.
 ## What you will do
 
 You will try four short everyday tasks, such as finding out how many hours you
-may work on a student visa. You will use MelbourneMate for two tasks and your
-usual web search for the other two. Each task takes up to 10 minutes, so the
+may work on a student visa. You will use MelbourneMate for two tasks. For the
+other two, you will use a search engine to open official websites, without AI
+summaries or chat tools. Each task takes up to 10 minutes, so the
 whole session takes about 45 minutes.
 
 After each task we will ask how confident you are in your answer and how much

@@ -17,7 +17,9 @@ from melbourne_mate.evaluation.study import (
     participants,
     record_consent,
     save_response,
+    warm_up,
 )
+from melbourne_mate.generation.ollama import OllamaError
 
 CONSENT_LABELS = {
     "information_read": "I have read the information and my questions have been answered.",
@@ -28,8 +30,12 @@ CONSENT_LABELS = {
 }
 METHOD_LABELS = {
     "melbournemate": "Use MelbourneMate",
-    "official-search": "Use any search engine and official websites",
+    "official-search": "Use a search engine to open official websites",
 }
+OFFICIAL_SEARCH_RULE = (
+    "Open official websites from a search engine. Do not use AI summaries, "
+    "AI overviews or chat tools."
+)
 SCALE = [1, 2, 3, 4, 5]
 
 
@@ -56,9 +62,26 @@ def consent_step(root: Path, participant_id: str) -> None:
         st.caption("Tick all three boxes to start.")
 
 
-def timer(key: str) -> None:
+def warm_up_step(participant_id: str) -> None:
+    """Fixed model warm-up before the timed MelbourneMate tasks."""
+    key = f"{participant_id}-warm"
+    if key in st.session_state:
+        st.success(f"MelbourneMate warmed up in {st.session_state[key]} seconds.")
+        return
+    st.info("Warm up MelbourneMate before its timed tasks so model loading is not timed.")
+    if st.button("Warm up MelbourneMate", key=f"{key}-button"):
+        try:
+            with st.spinner("Loading the local model..."):
+                st.session_state[key] = warm_up()
+        except OllamaError as exc:
+            st.error(f"Warm-up failed: {exc}")
+        else:
+            st.rerun()
+
+
+def timer(key: str, ready: bool = True) -> None:
     cols = st.columns(2)
-    if cols[0].button("Start timer", key=f"{key}-start"):
+    if cols[0].button("Start timer", key=f"{key}-start", disabled=not ready):
         st.session_state[f"{key}-began"] = time.monotonic()
     if cols[1].button("Stop timer", key=f"{key}-stop") and f"{key}-began" in st.session_state:
         elapsed = time.monotonic() - st.session_state.pop(f"{key}-began")
@@ -74,14 +97,17 @@ def task_step(root: Path, participant_id: str, task: dict[str, str]) -> None:
     with st.expander(title + (" · saved" if saved else ""), expanded=not saved):
         st.markdown(f"**{task['prompt']}**")
         st.caption(f"Complete when: {task['complete_when']}")
+        warmed = f"{participant_id}-warm" in st.session_state
         if task["method"] == "melbournemate":
-            st.caption("Open the chatbot in another tab for this task.")
+            st.caption("Use the chatbot in the other tab for this task.")
+        else:
+            st.caption(OFFICIAL_SEARCH_RULE)
         if saved:
             st.caption(
                 f"Saved: {task['completed']}, {task['time_seconds']} seconds, "
                 f"confidence {task['confidence']}, trust {task['trust']}. Save again to correct it."
             )
-        timer(key)
+        timer(key, ready=warmed or task["method"] != "melbournemate")
         st.session_state.setdefault(f"{key}-time", int(task.get("time_seconds") or 1))
         seconds = st.number_input(
             "Seconds taken", min_value=1, max_value=MAX_SECONDS, key=f"{key}-time"
@@ -131,7 +157,12 @@ def main() -> None:
 
     st.success(f"Consent recorded for {participant_id}.")
     tasks = participant_tasks(root, participant_id)
+    first_chatbot_task = next(
+        (task["position"] for task in tasks if task["method"] == "melbournemate"), None
+    )
     for task in tasks:
+        if task["position"] == first_chatbot_task:
+            warm_up_step(participant_id)
         task_step(root, participant_id, task)
     if all(task.get("completed") for task in tasks):
         st.success("All four tasks are saved. Thank the participant.")
