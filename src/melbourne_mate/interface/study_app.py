@@ -39,7 +39,12 @@ OFFICIAL_SEARCH_RULE = (
 )
 PARTICIPANT_GUIDE = """
 1. Read the task and use **only the method shown** on it.
-2. Write your answer in **one or two sentences**.
+   - **MelbourneMate**. Press **Ask MelbourneMate**, then read the answer and
+     its sources.
+   - **Official search**. Open official websites from a search engine. No AI
+     overviews or chat tools.
+2. Write your answer **in your own words** in **Your answer**,
+   in one or two sentences. MelbourneMate's answer is not copied in for you.
 3. Rate how **confident** you are and how much you **trust** the information.
 
 You have up to **5 minutes** per task. Please do not write your name or other
@@ -48,7 +53,7 @@ personal details.
 RESEARCHER_GUIDE = """
 1. Choose the participant code and press **Prepare MelbourneMate**.
 2. Press **Start timer** when the participant starts reading a task.
-3. Press **Stop timer** when they answer or give up.
+3. Press **Stop timer** when they finish writing **Your answer** or give up.
 4. After they rate the task, press **Save and continue**.
 5. After four tasks, ask the final question.
 6. When the participant has left, open **Review** and judge completion.

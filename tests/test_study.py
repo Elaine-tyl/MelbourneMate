@@ -255,6 +255,7 @@ def test_study_page_shows_the_participant_guide_and_waits_for_the_researcher(
     assert not app.checkbox  # no consent form
     assert sorted(item.label for item in app.expander) == ["How it works", "Researcher steps"]
     assert any("one or two sentences" in item.value for item in app.markdown)
+    assert any("in your own words" in item.value for item in app.markdown)
     assert any("researcher will start" in item.value for item in app.caption)
 
 

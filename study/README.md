@@ -73,10 +73,13 @@ steps, including **Review** at the end.
    MelbourneMate task, the task text is already in the question box, so
    every participant asks the same question. For official search, the
    participant follows the rule above.
-4. Press **Stop timer** when the participant answers or gives up. Each task
-   has up to 5 minutes, and the time can be corrected by hand.
-5. The participant writes their answer in **Your answer** and rates confidence
-   and trust from 1 (not at all) to 5 (fully).
+4. The participant writes their answer **in their own words** in **Your
+   answer**, in one or two sentences. MelbourneMate's answer appears in its
+   own box and is not copied in, so both methods are compared the same way.
+5. Press **Stop timer** when the participant finishes the answer or gives up.
+   Each task has up to 5 minutes, and the time can be corrected by hand. The
+   participant then rates confidence and trust from 1 (not at all) to 5
+   (fully).
 6. Press **Save and continue** in the **Researcher** box. The next task opens
    automatically. Pick a step in the sidebar to correct a saved task.
 7. After the fourth task, ask the final question and press **Save final
