@@ -249,13 +249,14 @@ Team responsibilities and the reviewed branch order are recorded in
 
 A small session compares MelbourneMate with searching official websites. The
 study page shows a short voluntary notice, runs one untimed warm-up through the
-full pipeline, then records each task's completion, time, confidence and trust.
+full pipeline, then records each task's completion, time, confidence and trust
+and a final would-use rating.
 
 ```bash
 streamlit run src/melbourne_mate/interface/study_app.py
 mm study-summary --study-dir study
 ```
 
-Participant responses stay in `study/responses.csv` on the session computer and
-are not committed. The procedure, tasks and counterbalanced schedule are in
+Participant responses stay in `study/responses.csv` and `study/final.csv` on the
+session computer and are not committed. The procedure, tasks and counterbalanced schedule are in
 [`study/README.md`](study/README.md).

@@ -5,6 +5,7 @@ from __future__ import annotations
 import csv
 import shutil
 import time
+from collections import Counter
 from collections.abc import Callable, Sequence
 from pathlib import Path
 from statistics import mean, median
@@ -12,12 +13,23 @@ from statistics import mean, median
 METHODS = ("melbournemate", "official-search")
 COMPLETION = ("yes", "partial", "no")
 MEASURES = ("completed", "time_seconds", "confidence", "trust")
-RESPONSE_COLUMNS = ("participant_id", "position", "task_id", "method", *MEASURES, "note")
-MAX_SECONDS = 600
+# Saved during the session. Completion is judged afterwards in the review step.
+SESSION_MEASURES = ("time_seconds", "confidence", "trust")
+RESPONSE_COLUMNS = (
+    "participant_id", "position", "task_id", "method", *MEASURES, "answer", "note"
+)
+MAX_SECONDS = 300
 MIN_PARTICIPANTS = 4
 TEMPLATE = "responses-template.csv"
 WARM_UP_QUESTION = "How do I get from Melbourne Airport to the city?"
 RESPONSES = "responses.csv"
+FINAL_TEMPLATE = "final-template.csv"
+FINAL = "final.csv"
+FINAL_COLUMNS = ("participant_id", "would_use")
+WOULD_USE_QUESTION = (
+    "How likely are you to use MelbourneMate instead of searching multiple "
+    "official websites? (1 = very unlikely, 5 = very likely)"
+)
 
 
 class StudyError(ValueError):
@@ -81,12 +93,14 @@ def load_responses(study_dir: str | Path) -> list[dict[str, object]]:
         if row["task_id"] not in tasks or row["method"] not in METHODS:
             raise StudyError(f"{where}: unknown task or method")
 
-        filled = [bool(row[column].strip()) for column in MEASURES]
+        filled = [bool(row[column].strip()) for column in SESSION_MEASURES]
         if not any(filled):
+            if row["completed"].strip():
+                raise StudyError(f"{where}: completion is judged only after an attempt")
             continue  # not attempted yet
         if not all(filled):
-            raise StudyError(f"{where}: fill all of {', '.join(MEASURES)} or none")
-        if row["completed"] not in COMPLETION:
+            raise StudyError(f"{where}: fill all of {', '.join(SESSION_MEASURES)} or none")
+        if row["completed"] and row["completed"] not in COMPLETION:
             raise StudyError(f"{where}: completed must be one of {', '.join(COMPLETION)}")
         attempts.append(
             {
@@ -144,10 +158,10 @@ def save_response(
     if len(matches) != 1:
         raise StudyError(f"{participant_id} position {position} is not in responses.csv")
 
-    updated = {**matches[0], **{key: str(values.get(key, "")).strip() for key in (*MEASURES, "note")}}
+    fields = (*SESSION_MEASURES, "answer", "note")
+    entered = {key: str(values.get(key, "")).strip() for key in fields}
+    updated = {**matches[0], **entered}  # keeps any completion judgement
     where = f"{participant_id} position {position}"
-    if updated["completed"] not in COMPLETION:
-        raise StudyError(f"{where}: completed must be one of {', '.join(COMPLETION)}")
     _whole_number(updated["time_seconds"], 1, MAX_SECONDS, where)
     _whole_number(updated["confidence"], 1, 5, where)
     _whole_number(updated["trust"], 1, 5, where)
@@ -155,6 +169,58 @@ def save_response(
     matches[0].update(updated)
     with path.open("w", newline="", encoding="utf-8") as handle:
         writer = csv.DictWriter(handle, fieldnames=RESPONSE_COLUMNS, lineterminator="\n")
+        writer.writeheader()
+        writer.writerows(rows)
+
+
+def judge_completion(
+    study_dir: str | Path, participant_id: str, position: str, completed: str
+) -> None:
+    """Record the researcher's completion judgement for one saved attempt."""
+    where = f"{participant_id} position {position}"
+    if completed not in COMPLETION:
+        raise StudyError(f"{where}: completed must be one of {', '.join(COMPLETION)}")
+    path = Path(study_dir) / RESPONSES
+    rows = _read_csv(path) if path.exists() else []
+    matches = [
+        row
+        for row in rows
+        if row["participant_id"] == participant_id and row["position"] == str(position)
+    ]
+    if len(matches) != 1 or not matches[0]["time_seconds"].strip():
+        raise StudyError(f"{where}: no saved attempt to judge")
+    matches[0]["completed"] = completed
+    with path.open("w", newline="", encoding="utf-8") as handle:
+        writer = csv.DictWriter(handle, fieldnames=RESPONSE_COLUMNS, lineterminator="\n")
+        writer.writeheader()
+        writer.writerows(rows)
+
+
+def load_would_use(study_dir: str | Path) -> dict[str, int]:
+    """Final answers saved so far, by participant code."""
+    root = Path(study_dir)
+    path = root / FINAL if (root / FINAL).exists() else root / FINAL_TEMPLATE
+    return {
+        row["participant_id"]: _whole_number(row["would_use"], 1, 5, row["participant_id"])
+        for row in _read_csv(path)
+        if row["would_use"].strip()
+    }
+
+
+def save_would_use(study_dir: str | Path, participant_id: str, value: object) -> None:
+    """Save the participant's final would-use rating from 1 to 5."""
+    root = Path(study_dir)
+    rating = _whole_number(str(value), 1, 5, participant_id)
+    path = root / FINAL
+    if not path.exists():
+        shutil.copyfile(root / FINAL_TEMPLATE, path)
+    rows = _read_csv(path)
+    match = [row for row in rows if row["participant_id"] == participant_id]
+    if len(match) != 1:
+        raise StudyError(f"{participant_id} is not in {FINAL}")
+    match[0]["would_use"] = str(rating)
+    with path.open("w", newline="", encoding="utf-8") as handle:
+        writer = csv.DictWriter(handle, fieldnames=FINAL_COLUMNS, lineterminator="\n")
         writer.writeheader()
         writer.writerows(rows)
 
@@ -194,6 +260,17 @@ def summarise_study(study_dir: str | Path) -> Path:
     attempts = load_responses(root)
     if not attempts:
         raise StudyError("responses.csv has no completed attempts yet")
+    scheduled = Counter(row["participant_id"] for row in _read_csv(root / "schedule.csv"))
+    attempted = Counter(a["participant_id"] for a in attempts)
+    finished = {code for code, count in attempted.items() if count == scheduled[code]}
+    excluded = sorted(set(attempted) - finished)
+    if not finished:
+        raise StudyError("no participant has completed all four tasks yet")
+    attempts = [a for a in attempts if a["participant_id"] in finished]
+    pending = [a for a in attempts if not a["completed"]]
+    if pending:
+        names = ", ".join(f"{a['participant_id']} {a['task_id']}" for a in pending)
+        raise StudyError(f"judge completion in the review step first ({names})")
 
     rows = []
     groups = ["all", *sorted({a["task_id"] for a in attempts})]
@@ -212,26 +289,53 @@ def summarise_study(study_dir: str | Path) -> Path:
         writer.writeheader()
         writer.writerows(rows)
 
-    participants = len({a["participant_id"] for a in attempts})
+    participants = len(finished)
     lines = [
         "# Student study summary",
         "",
-        f"{participants} participants completed {len(attempts)} task attempts.",
+        f"{participants} participants completed all four tasks ({len(attempts)} task attempts).",
         "Results are descriptive and are not tested for significance.",
     ]
+    if excluded:
+        lines.append(
+            "Excluded because they did not finish all four tasks. " + ", ".join(excluded) + "."
+        )
     if participants < MIN_PARTICIPANTS:
         lines.append(
             f"Fewer than {MIN_PARTICIPANTS} participants took part, so the methods "
             "should only be described, not compared."
         )
-    lines += ["", "| Method | Attempts | Completed | Median seconds | Confidence | Trust |"]
-    lines.append("| --- | ---: | ---: | ---: | ---: | ---: |")
-    for row in rows:
-        if row["group"] == "all":
-            lines.append(
-                f"| {row['method']} | {row['attempts']} | {row['completed_rate']:.0%} "
-                f"| {row['median_seconds']} | {row['mean_confidence']} | {row['mean_trust']} |"
-            )
+    overall = {row["method"]: row for row in rows if row["group"] == "all"}
+
+    def cell(method: str, text: str) -> str:
+        return text.format(**overall[method]) if method in overall else "n/a"
+
+    lines += [
+        "",
+        "| Evidence | MelbourneMate | Official search |",
+        "| --- | ---: | ---: |",
+    ]
+    for label, text in (
+        ("Task attempts", "{attempts}"),
+        ("Task completion", "{completed_rate:.0%}"),
+        ("Median time", "{median_seconds:g} sec"),
+        ("Mean confidence", "{mean_confidence}/5"),
+        ("Mean trust", "{mean_trust}/5"),
+    ):
+        lines.append(
+            f"| {label} | {cell('melbournemate', text)} | {cell('official-search', text)} |"
+        )
+
+    would_use = {
+        code: rating for code, rating in load_would_use(root).items() if code in finished
+    }
+    if would_use:
+        average = mean(would_use.values())
+        sentence = (
+            "Would use MelbourneMate instead of searching official websites. Mean "
+            f"{average:.2f}/5 from {len(would_use)} participants."
+        )
+        lines += ["", sentence]
     lines += ["", "Per-task results are in `summary.csv`."]
     (root / "summary.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
     return root

@@ -15,9 +15,12 @@ from melbourne_mate.evaluation.study import (
     WARM_UP_QUESTION,
     StudyError,
     ensure_responses,
+    judge_completion,
     load_responses,
+    load_would_use,
     participant_tasks,
     save_response,
+    save_would_use,
     summarise_study,
     warm_up,
 )
@@ -35,7 +38,7 @@ def read(path):
 def copy_study(tmp_path, answers):
     """Copy the study templates and fill rows as {(participant, position): values}."""
     target = tmp_path / "study"
-    shutil.copytree(STUDY, target, ignore=shutil.ignore_patterns("responses.csv"))
+    shutil.copytree(STUDY, target, ignore=shutil.ignore_patterns("responses.csv", "final.csv"))
     rows = read(ensure_responses(target))
     for row in rows:
         values = answers.get((row["participant_id"], row["position"]))
@@ -80,7 +83,7 @@ def test_blank_template_has_no_attempts(tmp_path):
 
 def test_participant_files_are_kept_out_of_git():
     ignored = subprocess.run(
-        ["git", "check-ignore", "study/responses.csv"],
+        ["git", "check-ignore", "study/responses.csv", "study/final.csv"],
         capture_output=True,
         text=True,
         check=True,
@@ -89,9 +92,10 @@ def test_participant_files_are_kept_out_of_git():
         ["git", "ls-files", "study"], capture_output=True, text=True, check=True
     ).stdout.split()
 
-    assert ignored == ["study/responses.csv"]
+    assert ignored == ["study/responses.csv", "study/final.csv"]
     assert sorted(tracked) == [
         "study/README.md",
+        "study/final-template.csv",
         "study/responses-template.csv",
         "study/schedule.csv",
         "study/tasks.csv",
@@ -112,7 +116,7 @@ def test_summary_reports_each_method(tmp_path):
         {
             ("P01", "1"): ("yes", "120", "5", "4"),
             ("P01", "2"): ("partial", "300", "3", "4"),
-            ("P01", "3"): ("no", "600", "2", "3"),
+            ("P01", "3"): ("no", "300", "2", "3"),
             ("P01", "4"): ("yes", "240", "4", "5"),
         },
     )
@@ -127,6 +131,28 @@ def test_summary_reports_each_method(tmp_path):
     assert rows[("all", "official-search")]["mean_trust"] == "4"
     assert rows[("TK1", "melbournemate")]["attempts"] == "1"
     assert "Fewer than 4 participants" in report
+    assert "| Evidence | MelbourneMate | Official search |" in report
+    assert "| Task completion | 50% | 50% |" in report
+    assert "| Median time | 210 sec | 270 sec |" in report
+    assert "Would use" not in report
+
+    save_would_use(study, "P01", 4)
+    summarise_study(study)
+    report = (study / "summary.md").read_text(encoding="utf-8")
+    assert "Mean 4.00/5 from 1 participants." in report
+
+
+def test_would_use_rating_is_checked_and_saved(tmp_path):
+    study = copy_study(tmp_path, {})
+
+    save_would_use(study, "P02", "5")
+    save_would_use(study, "P02", 3)
+
+    assert load_would_use(study) == {"P02": 3}
+    with pytest.raises(StudyError, match="outside 1-5"):
+        save_would_use(study, "P02", 6)
+    with pytest.raises(StudyError, match="not in final.csv"):
+        save_would_use(study, "P09", 4)
 
 
 @pytest.mark.parametrize(
@@ -134,7 +160,7 @@ def test_summary_reports_each_method(tmp_path):
     [
         (("yes", "120", "", ""), "fill all"),
         (("done", "120", "4", "4"), "completed must be"),
-        (("yes", "900", "4", "4"), "outside 1-600"),
+        (("yes", "301", "4", "4"), "outside 1-300"),
         (("yes", "120", "6", "4"), "outside 1-5"),
     ],
 )
@@ -158,7 +184,7 @@ def test_rows_must_match_the_schedule(tmp_path):
 
 
 def test_cli_writes_the_summary(tmp_path, capsys):
-    study = copy_study(tmp_path, {("P02", "1"): ("yes", "90", "4", "4")})
+    study = copy_study(tmp_path, {("P02", str(n)): ("yes", "90", "4", "4") for n in range(1, 5)})
 
     assert cli.main(["study-summary", "--study-dir", str(study)]) == 0
     assert (study / "summary.md").exists()
@@ -169,9 +195,7 @@ def test_saved_response_updates_only_its_row(tmp_path):
     study = copy_study(tmp_path, {})
     (study / "responses.csv").unlink()  # the page creates it from the template
 
-    save_response(
-        study, "P03", "2", {"completed": "partial", "time_seconds": 240, "confidence": 3, "trust": 4}
-    )
+    save_response(study, "P03", "2", {"time_seconds": 240, "confidence": 3, "trust": 4})
 
     attempts = load_responses(study)
     assert attempts == [
@@ -179,13 +203,16 @@ def test_saved_response_updates_only_its_row(tmp_path):
             "participant_id": "P03",
             "task_id": "TK6",
             "method": "official-search",
-            "completed": "partial",
+            "completed": "",
             "time_seconds": 240,
             "confidence": 3,
             "trust": 4,
         }
     ]
-    assert participant_tasks(study, "P03")[1]["completed"] == "partial"
+    judge_completion(study, "P03", "2", "partial")
+    save_response(study, "P03", "2", {"time_seconds": 250, "confidence": 3, "trust": 4})
+    task = participant_tasks(study, "P03")[1]
+    assert (task["completed"], task["time_seconds"]) == ("partial", "250")  # judgement kept
     with pytest.raises(StudyError, match="outside 1-5"):
         save_response(
             study, "P03", "1", {"completed": "yes", "time_seconds": 60, "confidence": 9, "trust": 4}
@@ -196,10 +223,7 @@ def test_saved_response_updates_only_its_row(tmp_path):
         )
 
 
-def test_study_page_warms_up_the_pipeline_then_saves_a_task(tmp_path, monkeypatch):
-    study = copy_study(tmp_path, {})
-    monkeypatch.setenv("MM_STUDY_DIR", str(study))
-    asked = []
+def fake_chatbot(monkeypatch, asked):
     monkeypatch.setattr(chatbot, "_build_pipeline", lambda: "pipeline")
     monkeypatch.setattr(chatbot, "answer_question", lambda pipeline, q: asked.append(q) or q)
     monkeypatch.setattr(
@@ -207,35 +231,194 @@ def test_study_page_warms_up_the_pipeline_then_saves_a_task(tmp_path, monkeypatc
         "answer_view",
         lambda answer: {"tone": "success", "label": "Answer ready", "text": "Use the RTBA.", "sources": ()},
     )
+
+
+def open_page(study, monkeypatch, participant=None):
+    monkeypatch.setenv("MM_STUDY_DIR", str(study))
     app = AppTest.from_file(str(STUDY_APP)).run()
     assert not app.exception
+    if participant:
+        app.sidebar.selectbox[0].select(participant).run()
+    return app
+
+
+def button(app, key):
+    return next(item for item in app.button if item.key == key)
+
+
+def test_study_page_shows_the_participant_guide_and_waits_for_the_researcher(
+    tmp_path, monkeypatch
+):
+    app = open_page(copy_study(tmp_path, {}), monkeypatch)
+
     assert "voluntary" in app.info[0].value
     assert not app.checkbox  # no consent form
+    assert sorted(item.label for item in app.expander) == ["How it works", "Researcher steps"]
+    assert any("one or two sentences" in item.value for item in app.markdown)
+    assert any("in your own words" in item.value for item in app.markdown)
+    assert any("researcher will start" in item.value for item in app.caption)
 
-    app.selectbox[0].select("P02").run()
-    button = {item.key: item for item in app.button}
-    assert button["P02-1-start"].disabled  # P02 starts with MelbourneMate
-    assert button["P02-1-ask"].disabled
-    button["P02-warm-button"].click().run()
+
+def test_study_page_warms_up_then_saves_a_task_and_moves_on(tmp_path, monkeypatch):
+    study = copy_study(tmp_path, {})
+    asked = []
+    fake_chatbot(monkeypatch, asked)
+    app = open_page(study, monkeypatch, "P02")
+    task_text = participant_tasks(study, "P02")[0]["prompt"]
+
+    assert any(item.value == "#### Task 1 of 4" for item in app.markdown)
+    assert button(app, "P02-1-start").disabled  # P02 starts with MelbourneMate
+    assert button(app, "P02-1-stop").disabled  # nothing to stop yet
+    assert button(app, "P02-1-ask").disabled
+    button(app, "P02-warm-button").click().run()
     assert asked == [WARM_UP_QUESTION]
-    assert any("warmed up in" in item.value for item in app.success)
+    assert any("ready" in item.value for item in app.success)
 
-    button = {item.key: item for item in app.button}
-    assert not button["P02-1-start"].disabled
-    app.text_area(key="P02-1-question").input("Where do I lodge my bond?")
-    button["P02-1-ask"].click().run()
-    assert asked == [WARM_UP_QUESTION, "Where do I lodge my bond?"]
+    assert not button(app, "P02-1-start").disabled
+    assert app.text_area(key="P02-1-question").value == task_text
+    assert any("based on what MelbourneMate showed" in item.value for item in app.caption)
+    button(app, "P02-1-ask").click().run()
+    assert asked == [WARM_UP_QUESTION, task_text]
     assert any("Use the RTBA." in item.value for item in app.markdown)
 
-    app.number_input(key="P02-1-time").set_value(75)
-    app.radio(key="P02-1-done").set_value("yes")
+    app.text_area(key="P02-1-answer").input("Lodge it with the RTBA within 14 days.")
     app.radio(key="P02-1-conf").set_value(4)
     app.radio(key="P02-1-trust").set_value(5)
+    app.number_input(key="P02-1-time").set_value(75)
     app.run()
-    next(item for item in app.button if item.key == "P02-1-save").click().run()
+    button(app, "P02-1-save").click().run()
 
     assert not app.exception
-    saved = [row for row in read(study / "responses.csv") if row["completed"]]
+    saved = [row for row in read(study / "responses.csv") if row["time_seconds"]]
     assert [(r["participant_id"], r["task_id"], r["time_seconds"]) for r in saved] == [
         ("P02", "TK4", "75")
     ]
+    assert saved[0]["completed"] == ""  # judged later in the review step
+    assert saved[0]["answer"] == "Lodge it with the RTBA within 14 days."
+    assert any(item.value == "#### Task 2 of 4" for item in app.markdown)
+    assert app.get("progress")[0].proto.value == 25
+
+
+def test_completion_is_judged_after_the_session(tmp_path):
+    answers = {("P01", str(n)): ("yes", "120", "4", "4") for n in range(2, 5)}
+    study = copy_study(tmp_path, {**answers, ("P01", "1"): ("", "120", "4", "4")})
+
+    with pytest.raises(StudyError, match="review step first"):
+        summarise_study(study)
+    with pytest.raises(StudyError, match="completed must be"):
+        judge_completion(study, "P01", "1", "done")
+
+    judge_completion(study, "P01", "1", "yes")
+    summarise_study(study)
+    assert (study / "summary.md").exists()
+
+
+def test_summary_counts_only_participants_who_finished_all_tasks(tmp_path):
+    finished = {("P01", str(n)): ("yes", "120", "4", "4") for n in range(1, 5)}
+    partial = {("P02", "1"): ("", "60", "2", "2"), ("P02", "2"): ("", "60", "2", "2")}
+    study = copy_study(tmp_path, {**finished, **partial})
+    save_would_use(study, "P01", 5)
+    save_would_use(study, "P02", 1)
+
+    summarise_study(study)  # P02's unjudged tasks do not block the summary
+    report = (study / "summary.md").read_text(encoding="utf-8")
+    rows = {(r["group"], r["method"]): r for r in read(study / "summary.csv")}
+
+    assert "1 participants completed all four tasks (4 task attempts)." in report
+    assert "did not finish all four tasks. P02." in report
+    assert "Mean 5.00/5 from 1 participants." in report
+    assert rows[("all", "melbournemate")]["participants"] == "1"
+
+
+def test_summary_needs_one_finished_participant(tmp_path):
+    study = copy_study(tmp_path, {("P01", "1"): ("yes", "120", "4", "4")})
+
+    with pytest.raises(StudyError, match="no participant has completed all four tasks"):
+        summarise_study(study)
+
+
+def test_completion_without_an_attempt_is_rejected(tmp_path):
+    study = copy_study(tmp_path, {("P01", "1"): ("yes", "", "", "")})
+
+    with pytest.raises(StudyError, match="only after an attempt"):
+        load_responses(study)
+
+
+def test_task_card_never_shows_completion_rules(tmp_path, monkeypatch):
+    app = open_page(copy_study(tmp_path, {}), monkeypatch, "P03")  # starts with official search
+    assert any("based on the official websites you found" in item.value for item in app.caption)
+
+    assert not any("Complete when" in item.value for item in [*app.markdown, *app.caption])
+    assert not app.toggle
+    assert not any(item.key == "P03-1-done" for item in app.radio)
+
+
+def step_options(app):
+    return list(app.sidebar.radio[0].options)
+
+
+def test_final_and_review_open_only_in_order(tmp_path, monkeypatch):
+    saved = ("", "120", "4", "4")
+    three = {("P01", str(n)): saved for n in range(1, 4)}
+    study = copy_study(tmp_path, three)
+    app = open_page(study, monkeypatch, "P01")
+    assert len(step_options(app)) == 4  # four tasks, no Final or Review yet
+    assert any("Final question opens after" in item.value for item in app.caption)
+
+    study = copy_study(tmp_path / "all", {**three, ("P01", "4"): saved})
+    app = open_page(study, monkeypatch, "P01")
+    assert len(step_options(app)) == 5  # Final unlocked, Review still hidden
+    assert app.subheader[-1].value == "Final question"
+    assert any("Review opens after" in item.value for item in app.caption)
+
+    save_would_use(study, "P01", 4)
+    app.run()
+    assert len(step_options(app)) == 6
+
+
+def test_review_judges_saved_answers_out_of_view(tmp_path, monkeypatch):
+    saved = ("", "120", "4", "4")
+    study = copy_study(tmp_path, {("P01", str(n)): saved for n in range(1, 5)})
+    save_would_use(study, "P01", 4)
+    app = open_page(study, monkeypatch, "P01")
+    app.sidebar.radio[0].set_value("review").run()
+
+    assert app.subheader[0].value == "Review (researcher only)"
+    assert sum("Complete when" in item.value for item in app.markdown) == 4
+    assert button(app, "P01-judge-save").disabled
+    for position, value in zip("1234", ("yes", "partial", "no", "yes")):
+        app.radio(key=f"P01-{position}-judge").set_value(value)
+    app.run()
+    button(app, "P01-judge-save").click().run()
+
+    assert not app.exception
+    judged = {r["position"]: r["completed"] for r in read(study / "responses.csv") if r["participant_id"] == "P01"}
+    assert judged == {"1": "yes", "2": "partial", "3": "no", "4": "yes"}
+    assert any("All saved tasks are judged" in item.value for item in app.success)
+
+
+def test_final_question_appears_after_all_tasks_and_is_saved(tmp_path, monkeypatch):
+    done = ("yes", "120", "4", "4")
+    study = copy_study(tmp_path, {("P03", str(n)): done for n in range(1, 5)})
+    app = open_page(study, monkeypatch, "P03")
+
+    assert app.subheader[-1].value == "Final question"
+    app.radio(key="P03-use").set_value(5).run()
+    button(app, "P03-use-save").click().run()
+
+    assert not app.exception
+    assert load_would_use(study) == {"P03": 5}
+    assert any("Final answer saved (5/5)" in item.value for item in app.success)
+
+
+def test_missing_retriever_shows_a_clear_message(tmp_path, monkeypatch):
+    def missing():
+        raise ModuleNotFoundError("No module named 'sentence_transformers'")
+
+    monkeypatch.setattr(chatbot, "_build_pipeline", missing)
+    app = open_page(copy_study(tmp_path, {}), monkeypatch, "P01")
+    button(app, "P01-warm-button").click().run()
+
+    assert not app.exception
+    assert any("MPNet retriever is not installed" in item.value for item in app.error)
+    assert button(app, "P01-1-start").disabled
