@@ -1,0 +1,5 @@
+task_id,prompt,source_ids,complete_when
+TK1,"You start classes next month and a café offers you shifts. Find out how many paid hours you are allowed to work while your course is running, and where that limit is published.",S01,"States 48 hours a fortnight while the course is in session and points to the Home Affairs Student visa page or VEVO."
+TK2,"You have been feeling unwell for three days. Find out how to see a doctor and what your student health cover will and will not pay for.",S05;S06,"Says to start with a GP and names at least one thing basic OSHC does not cover, such as dental care or glasses."
+TK4,"An agent asks you to pay a rental bond equal to four weeks of rent. Find out where the bond must be lodged and how you get it back.",S13;S14,"Names the RTBA and the 14-day lodgement, and explains that the bond is returned through an RTBA claim."
+TK6,"Your rental has no hot water and the agent is not responding. Find out what counts as an urgent repair and what you are allowed to do.",S16,"Identifies hot water as an urgent repair, says to contact the provider first, and gives the $2,500 limit for arranging the repair yourself."

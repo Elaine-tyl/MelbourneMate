@@ -43,6 +43,7 @@ from melbourne_mate.evaluation.runs import (
     write_run,
 )
 from melbourne_mate.evaluation.stats import compare as compare_runs
+from melbourne_mate.evaluation.study import StudyError, summarise_study
 from melbourne_mate.evaluation.targeted_qrels import (
     build_review_pool,
     build_targeted_qrels,
@@ -391,6 +392,17 @@ def cmd_score_answer_review(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_study_summary(args: argparse.Namespace) -> int:
+    """Summarise the student study responses."""
+    try:
+        path = summarise_study(args.study_dir)
+    except (StudyError, OSError, KeyError) as exc:
+        print(str(exc), file=sys.stderr)
+        return 1
+    print(f"wrote {path / 'summary.csv'} and {path / 'summary.md'}")
+    return 0
+
+
 def cmd_compare(args: argparse.Namespace) -> int:
     """Compare two compatible saved runs with topic-level statistics."""
 
@@ -684,6 +696,10 @@ def main(argv: list[str] | None = None) -> int:
     score_review = sub.add_parser("score-answer-review")
     score_review.add_argument("--review-dir", required=True)
     score_review.set_defaults(func=cmd_score_answer_review)
+
+    study = sub.add_parser("study-summary")
+    study.add_argument("--study-dir", default="study")
+    study.set_defaults(func=cmd_study_summary)
 
     compare = sub.add_parser("compare")
     compare.add_argument("--left", required=True)

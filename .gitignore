@@ -20,3 +20,7 @@ models/
 # runs/generation/ and are committed once their manifest has been checked.
 runs/scratch/
 runs/demo/
+
+# Student study runtime files hold participant-level data. Only blank
+# templates are committed.
+study/responses.csv
