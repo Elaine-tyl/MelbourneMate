@@ -1,0 +1,10 @@
+﻿arm,criterion,items,agreed_mean
+bm25,correctness,10,1.7
+bm25,evidence_support,10,1.4
+bm25,fallback_appropriateness,10,1.9
+mpnet,correctness,10,1.4
+mpnet,evidence_support,10,1.1
+mpnet,fallback_appropriateness,10,1.6
+no-context,correctness,10,1.1
+no-context,evidence_support,10,0.0
+no-context,fallback_appropriateness,10,1.8

@@ -201,10 +201,26 @@ ollama serve
 streamlit run src/melbourne_mate/interface/app.py
 ```
 
-The Evaluation results panel reads the committed retrieval and generation CSVs;
-it does not rerun an experiment. The four checked tasks and one citation warning
-are recorded in `review/chatbot-test-s9/results.csv`. The app uses the same
-pipeline, final qrels, frozen encoder and local model as the evaluation runs.
+Before a live presentation, warm the model once so the first timed question does
+not include model-loading time:
+
+```bash
+ollama run qwen2.5:7b-instruct "Reply only OK."
+```
+
+The app streams the answer as it is generated and asks Ollama to keep Qwen loaded
+for 30 minutes between questions. These demo improvements do not change the frozen
+model, prompt, 512-token limit or evaluation settings.
+
+The Evaluation results panel reads the committed run files and does not rerun an
+experiment. Three retrieval panels compare held-out NDCG@5, Recall@5 and MRR for
+BM25s and MPNet, split into known and inferred questions. A compact statistical
+summary remains below the chart. The generation chart compares appropriate
+response behaviour for known, inferred and out-of-knowledge-base questions; its
+summary keeps unsupported-answer, citation-validity and truncation rates visible.
+The four checked tasks and one citation warning are recorded in
+`review/chatbot-test-s9/results.csv`. The app uses the same pipeline, final qrels,
+frozen encoder and local model as the evaluation runs.
 
 Create the 37-pair review sheet from the saved MPNet top-five rankings:
 

@@ -29,6 +29,7 @@ class OllamaClient:
         get_transport: Callable[[str], dict[str, Any]] | None = None,
         timeout: int = 180,
         seed: int | None = None,
+        keep_alive: str = "30m",
         stream_transport: Callable[[dict[str, Any]], Iterator[dict[str, Any]]]
         | None = None,
     ) -> None:
@@ -36,6 +37,7 @@ class OllamaClient:
         self.host = host.rstrip("/")
         self.timeout = timeout
         self.seed = CONFIG.generation.seed if seed is None else seed
+        self.keep_alive = keep_alive
         self._transport = transport or self._post
         self._get_transport = get_transport or self._get
         self._stream_transport = stream_transport or self._stream_post
@@ -99,6 +101,7 @@ class OllamaClient:
             "model": self.model,
             "prompt": request.prompt,
             "stream": stream,
+            "keep_alive": self.keep_alive,
             "options": {
                 "temperature": request.temperature,
                 "seed": self.seed,
@@ -154,16 +157,7 @@ class OllamaClient:
             raise OllamaError(f"cannot reach Ollama at {self.host}: {exc}") from exc
 
     def generate(self, request: GenerationRequest) -> GenerationResponse:
-        payload = {
-            "model": self.model,
-            "prompt": request.prompt,
-            "stream": False,
-            "options": {
-                "temperature": request.temperature,
-                "seed": self.seed,
-                "num_predict": request.max_output_tokens,
-            },
-        }
+        payload = self._payload(request, stream=False)
         started = perf_counter()
         body = self._transport("/api/generate", payload)
         ms = int((perf_counter() - started) * 1000)

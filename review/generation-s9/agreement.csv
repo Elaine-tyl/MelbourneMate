@@ -1,0 +1,4 @@
+﻿criterion,items,exact_agreement,weighted_kappa
+correctness,30,1.0,1.0
+evidence_support,30,0.9666666666666667,0.9818181818181818
+fallback_appropriateness,30,1.0,1.0
