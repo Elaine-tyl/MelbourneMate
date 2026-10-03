@@ -1,0 +1,7 @@
+dimension,group,questions,topics,bm25_ndcg@5,mpnet_ndcg@5,difference,ci_low,ci_high,p_value
+all,all,36,12,0.8353,0.9709,0.1356,0.0486,0.2519,0.0065
+containment_bin,low,27,11,0.8113,0.9655,0.1542,0.0515,0.2919,0.0155
+containment_bin,medium,6,4,0.8863,0.9888,0.1025,0.0,0.2875,0.5013
+containment_bin,high,3,3,0.9491,0.9838,0.0348,0.0,0.1043,1.0
+question_form,canonical,12,12,0.8445,0.9904,0.1459,0.0174,0.336,0.1273
+question_form,paraphrased,24,12,0.8307,0.9611,0.1305,0.0397,0.2631,0.0104

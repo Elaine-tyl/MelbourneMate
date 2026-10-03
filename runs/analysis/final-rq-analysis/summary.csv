@@ -1,0 +1,10 @@
+question,finding,value,ci_low,ci_high,criterion_met,note
+RQ2,MPNet gain on low-containment questions,0.1542,0.0515,0.2919,True,high-containment gain 0.0348 from 3 questions
+RQ3a,"Out-of-KB answers, bm25 minus no-context",-0.9667,-1.0,-0.9,True,29 discordant questions
+RQ3a,"Out-of-KB answers, mpnet minus no-context",-0.8667,-0.9667,-0.7333,True,26 discordant questions
+RQ3a,"Out-of-KB answers, MPNet minus BM25s",0.1,0.0,0.2333,False,"3 discordant questions, insufficient evidence"
+RQ4,bm25 correct refusal,0.9667,0.9,1.0,,30 questions in 30 clusters
+RQ4,bm25 false refusal,0.0588,0.0,0.1429,,34 questions in 12 clusters
+RQ4,mpnet correct refusal,0.8667,0.7333,0.9667,,30 questions in 30 clusters
+RQ4,mpnet false refusal,0.0833,0.0,0.1667,,36 questions in 12 clusters
+RQ4,no-context correct refusal,0.0,0.0,0.0,,30 questions in 30 clusters
