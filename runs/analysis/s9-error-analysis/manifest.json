@@ -1,9 +1,9 @@
 {
   "analysis_id": "s9-error-analysis",
-  "case_count": 67,
+  "case_count": 62,
   "code_version": "0.1.0",
   "collection_fingerprint": "1f04bcc7ed2cd814",
-  "created_utc": "2026-09-27T14:51:01+00:00",
+  "created_utc": "2026-10-03T06:23:02+00:00",
   "high_risk_categories": [
     "emergency",
     "employment",
@@ -18,5 +18,5 @@
     "mpnet_retrieval": "s9-final-mpnet-test",
     "no_context_generation": "s9-qwen25-20260927-no-context"
   },
-  "qrels_fingerprint": "a3ecafcdf28fb918"
+  "qrels_fingerprint": "fbb2b3e9ab3cb8b1"
 }

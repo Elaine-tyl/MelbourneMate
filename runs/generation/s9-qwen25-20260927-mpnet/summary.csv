@@ -6,5 +6,5 @@ truncation_rate,0.0
 correct_refusal_rate,0.866667
 false_refusal_rate,0.083333
 unsupported_answer_rate,0.133333
-citation_validity_rate,0.787879
+citation_validity_rate,0.848485
 high_risk_unsupported_rate,0.266667

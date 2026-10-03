@@ -34,10 +34,12 @@ from melbourne_mate.evaluation.generation_inputs import (
 )
 from melbourne_mate.evaluation.generation_runs import (
     GenerationRunItem,
+    rescore_generation_run,
     write_generation_run,
 )
 from melbourne_mate.evaluation.rq_analysis import RQAnalysisError, write_rq_analysis
 from melbourne_mate.evaluation.runs import (
+    RunError,
     read_manifest,
     read_per_question,
     read_run_file,
@@ -551,6 +553,26 @@ def cmd_rescore_retrieval(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_rescore_generation(args: argparse.Namespace) -> int:
+    """Recheck saved answers after a qrels correction."""
+    try:
+        collection = load_collection(args.data)
+        qrels, qrels_fingerprint = load_generation_qrels(args.qrels, collection)
+        path = rescore_generation_run(
+            Path(args.runs_dir) / args.run_id,
+            source_run=args.source_run,
+            collection=collection,
+            qrels=qrels,
+            qrels_fingerprint=qrels_fingerprint,
+            run_id=args.run_id,
+        )
+    except (CollectionError, GenerationInputError, RunError, OSError, ValueError) as exc:
+        print(str(exc), file=sys.stderr)
+        return 1
+    print(f"wrote {path}")
+    return 0
+
+
 def cmd_targeted_qrels(args: argparse.Namespace) -> int:
     """Apply checked candidate grades to the seed qrels."""
 
@@ -745,6 +767,13 @@ def main(argv: list[str] | None = None) -> int:
     rescore.add_argument("--run-id", required=True)
     rescore.add_argument("--runs-dir", default="runs/retrieval")
     rescore.set_defaults(func=cmd_rescore_retrieval)
+
+    rescore_generation = sub.add_parser("rescore-generation")
+    rescore_generation.add_argument("--source-run", required=True)
+    rescore_generation.add_argument("--qrels", required=True)
+    rescore_generation.add_argument("--run-id", required=True)
+    rescore_generation.add_argument("--runs-dir", default="runs/generation")
+    rescore_generation.set_defaults(func=cmd_rescore_generation)
 
     # Keep manual qrels work limited to new MPNet candidates.
     qrels = sub.add_parser("targeted-qrels")

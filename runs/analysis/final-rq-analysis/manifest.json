@@ -2,14 +2,14 @@
   "analysis_id": "final-rq-analysis",
   "code_version": "0.1.0",
   "collection_fingerprint": "1f04bcc7ed2cd814",
-  "created_utc": "2026-10-03T05:27:13+00:00",
+  "created_utc": "2026-10-03T06:23:02+00:00",
   "input_fingerprints": {
-    "bm25_generation": "92137e1007489492",
-    "bm25_retrieval": "97de6211c2dae09c",
-    "mpnet_generation": "58a9d39bbad0a6c9",
-    "mpnet_retrieval": "d3a67aac5ee9fc8d",
+    "bm25_generation": "1b6839386dc5de89",
+    "bm25_retrieval": "364ff3607e569b5a",
+    "mpnet_generation": "d4014ae4e980f01c",
+    "mpnet_retrieval": "21243fdbe1e377c5",
     "no_context_generation": "aa3e7385bc8bfa39",
-    "qrels": "a3ecafcdf28fb918"
+    "qrels": "fbb2b3e9ab3cb8b1"
   },
   "input_runs": {
     "bm25_generation": "s9-qwen25-20260927-bm25",
@@ -20,7 +20,7 @@
   },
   "min_discordant": 5,
   "permutations": 10000,
-  "qrels_fingerprint": "a3ecafcdf28fb918",
+  "qrels_fingerprint": "fbb2b3e9ab3cb8b1",
   "resamples": 10000,
   "seed": 20260923
 }

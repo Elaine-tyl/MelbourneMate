@@ -52,6 +52,12 @@ Out-of-KB questions have no labels. New MPNet candidates were checked under
 S9-05, and the final test qrels are in
 [`review/targeted-qrels/qrels-final.txt`](../../review/targeted-qrels/qrels-final.txt).
 
+A final audit added one official Study Melbourne passage as partial support
+for two underpayment questions. It explains where a student can seek help but
+does not answer every part of either question. The saved rankings and model
+answers stayed unchanged; only results that depend on these labels were
+recalculated.
+
 - A `known` topic has one passage that fully answers each of its questions
   (grade 2).
 - An `inferred` topic has two passages that each answer part of the question

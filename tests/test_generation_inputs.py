@@ -65,7 +65,8 @@ def test_final_qrels_load_with_a_stable_fingerprint():
         "review/targeted-qrels/qrels-final.txt", collection
     )
 
-    assert sum(len(passages) for passages in qrels.values()) == 69
+    # Guard the reviewed relevance-pair total against accidental data loss.
+    assert sum(len(passages) for passages in qrels.values()) == 71
     assert len(fingerprint) == 16
 
 

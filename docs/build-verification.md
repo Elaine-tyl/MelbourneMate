@@ -1,7 +1,10 @@
 # Build verification
 
-Trello S10-08, GitHub #45. Checked by Siriporn on 29 September 2026 against
-`main` at `ffb819c`, after the Sprint 9 pull requests were merged.
+Trello S10-08, GitHub #45. The package and environment were checked by Siriporn
+on 29 September 2026 against `main` at `ffb819c`, after the Sprint 9 pull
+requests were merged. On 3 October, the final evidence-label audit added two
+clearly missed partial-support labels. The saved rankings and model answers
+were unchanged; the qrels-dependent results below were recalculated.
 
 ## Environment
 
@@ -26,13 +29,13 @@ Ollama model ID matches the digest recorded in the generation run manifests.
 
 | Check | Command | Result |
 | --- | --- | --- |
-| Tests | `python -m pytest -q` | 63 passed |
+| Tests | `python -m pytest -q` | 63 passed in the original check; 111 passed after the final label correction |
 | Lint | `ruff check src tests` | passed |
 | Collection | `mm --data data/v1 validate` | VALID, fingerprint `1f04bcc7ed2cd814` |
 | Collection quality | `mm --data data/v1 quality` | 31 sources, 41 passages, 30 topics, 120 questions |
 | Final qrels | `mm --data data/v1 targeted-qrels ...` | identical to `review/targeted-qrels/qrels-final.txt` |
 | BM25s test run | `mm retrieve` then `mm rescore-retrieval` | metrics identical to `s9-final-bm25-test` |
-| Retrieval comparison | `mm compare` on the two final runs | +0.1356, 95% CI [+0.0486, +0.2519], p = 0.0065 |
+| Retrieval comparison | `mm compare` on the two final runs | +0.1200, 95% CI [+0.0441, +0.2316], p = 0.0065 |
 | Local model | `ollama list` | `qwen2.5:7b-instruct` present |
 
 The rerun outputs were written to a scratch folder, so no saved run was
@@ -65,7 +68,7 @@ python3 -m venv /tmp/mm-wheel
 ```
 
 Expected output is `VALID` with fingerprint `1f04bcc7ed2cd814`, then a mean
-difference of +0.1356 with p = 0.0065.
+difference of +0.1200 with p = 0.0065.
 
 The development checks are listed in the [README](../README.md#development-setup).
 

@@ -11,6 +11,7 @@ safe refusal behaviour.
 Use these links to find the project method, setup, commands and saved evidence.
 
 - [From Walert to MelbourneMate](#from-walert-to-melbournemate)
+- [Repository structure](#repository-structure)
 - [System overview](#system-overview)
 - [Development setup](#development-setup)
 - [Core commands](#core-commands)
@@ -22,6 +23,20 @@ Use these links to find the project method, setup, commands and saved evidence.
 - [Streamlit demo](#streamlit-demo)
 - [Student study](#student-study)
 - [References and acknowledgements](#references-and-acknowledgements)
+
+## Repository structure
+
+| Path | Purpose |
+|---|---|
+| `config/` | Frozen retrieval, generation and evaluation settings |
+| `data/` | Worked sample and formal official-source collection |
+| `docs/` | Evaluation design, methodology notes and presentation figures |
+| `review/` | Targeted qrels checks and independent answer-review evidence |
+| `runs/` | Saved retrieval, generation and analysis outputs |
+| `src/` | MelbourneMate package, command-line workflows and Streamlit apps |
+| `study/` | Student-study tasks, schedule, templates and aggregate results |
+| `tests/` | Automated regression and reproducibility checks |
+| `.streamlit/` | Streamlit interface configuration |
 
 ## From Walert to MelbourneMate
 
@@ -108,8 +123,8 @@ mm --data data/v1 evaluate-retrieval --split test \
 
 The submitted rankings are in `runs/retrieval/s9-formal-bm25-test/` and
 `runs/retrieval/s9-formal-mpnet-test/`. New MPNet top-five candidates were then
-pooled into a 37-pair review sheet, kept only when the passage shares the
-question's category or a listed confusable topic pair:
+pooled into an initial 37-pair review sheet, kept only when the passage shares
+the question's category or a listed confusable topic pair:
 
 ```bash
 mm --data data/v1 qrels-pool \
@@ -118,8 +133,17 @@ mm --data data/v1 qrels-pool \
 ```
 
 The completed sheet is `review/targeted-qrels/s9-mpnet-candidates.csv`, and the
-final qrels are `review/targeted-qrels/qrels-final.txt`. The same rankings were
-then rescored without tuning or rerunning either retriever:
+final qrels are `review/targeted-qrels/qrels-final.txt`. In simple terms, this
+file tells the evaluator which passages count as full or partial support for
+each question.
+
+The final audit found one Study Melbourne passage that clearly helped two
+underpayment questions but had not been labelled for them. Both pairs were
+added as partial support, bringing the completed sheet to 39 checked pairs.
+The saved rankings and model answers were not changed. Only the scores and
+citation labels that depend on the qrels were recalculated.
+
+The same rankings were rescored without tuning or rerunning either retriever:
 
 ```bash
 mm --data data/v1 rescore-retrieval \
@@ -138,7 +162,8 @@ mm --data data/v1 compare \
 
 The final submitted results are in `runs/retrieval/s9-final-bm25-test/`,
 `runs/retrieval/s9-final-mpnet-test/` and
-`runs/retrieval/s9-final-comparison.csv`. Each run ID is write-once.
+`runs/retrieval/s9-final-comparison.csv`. When reproducing the workflow, use a
+new write-once run ID rather than replacing these submitted results.
 
 ## Reproduce the evaluation evidence
 
@@ -189,6 +214,16 @@ mm --data data/v1 evaluate-generation \
 
 This creates `-bm25`, `-mpnet` and `-no-context` runs with the same 66
 questions. Use a new prefix for every repeat.
+
+If a relevance label is corrected later, saved answers can be rechecked
+without asking the model to answer again:
+
+```bash
+mm --data data/v1 rescore-generation \
+  --source-run runs/generation/s9-qwen25-20260927-bm25 \
+  --qrels review/targeted-qrels/qrels-final.txt \
+  --run-id recheck-yourname-bm25
+```
 
 Prepare the fixed 30-answer review from those saved runs:
 
@@ -326,3 +361,5 @@ The official information sources used to construct the collection, together
 with their access dates and verification outcomes, are recorded in
 [`data/v1/sources.csv`](data/v1/sources.csv) and
 [`data/v1/source-log.csv`](data/v1/source-log.csv).
+
+To cite MelbourneMate itself, use the metadata in [`CITATION.cff`](CITATION.cff).

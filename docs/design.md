@@ -77,6 +77,10 @@ generation fixed is what makes the retrieval differences attributable.
   when the passage is in the same category or a listed confusable topic pair.
   Each candidate has one primary grade; a teammate checks only flagged cases.
   No agreement statistic is claimed for retrieval qrels.
+* A final audit may correct a clearly missed label, but it must record the
+  reason and keep the saved rankings and model answers unchanged. Only the
+  dependent scores are recalculated. This prevents a label correction from
+  becoming a new model run or hidden tuning step.
 
 ## 5. Metrics
 
@@ -94,7 +98,7 @@ numbers from elsewhere are not comparable and `mm compare` refuses to mix them.
 | False-refusal rate | answerable questions **whose context held a relevant passage** | not over-cautious |
 | Unsupported-answer rate | OOKB questions | answered something it had no evidence for |
 | High-risk unsupported rate | OOKB questions on visa/health/employment/emergency | the failure that matters most |
-| Citation validity rate | answered answerable questions | citations resolve to retrieved, relevant passages, no stray URLs, and every figure appears in a cited passage. **Not** a faithfulness measure |
+| Citation validity rate | answered answerable questions | the cited passage was retrieved and labelled relevant, its URL is traceable, and quoted figures appear in that passage. This is a citation check, **not** proof that the whole answer is correct |
 | Truncation rate | all generated answers | responses stopped by the token limit; excluded from every rate above |
 
 Manual validation of a stratified subset (20–30 answers), annotated
