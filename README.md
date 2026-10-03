@@ -11,7 +11,6 @@ safe refusal behaviour.
 Use these links to find the project method, setup, commands and saved evidence.
 
 - [From Walert to MelbourneMate](#from-walert-to-melbournemate)
-- [Walert method and local tooling](#walert-method-and-local-tooling)
 - [System overview](#system-overview)
 - [Development setup](#development-setup)
 - [Core commands](#core-commands)
@@ -26,36 +25,23 @@ Use these links to find the project method, setup, commands and saved evidence.
 
 ## From Walert to MelbourneMate
 
-Walert is the methodological baseline for MelbourneMate. The project adapts
-Walert's known, inferred and out-of-knowledge-base question scenarios, graded
-retrieval evaluation and explicit measurement of unanswered questions.
+Walert is the methodological baseline for MelbourneMate. The project keeps
+Walert's known, inferred and out-of-knowledge-base (OOKB) questions, graded
+retrieval evaluation and measurement of unanswered questions. It adds a
+topic-level held-out split, BM25s versus MPNet retrieval, topic-clustered
+statistics, a no-context generation arm, citation checks, blind answer review
+and fingerprinted run manifests.
 
-MelbourneMate extends that baseline with:
-
-- a topic-level validation and held-out test split;
-- BM25s versus pinned MPNet retrieval;
-- Walert-style qrels with targeted checks for new MPNet candidates;
-- topic-clustered confidence intervals and paired testing;
-- grounded and no-context generation arms;
-- deterministic citation checks and blind generated-answer review;
-- immutable run manifests and data/configuration fingerprints;
-- a local Ollama generator and Streamlit interface.
-
-The projects use different domains, collections, questions, models and
-protocols, so their numerical scores are not directly comparable. See
-[`docs/walert-methodology-mapping.md`](docs/walert-methodology-mapping.md).
-
-### Walert method and local tooling
-
-MelbourneMate follows Walert's broad experimental sequence:
+MelbourneMate follows Walert's experimental sequence
 
 ```text
 validate data -> run BM25s -> run Dense -> calculate metrics -> compare runs
 ```
 
-Walert uses separate scripts. MelbourneMate uses the project-local `mm` command
-to automate the same sequence and reduce command errors. This does not make the
-two projects' scores directly comparable.
+Walert uses separate scripts, while MelbourneMate runs the same steps through
+one `mm` command. The two projects use different domains, collections and
+models, so their scores are not directly comparable. The full mapping is in
+[`docs/walert-methodology-mapping.md`](docs/walert-methodology-mapping.md).
 
 ## System overview
 
@@ -77,6 +63,13 @@ python3 -m venv .venv
 source .venv/bin/activate
 python -m pip install --upgrade pip
 pip install -e ".[dense,app,dev]"
+```
+
+Run the checks before handing work to another team member:
+
+```bash
+python -m pytest -q
+ruff check src tests
 ```
 
 Do not commit virtual environments, model weights, `.env` files, caches or
@@ -114,8 +107,19 @@ mm --data data/v1 evaluate-retrieval --split test \
 ```
 
 The submitted rankings are in `runs/retrieval/s9-formal-bm25-test/` and
-`runs/retrieval/s9-formal-mpnet-test/`. After the targeted qrels check, the
-same rankings were rescored without tuning or rerunning either retriever:
+`runs/retrieval/s9-formal-mpnet-test/`. New MPNet top-five candidates were then
+pooled into a 37-pair review sheet, kept only when the passage shares the
+question's category or a listed confusable topic pair:
+
+```bash
+mm --data data/v1 qrels-pool \
+  --run runs/retrieval/s9-formal-mpnet-test \
+  --out review/targeted-qrels/recheck-yourname.csv
+```
+
+The completed sheet is `review/targeted-qrels/s9-mpnet-candidates.csv`, and the
+final qrels are `review/targeted-qrels/qrels-final.txt`. The same rankings were
+then rescored without tuning or rerunning either retriever:
 
 ```bash
 mm --data data/v1 rescore-retrieval \
@@ -149,9 +153,8 @@ saved output. It helps reviewers check the evidence or repeat one experiment.
 | [Error analysis](#error-analysis) | [`mm analyse-errors`](#error-analysis) | [Error-analysis code](src/melbourne_mate/evaluation/error_analysis.py) | [Report](runs/analysis/s9-error-analysis/report.md), [summary CSV](runs/analysis/s9-error-analysis/summary.csv) and [cases CSV](runs/analysis/s9-error-analysis/cases.csv) |
 | [RQ2, RQ3a and RQ4](#design-analyses) | [`mm analyse-rqs`](#design-analyses) | [Design-analysis code](src/melbourne_mate/evaluation/rq_analysis.py) | [Report](runs/analysis/final-rq-analysis/report.md) and [summary CSV](runs/analysis/final-rq-analysis/summary.csv) |
 
-The commands below show the full arguments. Saved CSV files are committed so a
-reviewer can inspect the reported values without downloading models or rerunning
-Ollama.
+Saved CSV files are committed, so reported values can be checked without
+downloading models or rerunning Ollama.
 
 ### Evaluation figures
 
@@ -184,8 +187,8 @@ mm --data data/v1 evaluate-generation \
   --model qwen2.5:7b-instruct
 ```
 
-This creates BM25s, MPNet, and no-context runs with the same 66 questions and
-settings. Use a new prefix when repeating the test.
+This creates `-bm25`, `-mpnet` and `-no-context` runs with the same 66
+questions. Use a new prefix for every repeat.
 
 Prepare the fixed 30-answer review from those saved runs:
 
@@ -265,57 +268,31 @@ not include model-loading time:
 ollama run qwen2.5:7b-instruct "Reply only OK."
 ```
 
-The app streams the answer as it is generated and asks Ollama to keep Qwen loaded
-for 30 minutes between questions. These demo improvements do not change the frozen
-model, prompt, 512-token limit or evaluation settings.
+The app streams each answer and keeps Qwen loaded for 30 minutes between
+questions. This does not change the frozen model, prompt, 512-token limit or
+evaluation settings.
 
-The Evaluation results panel reads the committed run files and does not rerun an
-experiment. Three retrieval panels compare held-out NDCG@5, Recall@5 and MRR for
-BM25s and MPNet, split into known and inferred questions. A compact statistical
-summary remains below the chart. The generation chart compares appropriate
-response behaviour for known, inferred and out-of-knowledge-base questions; its
-summary keeps unsupported-answer, citation-validity and truncation rates visible.
-The four checked tasks and one citation warning are recorded in
-`review/chatbot-test-s9/results.csv`. The app uses the same pipeline, final qrels,
-frozen encoder and local model as the evaluation runs.
+The Evaluation results panel reads the committed run files, as shown in
+[Evaluation figures](#evaluation-figures). The four checked demo tasks and one
+citation warning are recorded in `review/chatbot-test-s9/results.csv`.
 
-Create the 37-pair review sheet from the saved MPNet top-five rankings:
-
-```bash
-mm --data data/v1 qrels-pool \
-  --run runs/retrieval/s9-formal-mpnet-test \
-  --out review/targeted-qrels/recheck-yourname.csv
-```
-
-The submitted sheet is `review/targeted-qrels/s9-mpnet-candidates.csv`. It keeps
-only candidates absent from the current qrels whose passage is in the same
-category as the question or in a listed confusable topic pair.
-
-Run the checks before handing work to another team member:
-
-```bash
-python -m pytest -q
-ruff check src tests
-```
-
-Team responsibilities and the reviewed branch order are recorded in
+Sprint 9 task ownership and evidence links are in
 [`docs/HANDOFF.md`](docs/HANDOFF.md).
 
 ## Student study
 
 A small session compares MelbourneMate with searching official websites. The
-study page shows a short voluntary notice, runs one untimed warm-up through the
-full pipeline, then records each task's completion, time, confidence and trust
-and a final would-use rating.
+study page records each task's time, confidence, trust and answer, and a final
+would-use rating. Completion is judged after the session.
 
 ```bash
 streamlit run src/melbourne_mate/interface/study_app.py
 mm study-summary --study-dir study
 ```
 
-Participant responses stay in `study/responses.csv` and `study/final.csv` on the
-session computer and are not committed. The procedure, tasks and counterbalanced schedule are in
-[`study/README.md`](study/README.md).
+Participant responses stay on the session computer and are not committed. The
+group results are in [`study/summary.md`](study/summary.md), and the procedure,
+tasks and counterbalanced schedule are in [`study/README.md`](study/README.md).
 
 ## References and acknowledgements
 
@@ -348,6 +325,4 @@ Generation uses `qwen2.5:7b-instruct` locally through
 The official information sources used to construct the collection, together
 with their access dates and verification outcomes, are recorded in
 [`data/v1/sources.csv`](data/v1/sources.csv) and
-[`data/v1/source-log.csv`](data/v1/source-log.csv). The detailed relationship
-to Walert is documented in
-[`docs/walert-methodology-mapping.md`](docs/walert-methodology-mapping.md).
+[`data/v1/source-log.csv`](data/v1/source-log.csv).

@@ -45,14 +45,7 @@ These questions and hypotheses are fixed before the held-out test split is score
 ### Methodological lineage
 
 Walert is the methodological baseline for the test design, not a source-code or
-dataset dependency. MelbourneMate retains its known, inferred and
-out-of-knowledge-base scenarios, graded retrieval evaluation and explicit
-measurement of unanswered behaviour. It extends that baseline with a frozen
-topic-level hold-out, a BM25s-versus-Dense comparison, Walert-style test qrels
-with targeted checks for new MPNet candidates, topic-clustered statistical
-inference, a no-context generation ablation, deterministic citation checks and
-blind human assessment. The exact mapping, deliberate differences and claim
-boundary are documented in
+dataset dependency. The mapping, extensions and deliberate differences are in
 [`walert-methodology-mapping.md`](walert-methodology-mapping.md).
 
 ## 3. System variants
@@ -68,12 +61,11 @@ generation fixed is what makes the retrieval differences attributable.
 
 ## 4. Data design
 
-* Retrieval is scored on every answerable question — no model calls, so no
-  quota limit applies.
-* Generation is scored on a **stratified sample frozen before any arm runs**:
-  all out-of-knowledge-base questions, all inferred topics, and a sample of
-  known topics. Every generation arm sees the identical question ids, so API
-  quota cannot silently change what the arms were compared on.
+* Retrieval is scored on every answerable question in the split.
+* Generation is scored on a **sample frozen before any arm runs**: all 36
+  held-out test questions and all 30 out-of-knowledge-base questions
+  (`data/v1/generation-sample.csv`). Every generation arm sees the identical
+  question ids.
 * Splits are assigned **per topic**. A topic's canonical and paraphrased
   questions never straddle the validation/test boundary, and neither does a
   confusable pair — a near-miss split across the boundary can never be
@@ -102,8 +94,7 @@ numbers from elsewhere are not comparable and `mm compare` refuses to mix them.
 | False-refusal rate | answerable questions **whose context held a relevant passage** | not over-cautious |
 | Unsupported-answer rate | OOKB questions | answered something it had no evidence for |
 | High-risk unsupported rate | OOKB questions on visa/health/employment/emergency | the failure that matters most |
-| Citation resolvability rate | answered answerable questions | citations resolve to retrieved, relevant passages, no stray URLs, and every figure appears in a cited passage. **Not** a faithfulness measure |
-| Numeric consistency | answered answerable questions | a figure in the answer that is in no cited passage — the failure with consequences |
+| Citation validity rate | answered answerable questions | citations resolve to retrieved, relevant passages, no stray URLs, and every figure appears in a cited passage. **Not** a faithfulness measure |
 | Truncation rate | all generated answers | responses stopped by the token limit; excluded from every rate above |
 
 Manual validation of a stratified subset (20–30 answers), annotated
@@ -130,12 +121,10 @@ Citation validity is compared only between grounded arms (BM25 and Dense).
 The no-context prompt has no citation requirement, so treating its missing
 citations as failures would hand the retrieval arms a win by construction.
 
-The small stakeholder session is impact evidence rather than a sixth research
-question. Its active bounded instrument contains four counterbalanced tasks.
-The two pilot tasks whose answers required evidence absent from the frozen
-collection are preserved as failure evidence but excluded from recruitment.
-Completion, time and confidence are reported descriptively unless at least four
-participants complete the bounded tasks.
+The small student study is impact evidence rather than a research question. It
+uses four counterbalanced tasks whose answers are in the frozen collection, and
+its completion, time, confidence and trust are reported descriptively
+([`study/README.md`](../study/README.md)).
 
 **Multiplicity.** NDCG@5 is the only primary retrieval metric; NDCG@1/@3,
 Recall@5 and MRR are diagnostic and no claim rests on them alone. The slices
@@ -190,17 +179,19 @@ in every run manifest.
    refusal behaviour on visa, health and employment questions is *measured*,
    not assumed.
 3. **No personal data leaves the machine.** The generator runs locally through
-   Ollama, so questions are never sent to a third party. This is what lets the
-   stakeholder study accept participants' own questions. The report still states
-   what a real deployment would need beyond a student prototype.
+   Ollama, so questions are never sent to a third party, and study responses
+   stay on the session computer. The report still states what a real deployment
+   would need beyond a student prototype.
 4. **Prompt injection.** Collected page text is delimited and neutralised
    before it enters a prompt; a URL that no citation supports is flagged.
 
 ## 9. What this design does not claim
 
-The automated generation checks establish resolvability and numeric
-consistency, not truth: manual validation is the only evidence of correctness,
-and the report keeps the two separate. Beyond that: no production readiness, and no demographic fairness claim: the containment
-slice is **access equity / linguistic robustness**, a statement about wording,
-not about people. No claim beyond the sample sizes actually used. Generation-side intervals
-are wider than retrieval-side ones, and are reported at the sample size used.
+The automated generation checks establish citation validity, not truth. Manual
+validation is the only evidence of correctness, and the report keeps the two
+separate.
+
+The project makes no production-readiness claim and no demographic fairness
+claim. The containment slice is about **wording**, not about people. No claim
+goes beyond the sample sizes actually used, and generation-side intervals are
+wider than retrieval-side ones.

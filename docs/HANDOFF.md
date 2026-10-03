@@ -1,41 +1,26 @@
 # Team handoff
 
-The current base includes the checked `data/v1` collection from the latest
-`main` branch.
+This records the Sprint 9 evaluation work, its evidence and the frozen results.
+Commands to repeat each step are in the [README](../README.md#core-commands).
 
-## Elaine's completed work
+## Sprint 9 evidence
 
-- S9-17: compared pinned MiniLM and MPNet on validation and selected MPNet.
-- S9-04: saved BM25s and MPNet held-out rankings, metrics and manifests.
-- S9-05: completed the 37-pair targeted qrels check and generated final qrels.
-- S9-06: rescored the saved rankings and compared BM25s with MPNet.
-- S9-07: evaluated BM25s, MPNet and no-context generation with the same local
-  Qwen model and held-out sample.
+| Trello task | Work | GitHub issue | Commits | Evidence |
+| --- | --- | --- | --- | --- |
+| S9-17 | Compared MiniLM and MPNet on validation and selected MPNet | [#51](https://github.com/Elaine-tyl/MelbourneMate/issues/51) | [`398ba97`](https://github.com/Elaine-tyl/MelbourneMate/commit/398ba97) | [Decision](dense-encoder-comparison.md); [MiniLM run](../runs/retrieval/s9-minilm-validation/); [MPNet run](../runs/retrieval/s9-mpnet-validation/) |
+| S9-04 | Saved BM25s and MPNet held-out rankings | [#38](https://github.com/Elaine-tyl/MelbourneMate/issues/38) | [`ff31c35`](https://github.com/Elaine-tyl/MelbourneMate/commit/ff31c35) | [BM25s run](../runs/retrieval/s9-formal-bm25-test/); [MPNet run](../runs/retrieval/s9-formal-mpnet-test/) |
+| S9-05 | Checked 37 new MPNet candidates and built the final qrels | [#39](https://github.com/Elaine-tyl/MelbourneMate/issues/39) | [`fe3882d`](https://github.com/Elaine-tyl/MelbourneMate/commit/fe3882d), [`ff229dd`](https://github.com/Elaine-tyl/MelbourneMate/commit/ff229dd), [`46ab029`](https://github.com/Elaine-tyl/MelbourneMate/commit/46ab029), [`79b1a6a`](https://github.com/Elaine-tyl/MelbourneMate/commit/79b1a6a), [`af7021c`](https://github.com/Elaine-tyl/MelbourneMate/commit/af7021c) | [Completed review](../review/targeted-qrels/s9-mpnet-candidates.csv); [final qrels](../review/targeted-qrels/qrels-final.txt) |
+| S9-06 | Rescored the saved rankings and compared BM25s with MPNet | [#40](https://github.com/Elaine-tyl/MelbourneMate/issues/40) | [`bd4b791`](https://github.com/Elaine-tyl/MelbourneMate/commit/bd4b791), [`265114a`](https://github.com/Elaine-tyl/MelbourneMate/commit/265114a) | [BM25s final run](../runs/retrieval/s9-final-bm25-test/); [MPNet final run](../runs/retrieval/s9-final-mpnet-test/); [paired comparison](../runs/retrieval/s9-final-comparison.csv) |
+| S9-07 | Ran BM25s, MPNet and no-context generation | [#41](https://github.com/Elaine-tyl/MelbourneMate/issues/41) | [`a9c0840`](https://github.com/Elaine-tyl/MelbourneMate/commit/a9c0840), [`d9a0aba`](https://github.com/Elaine-tyl/MelbourneMate/commit/d9a0aba), [`562404a`](https://github.com/Elaine-tyl/MelbourneMate/commit/562404a) | [BM25s generation](../runs/generation/s9-qwen25-20260927-bm25/); [MPNet generation](../runs/generation/s9-qwen25-20260927-mpnet/); [no-context generation](../runs/generation/s9-qwen25-20260927-no-context/) |
 
-The model decision is recorded in `docs/dense-encoder-comparison.md`. Saved
-runs are under `runs/retrieval/`.
+## Targeted qrels
 
-## Sprint 9 evidence links
-
-| Trello task | GitHub issue | Commits | Evidence |
-| --- | --- | --- | --- |
-| S9-17 | [#51](https://github.com/Elaine-tyl/MelbourneMate/issues/51) | [`398ba97`](https://github.com/Elaine-tyl/MelbourneMate/commit/398ba97) | [Decision](dense-encoder-comparison.md); [MiniLM run](../runs/retrieval/s9-minilm-validation/); [MPNet run](../runs/retrieval/s9-mpnet-validation/) |
-| S9-04 | [#38](https://github.com/Elaine-tyl/MelbourneMate/issues/38) | [`ff31c35`](https://github.com/Elaine-tyl/MelbourneMate/commit/ff31c35) | [BM25s run](../runs/retrieval/s9-formal-bm25-test/); [MPNet run](../runs/retrieval/s9-formal-mpnet-test/) |
-| S9-05 | [#39](https://github.com/Elaine-tyl/MelbourneMate/issues/39) | [`fe3882d`](https://github.com/Elaine-tyl/MelbourneMate/commit/fe3882d), [`ff229dd`](https://github.com/Elaine-tyl/MelbourneMate/commit/ff229dd), [`46ab029`](https://github.com/Elaine-tyl/MelbourneMate/commit/46ab029), [`79b1a6a`](https://github.com/Elaine-tyl/MelbourneMate/commit/79b1a6a), [`af7021c`](https://github.com/Elaine-tyl/MelbourneMate/commit/af7021c) | [Completed review](../review/targeted-qrels/s9-mpnet-candidates.csv); [final qrels](../review/targeted-qrels/qrels-final.txt) |
-| S9-06 | [#40](https://github.com/Elaine-tyl/MelbourneMate/issues/40) | [`bd4b791`](https://github.com/Elaine-tyl/MelbourneMate/commit/bd4b791), [`265114a`](https://github.com/Elaine-tyl/MelbourneMate/commit/265114a) | [BM25s final run](../runs/retrieval/s9-final-bm25-test/); [MPNet final run](../runs/retrieval/s9-final-mpnet-test/); [paired comparison](../runs/retrieval/s9-final-comparison.csv) |
-| S9-07 | [#41](https://github.com/Elaine-tyl/MelbourneMate/issues/41) | [`a9c0840`](https://github.com/Elaine-tyl/MelbourneMate/commit/a9c0840), [`d9a0aba`](https://github.com/Elaine-tyl/MelbourneMate/commit/d9a0aba), [`562404a`](https://github.com/Elaine-tyl/MelbourneMate/commit/562404a) | [BM25s generation](../runs/generation/s9-qwen25-20260927-bm25/); [MPNet generation](../runs/generation/s9-qwen25-20260927-mpnet/); [no-context generation](../runs/generation/s9-qwen25-20260927-no-context/) |
-
-## Targeted qrels review
-
-Use `review/targeted-qrels/s9-mpnet-candidates.csv`.
-
-1. Elaine assigns one grade to each pair: 0, 1 or 2.
-2. Elaine writes `Elaine` in `primary_reviewer`.
-3. Elaine marks uncertain rows in `needs_second_review` and adds a short note.
-4. Siriporn checks only marked rows and records the agreed decision in `note`.
-5. Keep one final grade per pair. Do not calculate Cohen's kappa for this check.
-
-After the sheet is complete, create the final test qrels from the saved run:
+Elaine gave each of the 37 candidate pairs one grade and flagged uncertain
+rows. Siriporn checked only the flagged rows. No kappa is reported for this
+check. The final file has 69 positive pairs, 57 seed pairs and 12 verified
+additions, with SHA-256 fingerprint
+`a3ecafcdf28fb918a663677ecb324c1de1b38fdd3f32a27ac4af331116c233f1`. It was
+built with this command.
 
 ```bash
 mm --data data/v1 targeted-qrels \
@@ -45,32 +30,25 @@ mm --data data/v1 targeted-qrels \
   --out review/targeted-qrels/qrels-final.txt
 ```
 
-The completed file contains 69 positive pairs: 57 seed pairs and 12 verified
-additions. Its SHA-256 fingerprint is
-`a3ecafcdf28fb918a663677ecb324c1de1b38fdd3f32a27ac4af331116c233f1`.
-Use it to rescore the saved BM25s and MPNet rankings. Retrieval must not be
-tuned or rerun after this review.
+Retrieval was not tuned or rerun after this review.
 
 ## Final retrieval comparison
 
-The saved rankings were rescored against the final qrels. BM25s achieved
-NDCG@5 `0.8353`, Recall@5 `0.8750` and MRR `0.8843`. MPNet achieved NDCG@5
-`0.9709`, Recall@5 `1.0000` and MRR `0.9815`.
+| Retriever | NDCG@5 | Recall@5 | MRR |
+| --- | ---: | ---: | ---: |
+| BM25s | 0.8353 | 0.8750 | 0.8843 |
+| MPNet | 0.9709 | 1.0000 | 0.9815 |
 
-MPNet minus BM25s on NDCG@5 was `+0.1356`. The topic-clustered 95% bootstrap
-interval was `[+0.0486, +0.2519]`, with paired randomisation `p = 0.0065`.
-The comparison covers 36 questions from 12 held-out topics and uses 10,000
-bootstrap resamples and 10,000 randomisation permutations.
+MPNet minus BM25s on NDCG@5 was +0.1356, with a topic-clustered 95% bootstrap
+interval of [+0.0486, +0.2519] and paired randomisation p = 0.0065. The
+comparison covers 36 questions from 12 held-out topics, with 10,000 resamples
+and 10,000 permutations.
 
 ## Generation evaluation
 
-Sprint 9 used `qwen2.5:7b-instruct` through local Ollama. The saved model
-digest is `845dbda0ea48ed749ca`. All three arms used temperature `0.0`, seed
-`20260923` and the same 66-question test sample: 36 answerable questions and
-30 OOKB questions.
-
-The three arms were BM25s-grounded, MPNet-grounded and no-context. Their main
-results were:
+All three arms used `qwen2.5:7b-instruct` through local Ollama, model digest
+`845dbda0ea48ed749ca`, temperature 0.0, seed 20260923 and the same 66
+questions, 36 answerable and 30 OOKB.
 
 | Arm | Correct refusal | Unsupported answer |
 | --- | ---: | ---: |
@@ -78,44 +56,9 @@ results were:
 | MPNet | 86.7% | 13.3% |
 | No-context | 0.0% | 100.0% |
 
-Run the three methods with the same sample, final qrels and frozen model:
-
-```bash
-mm --data data/v1 evaluate-generation \
-  --sample generation-sample.csv \
-  --qrels review/targeted-qrels/qrels-final.txt \
-  --run-prefix recheck-yourname \
-  --model qwen2.5:7b-instruct
-```
-
-The command creates `-bm25`, `-mpnet`, and `-no-context` run folders. A new
-prefix is required for every repeat. Human answer review is a separate task.
-
-## Answer review
-
-Use `review/generation-s9/review-elaine.csv` and
-`review/generation-s9/review-sriporn.csv`. Both reviewers score the same 30
-saved answers from 0 to 2. Keep `key.csv` closed until both sheets are complete,
-then run:
-
-```bash
-mm score-answer-review --review-dir review/generation-s9
-```
-
-## Error analysis
-
-Use `mm analyse-errors` after the final retrieval and generation runs exist.
-The submitted output is under `runs/analysis/s9-error-analysis/`. It records
-retrieval gaps, refusals, invalid citations and high-risk failures without
-rerunning a model.
-
-## Checks
-
-```bash
-python -m pytest -q
-ruff check src tests
-mm --data data/v1 validate
-mm --data data/v1 quality
-```
+Both reviewers then scored the same 30 saved answers blind. The agreement and
+agreed scores are in [`review/generation-s9/report.md`](../review/generation-s9/report.md).
+The error analysis is in
+[`runs/analysis/s9-error-analysis/report.md`](../runs/analysis/s9-error-analysis/report.md).
 
 Use a new run ID for any reproduction. Do not overwrite saved evidence.
