@@ -67,17 +67,7 @@ python3 -m venv /tmp/mm-wheel
 Expected output is `VALID` with fingerprint `1f04bcc7ed2cd814`, then a mean
 difference of +0.1356 with p = 0.0065.
 
-To repeat the development checks, run these from the repository root.
-
-```bash
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -e ".[app,dev]"
-python -m pytest -q
-ruff check src tests
-mm --data data/v1 validate
-mm --data data/v1 quality
-```
+The development checks are listed in the [README](../README.md#development-setup).
 
 ## Tests added
 
@@ -95,7 +85,7 @@ mm --data data/v1 quality
 - Local `__pycache__`, `.pytest_cache` and `.ruff_cache` folders were removed
   and are covered by `.gitignore`.
 - `src/melbourne_mate/evaluation/proportions.py` was removed. No code, test
-  or document used it, and the reported comparisons use `evaluation/stats.py`.
+  or document used it. Comparisons and rate intervals use `evaluation/stats.py`.
 
 ## Limits
 

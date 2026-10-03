@@ -33,17 +33,10 @@ judgements and reference answers were newly authored for MelbourneMate.
 - Two reviewers independently score correctness, evidence support and fallback
   appropriateness.
 
-## Generation safety metrics
-
-- **Correct-refusal rate:** among OOKB questions, the proportion correctly
-  refused. Higher is better.
-- **Unsupported-answer rate:** among OOKB questions, the proportion answered
-  without approved evidence. Lower is better.
-- **False-refusal rate:** among answerable questions where relevant evidence
-  was retrieved, the proportion incorrectly refused. Lower is better.
-
-These metrics must be read together. A system that refuses every question can
-look safe on OOKB questions while failing to answer supported questions.
+Correct refusal, unsupported answers and false refusal are defined in
+[`design.md`](design.md#5-metrics). They must be read together, because a
+system that refuses every question looks safe on OOKB questions while failing
+supported ones.
 
 ## Deliberate differences
 
@@ -52,8 +45,8 @@ look safe on OOKB questions while failing to answer supported questions.
 - BM25s replaces Walert's original retrieval tooling, and the Dense arm is a
   QA-trained MPNet bi-encoder rather than an exact reproduction of Walert's DPR
   implementation.
-- Generation uses a pinned local Qwen model through Ollama. This avoids API
-  quota and keeps study questions on the local machine.
+- Generation uses a pinned local Qwen model through Ollama, so questions stay
+  on the local machine.
 - ROUGE and BERTScore are not treated as primary evidence. For this safety- and
   source-sensitive domain, refusal behaviour, citation checks and blind human
   judgement answer the project questions more directly.

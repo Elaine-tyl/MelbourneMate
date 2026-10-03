@@ -50,9 +50,11 @@ Start the study page.
 streamlit run src/melbourne_mate/interface/study_app.py
 ```
 
-The page shows this notice to every participant. Taking part is voluntary, no
-personal information is recorded, and they can stop at any time. No separate
-consent form is used for this classroom activity.
+The page tells every participant that taking part is voluntary and they can
+stop at any time. Their answers, times and ratings are saved under a
+participant code on the session computer only, and they are asked not to write
+their name or other personal details. No separate consent form is used for
+this classroom activity.
 
 Official search means using a search engine to open official websites, such
 as Home Affairs, Study Melbourne or Consumer Affairs Victoria. AI summaries, AI
@@ -82,14 +84,13 @@ steps, including **Review** at the end.
    (fully).
 6. Press **Save and continue** in the **Researcher** box. The next task opens
    automatically. Pick a step in the sidebar to correct a saved task.
-7. After the fourth task, ask the final question and press **Save final
-   answer**. **Final question** only opens once all four tasks are saved. *How likely are you to use MelbourneMate instead of searching
-   multiple official websites?* 1 means very unlikely and 5 means very likely.
-
-8. When the participant has left, open **Review** in the sidebar. It only
-   opens after the final answer is saved. It lists each
-   saved answer next to its completion rule. Choose yes, partial or no for
-   each and press **Save judgements**.
+7. After the fourth task, **Final question** opens. Ask *How likely are you to
+   use MelbourneMate instead of searching multiple official websites?* (1 very
+   unlikely, 5 very likely) and press **Save final answer**.
+8. When the participant has left, open **Review** in the sidebar. It opens only
+   after the final answer is saved and lists each saved answer next to its
+   completion rule. Choose yes, partial or no for each and press **Save
+   judgements**.
 
 The participant and the researcher share one computer. The completion rule
 gives away the answer, so it only appears in **Review**, after the session.
@@ -121,11 +122,9 @@ mm study-summary --study-dir study
 ```
 
 This checks `responses.csv` against the schedule and counts only participants
-who finished all four tasks. Anyone who stopped early is listed as excluded.
-It stops if a counted task still needs a completion judgement. It then writes `summary.csv` and
-`summary.md`. The summary table compares task completion, median time, mean
-confidence and mean trust for MelbourneMate and official search, and adds the
-mean would-use rating. Results are descriptive. With fewer than four participants the
-summary says so, and the report should not compare the methods beyond
-describing what happened. The summary holds only group results, so it can be
-committed with the report evidence.
+who finished all four tasks. Anyone who stopped early is listed as excluded,
+and the command stops while a counted task still needs a judgement. It writes
+`summary.csv` and `summary.md`, which compare completion, median time, mean
+confidence and mean trust for each method and add the mean would-use rating.
+With fewer than four participants the summary says the methods should only be
+described, not compared. Both files hold only group results, so they are committed.

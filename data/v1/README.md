@@ -48,8 +48,9 @@ rechecked before use; the collection is a dated snapshot.
 ## Relevance labels
 
 `judgements.csv` and `qrels.txt` hold Walert-style topic-to-passage seed labels.
-Out-of-KB questions have no labels. New MPNet candidates are checked separately
-under S9-05 before final qrels are generated.
+Out-of-KB questions have no labels. New MPNet candidates were checked under
+S9-05, and the final test qrels are in
+[`review/targeted-qrels/qrels-final.txt`](../../review/targeted-qrels/qrels-final.txt).
 
 - A `known` topic has one passage that fully answers each of its questions
   (grade 2).

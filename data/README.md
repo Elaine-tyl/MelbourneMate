@@ -2,19 +2,18 @@
 
 `data/sample/` is a four-topic worked example. Its wording is illustrative and
 was **not** verified against the official pages, so it is used only by the
-tests and the CI smoke run. Nothing from it may appear in a reported result.
+tests. Nothing from it may appear in a reported result.
 
 The real collection is `data/v1/` and is built from official sources. Its
 contents, access dates and source check are described in
-[`v1/README.md`](v1/README.md); `v1/source-log.csv` records the check of every
-source URL.
+[`v1/README.md`](v1/README.md).
 
 ## Files
 
 | File | One row per | Columns |
 |---|---|---|
 | `sources.csv` | official page | `source_id, organisation, title, url, access_date, risk_category` |
-| `passages.csv` | passage | `passage_id, topic_id, source_id, section_heading, text` |
+| `passages.csv` | passage | `passage_id, topic_id, source_id, section_heading, text, volatility` |
 | `topics.csv` | information need | `topic_id, category, knowledge_type, information_need` |
 | `questions.csv` | question | `question_id, topic_id, question_form, text` |
 | `qrels.txt` | judgement | `question_id 0 passage_id grade` |
@@ -22,15 +21,17 @@ source URL.
 | `gold.csv` | optional reference answer | `question_id, answer, support, judge` |
 | `pairs.csv` | confusable topic pair | `topic_a, topic_b, reason` |
 | `splits.csv` | topic | `topic_id, split` |
+| `generation-sample.csv` | frozen generation question (v1 only) | `question_id, risk_category` |
+| `source-log.csv` | source URL check (v1 only) | `source_id, checked_on, checked_by, url, page_last_updated, status, passages, note, change_since_previous_check` |
 
 ## Rules the validator enforces
 
 * `risk_category` is one of general, visa, health, employment, housing, emergency.
-* A passage is 40–300 words and has a section heading.
+* A passage is 40–300 words, has a section heading and is `stable` or
+  `volatile`. A volatile passage holds a figure or date that can change.
 * `knowledge_type` is `known` (the answer is stated in one passage) or
   `inferred` (the answer has to be put together from more than one).
-* `question_form` is `canonical`, `paraphrased` or `ookb`, and every question
-  uses the `en` language code.
+* `question_form` is `canonical`, `paraphrased` or `ookb`.
 * Every answerable question has at least one judgement; every `ookb` question
   has none and belongs to no topic.
 * Grades are 1 (partially relevant) or 2 (fully answers). Graded judgements are
