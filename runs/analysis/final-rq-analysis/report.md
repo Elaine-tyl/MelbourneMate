@@ -7,12 +7,12 @@ bootstrap intervals and p-values come from paired cluster randomisation.
 
 | Slice | Questions | Topics | BM25s | MPNet | Difference | 95% CI | p |
 | --- | ---: | ---: | ---: | ---: | ---: | --- | ---: |
-| all | 36 | 12 | 0.835 | 0.971 | +0.136 | [+0.049, +0.252] | 0.0065 |
-| low | 27 | 11 | 0.811 | 0.966 | +0.154 | [+0.051, +0.292] | 0.0155 |
+| all | 36 | 12 | 0.851 | 0.971 | +0.120 | [+0.044, +0.232] | 0.0065 |
+| low | 27 | 11 | 0.832 | 0.966 | +0.133 | [+0.045, +0.264] | 0.0155 |
 | medium | 6 | 4 | 0.886 | 0.989 | +0.102 | [+0.000, +0.287] | 0.5013 |
 | high | 3 | 3 | 0.949 | 0.984 | +0.035 | [+0.000, +0.104] | 1.0000 |
-| canonical | 12 | 12 | 0.845 | 0.990 | +0.146 | [+0.017, +0.336] | 0.1273 |
-| paraphrased | 24 | 12 | 0.831 | 0.961 | +0.131 | [+0.040, +0.263] | 0.0104 |
+| canonical | 12 | 12 | 0.884 | 0.988 | +0.104 | [+0.017, +0.213] | 0.1273 |
+| paraphrased | 24 | 12 | 0.835 | 0.963 | +0.128 | [+0.036, +0.262] | 0.0147 |
 
 Slices are exploratory except the low and high containment comparison.
 
@@ -34,7 +34,7 @@ Fewer than 5 discordant questions is reported as insufficient evidence, and no p
 | Arm | Metric | Questions | Rate | 95% CI |
 | --- | --- | ---: | ---: | --- |
 | bm25 | correct refusal | 30 | 96.7% | [90.0%, 100.0%] |
-| bm25 | false refusal | 34 | 5.9% | [0.0%, 14.3%] |
+| bm25 | false refusal | 35 | 5.7% | [0.0%, 13.9%] |
 | mpnet | correct refusal | 30 | 86.7% | [73.3%, 96.7%] |
 | mpnet | false refusal | 36 | 8.3% | [0.0%, 16.7%] |
 | no-context | correct refusal | 30 | 0.0% | [0.0%, 0.0%] |

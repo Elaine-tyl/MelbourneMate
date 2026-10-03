@@ -1,6 +1,6 @@
 question_id,category,containment,containment_bin,knowledge_type,question_form,topic_id,ndcg@1,ndcg@3,ndcg@5,recall@5,mrr,retrieval_failure@5
-Q04C,Work rights,0.000,low,inferred,canonical,T04,1.0,1.0,1.0,1.0,1.0,0.0
-Q04P1,Work rights,0.000,low,inferred,paraphrased,T04,1.0,0.765361,0.946902,1.0,1.0,0.0
+Q04C,Work rights,0.000,low,inferred,canonical,T04,1.0,0.765361,0.967468,1.0,1.0,0.0
+Q04P1,Work rights,0.000,low,inferred,paraphrased,T04,1.0,1.0,0.982892,1.0,1.0,0.0
 Q04P2,Work rights,0.000,low,inferred,paraphrased,T04,1.0,1.0,1.0,1.0,1.0,0.0
 Q08C,Health cover,0.000,low,inferred,canonical,T08,1.0,1.0,1.0,1.0,1.0,0.0
 Q08P1,Health cover,0.000,low,inferred,paraphrased,T08,1.0,1.0,1.0,1.0,1.0,0.0

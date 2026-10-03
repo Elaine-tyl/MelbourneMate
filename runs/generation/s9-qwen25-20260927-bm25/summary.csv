@@ -4,7 +4,7 @@ ookb_n,30
 truncated_n,0
 truncation_rate,0.0
 correct_refusal_rate,0.966667
-false_refusal_rate,0.058824
+false_refusal_rate,0.057143
 unsupported_answer_rate,0.033333
-citation_validity_rate,0.823529
+citation_validity_rate,0.882353
 high_risk_unsupported_rate,0.066667

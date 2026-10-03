@@ -1,0 +1,18 @@
+cff-version: 1.2.0
+message: "If you use MelbourneMate, please cite it using this metadata."
+title: "MelbourneMate"
+type: software
+version: 0.1.0
+authors:
+  - name: "MelbourneMate project team"
+abstract: >-
+  A test-driven retrieval-augmented generation system that helps international
+  students find cited official information about settling in Melbourne and
+  refuses questions that its approved knowledge base cannot support.
+repository-code: "https://github.com/Elaine-tyl/MelbourneMate"
+keywords:
+  - retrieval-augmented generation
+  - information retrieval
+  - international students
+  - Melbourne
+  - question answering

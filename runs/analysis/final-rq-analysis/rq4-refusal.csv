@@ -1,6 +1,6 @@
 arm,metric,questions,clusters,rate,ci_low,ci_high,note
 bm25,correct_refusal,30,30,0.9667,0.9,1.0,
-bm25,false_refusal,34,12,0.0588,0.0,0.1429,
+bm25,false_refusal,35,12,0.0571,0.0,0.1389,
 mpnet,correct_refusal,30,30,0.8667,0.7333,0.9667,
 mpnet,false_refusal,36,12,0.0833,0.0,0.1667,
 no-context,correct_refusal,30,30,0.0,0.0,0.0,

@@ -1,2 +1,2 @@
 metric,left_run,right_run,mean_difference,ci_low,ci_high,p_value,clusters,observations,resamples,permutations,seed,qrels_fingerprint
-ndcg@5,s9-final-bm25-test,s9-final-mpnet-test,0.135593,0.048627,0.251907,0.006499,12,36,10000,10000,20260923,a3ecafcdf28fb918
+ndcg@5,s9-final-bm25-test,s9-final-mpnet-test,0.120043,0.044119,0.231572,0.006499,12,36,10000,10000,20260923,fbb2b3e9ab3cb8b1

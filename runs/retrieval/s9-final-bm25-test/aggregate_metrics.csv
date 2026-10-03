@@ -1,7 +1,7 @@
 metric,value
-ndcg@1,0.796296
-ndcg@3,0.816722
-ndcg@5,0.835286
-recall@5,0.875
-mrr,0.884259
-retrieval_failure@5,0.055556
+ndcg@1,0.824074
+ndcg@3,0.837982
+ndcg@5,0.850932
+recall@5,0.884259
+mrr,0.912037
+retrieval_failure@5,0.027778
