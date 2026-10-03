@@ -151,6 +151,13 @@ def test_rescore_generation_updates_labels_without_changing_answer(tmp_path):
         answers=[item],
         model="qwen2.5:7b-instruct",
     )
+    source_manifest_path = source / "manifest.json"
+    source_manifest = json.loads(source_manifest_path.read_text(encoding="utf-8"))
+    source_manifest["created_utc"] = "2026-09-27T13:28:40+00:00"
+    source_manifest["source_run"] = "formal-source-run"
+    source_manifest_path.write_text(
+        json.dumps(source_manifest), encoding="utf-8"
+    )
 
     output = tmp_path / "rescored"
     # The corrected qrels should update labels while preserving generated text.
@@ -172,6 +179,9 @@ def test_rescore_generation_updates_labels_without_changing_answer(tmp_path):
     assert trace["citations"]["irrelevant"] == []
     assert summary["citation_validity_rate"] == "1.0"
     assert manifest["qrels_fingerprint"] == "new-qrels"
+    assert manifest["created_utc"] == source_manifest["created_utc"]
+    assert manifest["source_run"] == "formal-source-run"
+    assert manifest["rescored_utc"]
     assert "model output unchanged" in manifest["note"]
 
 

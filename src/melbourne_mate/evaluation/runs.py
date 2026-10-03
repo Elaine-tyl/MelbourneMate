@@ -37,6 +37,8 @@ class RunManifest:
     platform: str
     note: str = ""
     qrels_fingerprint: str = ""
+    source_run: str = ""
+    rescored_utc: str = ""
 
 
 def _write_csv(path: Path, rows: Sequence[Mapping[str, object]], columns: Sequence[str]) -> None:
@@ -59,6 +61,9 @@ def write_run(
     question_meta: Mapping[str, Mapping[str, str]] | None = None,
     note: str = "",
     qrels_fingerprint: str = "",
+    created_utc: str | None = None,
+    source_run: str = "",
+    rescored_utc: str = "",
 ) -> Path:
     """Write retrieval.run, per-question and aggregate metrics, and a manifest."""
     path = Path(directory)
@@ -102,12 +107,15 @@ def write_run(
         protocol_version=CONFIG.protocol_version,
         ndcg_gain=CONFIG.evaluation.ndcg_gain,
         questions=len(per_question),
-        created_utc=datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        created_utc=created_utc
+        or datetime.now(timezone.utc).isoformat(timespec="seconds"),
         code_version=__version__,
         python_version=sys.version.split()[0],
         platform=platform.platform(),
         note=note,
         qrels_fingerprint=qrels_fingerprint,
+        source_run=source_run,
+        rescored_utc=rescored_utc,
     )
     (path / "manifest.json").write_text(
         json.dumps(asdict(manifest), indent=2, sort_keys=True) + "\n", encoding="utf-8"

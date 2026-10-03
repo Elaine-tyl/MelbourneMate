@@ -77,10 +77,11 @@ generation fixed is what makes the retrieval differences attributable.
   when the passage is in the same category or a listed confusable topic pair.
   Each candidate has one primary grade; a teammate checks only flagged cases.
   No agreement statistic is claimed for retrieval qrels.
-* A final audit may correct a clearly missed label, but it must record the
-  reason and keep the saved rankings and model answers unchanged. Only the
-  dependent scores are recalculated. This prevents a label correction from
-  becoming a new model run or hidden tuning step.
+* **Post-result audit rule (added 3 October 2026).** A final audit may correct
+  a clearly missed label, but it must record the reason and keep the saved
+  rankings and model answers unchanged. Only the dependent scores are
+  recalculated. This prevents a label correction from becoming a new model run
+  or hidden tuning step.
 
 ## 5. Metrics
 

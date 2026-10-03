@@ -301,14 +301,15 @@ def rescore_generation_run(
             ["miss_refused", table["miss_refused"], "retrieval is the bottleneck"]
         )
 
+    source_run_id = manifest.get("source_run") or manifest["run_id"]
     manifest["run_id"] = run_id
     manifest["qrels_fingerprint"] = qrels_fingerprint
-    manifest["created_utc"] = datetime.now(timezone.utc).isoformat(timespec="seconds")
-    manifest["code_version"] = __version__
-    manifest["python_version"] = sys.version.split()[0]
-    manifest["platform"] = platform.platform()
+    manifest["source_run"] = source_run_id
+    manifest["rescored_utc"] = datetime.now(timezone.utc).isoformat(
+        timespec="seconds"
+    )
     manifest["note"] = (
-        f"Rescored from {source.name} after a qrels correction; "
+        f"Rescored from {source_run_id} after a qrels correction; "
         "model output unchanged."
     )
     (output / "manifest.json").write_text(

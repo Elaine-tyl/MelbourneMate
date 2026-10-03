@@ -3,7 +3,7 @@
   "code_version": "0.1.0",
   "collection_fingerprint": "1f04bcc7ed2cd814",
   "config_fingerprint": "12c8cb570a59215c",
-  "created_utc": "2026-10-03T06:22:16+00:00",
+  "created_utc": "2026-09-27T13:37:29+00:00",
   "encoder": "none",
   "model": "qwen2.5:7b-instruct",
   "model_digest": "845dbda0ea48ed749ca",
@@ -14,9 +14,11 @@
   "python_version": "3.12.14",
   "qrels_fingerprint": "fbb2b3e9ab3cb8b1",
   "questions": 66,
+  "rescored_utc": "2026-10-03T06:22:16+00:00",
   "run_id": "s9-qwen25-20260927-no-context",
   "sample_fingerprint": "9483d707a6c624ac",
   "seed": 20260923,
+  "source_run": "s9-qwen25-20260927-no-context",
   "split": "test",
   "temperature": 0.0
 }

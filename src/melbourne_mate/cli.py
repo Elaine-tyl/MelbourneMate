@@ -6,6 +6,7 @@ import argparse
 import csv
 import hashlib
 import sys
+from datetime import datetime, timezone
 from pathlib import Path
 
 from melbourne_mate.config import CONFIG
@@ -534,6 +535,8 @@ def cmd_rescore_retrieval(args: argparse.Namespace) -> int:
         for question in questions
     }
     qrels_fp = hashlib.sha256(qrels_path.read_bytes()).hexdigest()[:16]
+    source_run = manifest.source_run or manifest.run_id
+    rescored_utc = datetime.now(timezone.utc).isoformat(timespec="seconds")
     path = write_run(
         Path(args.runs_dir) / args.run_id,
         run_id=args.run_id,
@@ -544,8 +547,11 @@ def cmd_rescore_retrieval(args: argparse.Namespace) -> int:
         rankings=rankings,
         per_question=scores,
         question_meta=meta,
-        note=f"Rescored from {manifest.run_id} using qrels-{qrels_fp}",
+        note=f"Rescored from {source_run} using qrels-{qrels_fp}",
         qrels_fingerprint=qrels_fp,
+        created_utc=manifest.created_utc,
+        source_run=source_run,
+        rescored_utc=rescored_utc,
     )
     print(f"wrote {path}")
     for metric, value in metrics_mod.aggregate(scores).items():

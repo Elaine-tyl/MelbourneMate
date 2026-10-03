@@ -35,6 +35,11 @@ def test_rescore_retrieval_uses_saved_rankings_and_final_qrels(
     monkeypatch, tmp_path
 ):
     source, rankings = _source_run(tmp_path)
+    source_manifest_path = source / "manifest.json"
+    source_manifest = json.loads(source_manifest_path.read_text())
+    source_manifest["created_utc"] = "2026-09-27T11:18:58+00:00"
+    source_manifest["source_run"] = "formal-source"
+    source_manifest_path.write_text(json.dumps(source_manifest), encoding="utf-8")
     qrels = tmp_path / "final-qrels.txt"
     qrels.write_text(
         "\n".join(
@@ -72,7 +77,10 @@ def test_rescore_retrieval_uses_saved_rankings_and_final_qrels(
     assert manifest["qrels_fingerprint"] == hashlib.sha256(
         qrels.read_bytes()
     ).hexdigest()[:16]
-    assert manifest["note"].startswith("Rescored from source")
+    assert manifest["created_utc"] == source_manifest["created_utc"]
+    assert manifest["source_run"] == "formal-source"
+    assert manifest["rescored_utc"]
+    assert manifest["note"].startswith("Rescored from formal-source")
     assert b"\r\n" not in (rescored / "aggregate_metrics.csv").read_bytes()
 
 
