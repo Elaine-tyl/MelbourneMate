@@ -106,6 +106,8 @@ def test_rq3a_compares_the_same_out_of_kb_questions_and_flags_thin_evidence():
     assert rows["bm25 minus no-context"]["evidence"] == "sufficient"
     assert rows["mpnet minus bm25"]["discordant"] == 1
     assert rows["mpnet minus bm25"]["evidence"] == "insufficient"
+    assert rows["mpnet minus bm25"]["p_value"] == ""  # thin comparisons quote no p-value
+    assert rows["bm25 minus no-context"]["p_value"] != ""
     runs["mpnet"].pop("QX06")
     with pytest.raises(RQAnalysisError, match="different out-of-KB questions"):
         rq3a_rows(collection, runs)
@@ -140,6 +142,12 @@ def test_saved_runs_reproduce_the_published_results(tmp_path):
     assert float(overall["difference"]) == pytest.approx(float(published["mean_difference"]), abs=1e-4)
     assert float(overall["ci_low"]) == pytest.approx(float(published["ci_low"]), abs=1e-4)
     assert float(overall["p_value"]) == pytest.approx(float(published["p_value"]), abs=1e-4)
+
+    grounding = {r["comparison"]: r for r in read(out / "rq3a-grounding.csv")}
+    assert grounding["mpnet minus bm25"]["discordant"] == "3"
+    assert grounding["mpnet minus bm25"]["p_value"] == ""
+    assert "| 3 | insufficient |" in (out / "report.md").read_text(encoding="utf-8")
+    assert "not reported" in (out / "report.md").read_text(encoding="utf-8")
 
     refusal = {(r["arm"], r["metric"]): r for r in read(out / "rq4-refusal.csv")}
     for arm in ("bm25", "mpnet"):
@@ -179,3 +187,11 @@ def test_analysis_folder_is_write_once(tmp_path):
 
     with pytest.raises(RQAnalysisError, match="already exists"):
         write_rq_analysis(out, collection, *(RUNS[key] for key in RUNS))
+
+
+def test_saved_analysis_quotes_no_p_value_for_thin_comparisons():
+    saved = ROOT / "runs/analysis/final-rq-analysis"
+    for row in read(saved / "rq3a-grounding.csv"):
+        if row["evidence"] == "insufficient":
+            assert int(row["discordant"]) < 5
+            assert row["p_value"] == ""

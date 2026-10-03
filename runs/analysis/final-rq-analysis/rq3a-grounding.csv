@@ -4,4 +4,4 @@ mpnet,30,,0.1333,,0.0333,0.2667,,,rate
 no-context,30,,1.0,,1.0,1.0,,,rate
 bm25 minus no-context,30,1.0,0.0333,-0.9667,-1.0,-0.9,0.0001,29,sufficient
 mpnet minus no-context,30,1.0,0.1333,-0.8667,-0.9667,-0.7333,0.0001,26,sufficient
-mpnet minus bm25,30,0.0333,0.1333,0.1,0.0,0.2333,0.2541,3,insufficient
+mpnet minus bm25,30,0.0333,0.1333,0.1,0.0,0.2333,,3,insufficient

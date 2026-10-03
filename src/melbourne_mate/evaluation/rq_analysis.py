@@ -156,6 +156,9 @@ def rq3a_rows(collection: Collection, outcomes: Mapping[str, Mapping[str, dict]]
         }
         mean, low, high = cluster_bootstrap_ci(differences, clusters)
         discordant = sum(1 for q in ookb if answered[left][q] != answered[right][q])
+        sufficient = discordant >= MIN_DISCORDANT
+        # docs/design.md: thin comparisons quote no p-value.
+        p_value = paired_randomisation_test(differences, clusters) if sufficient else None
         rows.append(
             {
                 "comparison": f"{right} minus {left}",
@@ -165,9 +168,9 @@ def rq3a_rows(collection: Collection, outcomes: Mapping[str, Mapping[str, dict]]
                 "difference": _round(mean),
                 "ci_low": _round(low),
                 "ci_high": _round(high),
-                "p_value": _round(paired_randomisation_test(differences, clusters)),
+                "p_value": _round(p_value),
                 "discordant": discordant,
-                "evidence": "sufficient" if discordant >= MIN_DISCORDANT else "insufficient",
+                "evidence": "sufficient" if sufficient else "insufficient",
             }
         )
     return rows
@@ -294,6 +297,10 @@ def _summary_rows(rq2: Sequence[dict], rq3a: Sequence[dict], rq4: Sequence[dict]
     return rows
 
 
+def _p(value: float | str) -> str:
+    return "not reported" if value == "" else f"{float(value):.4f}"
+
+
 def _pct(value: float | str) -> str:
     return "n/a" if value == "" else f"{float(value):.1%}"
 
@@ -335,11 +342,14 @@ def _report(rq2: Sequence[dict], rq3a: Sequence[dict], rq4: Sequence[dict]) -> s
             lines.append(
                 f"| {r['comparison']} | {_pct(r['left_rate'])} | {_pct(r['right_rate'])} "
                 f"| {r['difference']:+.3f} | [{r['ci_low']:+.3f}, {r['ci_high']:+.3f}] "
-                f"| {r['p_value']:.4f} | {r['discordant']} | {r['evidence']} |"
+                f"| {_p(r['p_value'])} | {r['discordant']} | {r['evidence']} |"
             )
     lines += [
         "",
-        f"Fewer than {MIN_DISCORDANT} discordant questions is reported as insufficient evidence.",
+        (
+            f"Fewer than {MIN_DISCORDANT} discordant questions is reported as insufficient "
+            "evidence, and no p-value is quoted for it."
+        ),
         "",
         "## RQ4. Refusal behaviour",
         "",

@@ -25,9 +25,9 @@ Slices are exploratory except the low and high containment comparison.
 | no-context | | 100.0% | | [100.0%, 100.0%] | | | |
 | bm25 minus no-context | 100.0% | 3.3% | -0.967 | [-1.000, -0.900] | 0.0001 | 29 | sufficient |
 | mpnet minus no-context | 100.0% | 13.3% | -0.867 | [-0.967, -0.733] | 0.0001 | 26 | sufficient |
-| mpnet minus bm25 | 3.3% | 13.3% | +0.100 | [+0.000, +0.233] | 0.2541 | 3 | insufficient |
+| mpnet minus bm25 | 3.3% | 13.3% | +0.100 | [+0.000, +0.233] | not reported | 3 | insufficient |
 
-Fewer than 5 discordant questions is reported as insufficient evidence.
+Fewer than 5 discordant questions is reported as insufficient evidence, and no p-value is quoted for it.
 
 ## RQ4. Refusal behaviour
 
