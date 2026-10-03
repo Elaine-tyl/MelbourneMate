@@ -21,6 +21,7 @@ Use these links to find the project method, setup, commands and saved evidence.
 - [Error analysis](#error-analysis)
 - [Streamlit demo](#streamlit-demo)
 - [Student study](#student-study)
+- [References and acknowledgements](#references-and-acknowledgements)
 
 ## From Walert to MelbourneMate
 
@@ -286,3 +287,38 @@ mm study-summary --study-dir study
 Participant responses stay in `study/responses.csv` and `study/final.csv` on the
 session computer and are not committed. The procedure, tasks and counterbalanced schedule are in
 [`study/README.md`](study/README.md).
+
+## References and acknowledgements
+
+MelbourneMate's methodology and implementation were informed by the following
+work:
+
+- Pathiyan Cherumanal, S., Tian, L., Abushaqra, F. M., Magnossão de Paula,
+  A. F., Ji, K., Ali, H., Hettiachchi, D., Trippas, J. R., Scholer, F., &
+  Spina, D. (2024). *Walert: Putting Conversational Information Seeking
+  Knowledge into Action by Building and Evaluating a Large Language
+  Model-Powered Chatbot*. CHIIR '24, 401–405.
+  <https://doi.org/10.1145/3627508.3638309>
+- Lù, X. H. (2024). *BM25S: Orders of Magnitude Faster Lexical Search via
+  Eager Sparse Scoring*. <https://arxiv.org/abs/2407.03618>
+- Reimers, N., & Gurevych, I. (2019). *Sentence-BERT: Sentence Embeddings Using
+  Siamese BERT-Networks*. EMNLP-IJCNLP, 3982–3992.
+  <https://doi.org/10.18653/v1/D19-1410>
+- Song, K., Tan, X., Qin, T., Lu, J., & Liu, T.-Y. (2020). *MPNet: Masked and
+  Permuted Pre-training for Language Understanding*. NeurIPS 2020.
+  <https://arxiv.org/abs/2004.09297>
+- Qwen Team. (2024). *Qwen2.5 Technical Report*.
+  <https://arxiv.org/abs/2412.15115>
+
+The final dense retriever uses
+[`sentence-transformers/multi-qa-mpnet-base-cos-v1`](https://huggingface.co/sentence-transformers/multi-qa-mpnet-base-cos-v1).
+Generation uses `qwen2.5:7b-instruct` locally through
+[Ollama](https://github.com/ollama/ollama), and the interface is built with
+[Streamlit](https://streamlit.io/).
+
+The official information sources used to construct the collection, together
+with their access dates and verification outcomes, are recorded in
+[`data/v1/sources.csv`](data/v1/sources.csv) and
+[`data/v1/source-log.csv`](data/v1/source-log.csv). The detailed relationship
+to Walert is documented in
+[`docs/walert-methodology-mapping.md`](docs/walert-methodology-mapping.md).
