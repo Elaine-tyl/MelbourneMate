@@ -19,6 +19,7 @@ Use these links to find the project method, setup, commands and saved evidence.
 - [Evaluation figures](#evaluation-figures)
 - [Generation evaluation](#generation-evaluation)
 - [Error analysis](#error-analysis)
+- [Design analyses](#design-analyses)
 - [Streamlit demo](#streamlit-demo)
 - [Student study](#student-study)
 - [References and acknowledgements](#references-and-acknowledgements)
@@ -146,6 +147,7 @@ saved output. It helps reviewers check the evidence or repeat one experiment.
 | [BM25s versus MPNet](#core-commands) | [`mm evaluate-retrieval`](#core-commands) | [Metrics](src/melbourne_mate/evaluation/metrics.py) and [statistics](src/melbourne_mate/evaluation/stats.py) | [BM25s test](runs/retrieval/s9-final-bm25-test/), [MPNet test](runs/retrieval/s9-final-mpnet-test/) and [comparison CSV](runs/retrieval/s9-final-comparison.csv) |
 | [Generation safety](#generation-evaluation) | [`mm evaluate-generation`](#generation-evaluation) | [Generation metrics](src/melbourne_mate/evaluation/generation_metrics.py) | [BM25s summary](runs/generation/s9-qwen25-20260927-bm25/summary.csv), [MPNet summary](runs/generation/s9-qwen25-20260927-mpnet/summary.csv) and [no-context summary](runs/generation/s9-qwen25-20260927-no-context/summary.csv) |
 | [Error analysis](#error-analysis) | [`mm analyse-errors`](#error-analysis) | [Error-analysis code](src/melbourne_mate/evaluation/error_analysis.py) | [Report](runs/analysis/s9-error-analysis/report.md), [summary CSV](runs/analysis/s9-error-analysis/summary.csv) and [cases CSV](runs/analysis/s9-error-analysis/cases.csv) |
+| [RQ2, RQ3a and RQ4](#design-analyses) | [`mm analyse-rqs`](#design-analyses) | [Design-analysis code](src/melbourne_mate/evaluation/rq_analysis.py) | [Report](runs/analysis/final-rq-analysis/report.md) and [summary CSV](runs/analysis/final-rq-analysis/summary.csv) |
 
 The commands below show the full arguments. Saved CSV files are committed so a
 reviewer can inspect the reported values without downloading models or rerunning
@@ -216,6 +218,33 @@ mm --data data/v1 analyse-errors \
 
 The report uses the shared high-risk categories in
 `src/melbourne_mate/evaluation/risk.py`.
+
+## Design analyses
+
+This command saves the remaining analyses planned in `docs/design.md` from the
+same saved runs. It does not rerun retrieval or Ollama.
+
+```bash
+mm --data data/v1 analyse-rqs \
+  --qrels review/targeted-qrels/qrels-final.txt \
+  --bm25-retrieval runs/retrieval/s9-final-bm25-test \
+  --mpnet-retrieval runs/retrieval/s9-final-mpnet-test \
+  --bm25-generation runs/generation/s9-qwen25-20260927-bm25 \
+  --mpnet-generation runs/generation/s9-qwen25-20260927-mpnet \
+  --no-context-generation runs/generation/s9-qwen25-20260927-no-context \
+  --out runs/analysis/recheck-yourname
+```
+
+- RQ2 compares MPNet and BM25s NDCG@5 by containment bin and question form.
+- RQ3a compares out-of-KB answer rates with no-context on the same 30
+  questions and reports the discordant count.
+- RQ4 reports correct-refusal and false-refusal rates with cluster bootstrap
+  intervals, read together.
+
+The saved result is `runs/analysis/final-rq-analysis/`. Its manifest records the
+input fingerprints, seed and resample count. The overall RQ2 row matches
+`runs/retrieval/s9-final-comparison.csv`, and the refusal rates match each
+generation run's `summary.csv`.
 
 ## Streamlit demo
 

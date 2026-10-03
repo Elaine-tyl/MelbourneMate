@@ -36,6 +36,7 @@ from melbourne_mate.evaluation.generation_runs import (
     GenerationRunItem,
     write_generation_run,
 )
+from melbourne_mate.evaluation.rq_analysis import RQAnalysisError, write_rq_analysis
 from melbourne_mate.evaluation.runs import (
     read_manifest,
     read_per_question,
@@ -355,6 +356,26 @@ def cmd_analyse_errors(args: argparse.Namespace) -> int:
             args.no_context_generation,
         )
     except (CollectionError, ErrorAnalysisError, OSError, ValueError) as exc:
+        print(str(exc), file=sys.stderr)
+        return 1
+    print(f"wrote {path}")
+    return 0
+
+
+def cmd_analyse_rqs(args: argparse.Namespace) -> int:
+    """Save the RQ2, RQ3a and RQ4 analyses from saved runs."""
+    try:
+        path = write_rq_analysis(
+            args.out,
+            load_collection(args.data),
+            args.qrels,
+            args.bm25_retrieval,
+            args.mpnet_retrieval,
+            args.bm25_generation,
+            args.mpnet_generation,
+            args.no_context_generation,
+        )
+    except (CollectionError, RQAnalysisError, OSError, ValueError) as exc:
         print(str(exc), file=sys.stderr)
         return 1
     print(f"wrote {path}")
@@ -684,6 +705,16 @@ def main(argv: list[str] | None = None) -> int:
     analysis.add_argument("--no-context-generation", required=True)
     analysis.add_argument("--out", required=True)
     analysis.set_defaults(func=cmd_analyse_errors)
+
+    rqs = sub.add_parser("analyse-rqs")
+    rqs.add_argument("--qrels", required=True)
+    rqs.add_argument("--bm25-retrieval", required=True)
+    rqs.add_argument("--mpnet-retrieval", required=True)
+    rqs.add_argument("--bm25-generation", required=True)
+    rqs.add_argument("--mpnet-generation", required=True)
+    rqs.add_argument("--no-context-generation", required=True)
+    rqs.add_argument("--out", required=True)
+    rqs.set_defaults(func=cmd_analyse_rqs)
 
     prepare_review = sub.add_parser("prepare-answer-review")
     prepare_review.add_argument("--bm25-run", required=True)

@@ -66,6 +66,20 @@ def cluster_bootstrap_ci(
     return observed, low, high
 
 
+def rate_interval(
+    outcomes: Mapping[str, bool],
+    clusters: Mapping[str, str],
+    resamples: int | None = None,
+    seed: int | None = None,
+    alpha: float = 0.05,
+) -> tuple[float, float, float]:
+    """Share of True outcomes with a cluster bootstrap interval. Returns (rate, low, high)."""
+    if not outcomes:
+        raise ValueError("no outcomes to summarise")
+    values = {question_id: 1.0 if hit else 0.0 for question_id, hit in outcomes.items()}
+    return cluster_bootstrap_ci(values, clusters, resamples, seed, alpha)
+
+
 def paired_randomisation_test(
     differences: Mapping[str, float],
     clusters: Mapping[str, str],
