@@ -1,6 +1,6 @@
 # MelbourneMate — evaluation design
 
-**Protocol:** frozen current configuration · **Frozen:** 23 September 2026 · **Team:** Elaine, Sriporn
+**Protocol:** frozen current configuration · **Frozen:** 23 September 2026 · **Team:** Elaine, Siriporn
 
 ## 1. Problem and stakeholders
 

@@ -25,9 +25,9 @@ Use these links to find the project method, setup, commands and saved evidence.
 
 ## From Walert to MelbourneMate
 
-Walert is the methodological baseline for MelbourneMate. The project keeps
-Walert's known, inferred and out-of-knowledge-base (OOKB) questions, graded
-retrieval evaluation and measurement of unanswered questions. It adds a
+Walert is the methodological baseline for MelbourneMate. The project adapts
+Walert's question categories (known, inferred and out-of-knowledge-base, or
+OOKB), graded retrieval evaluation and measurement of unanswered questions. It adds a
 topic-level held-out split, BM25s versus MPNet retrieval, topic-clustered
 statistics, a no-context generation arm, citation checks, blind answer review
 and fingerprinted run manifests.

@@ -27,8 +27,9 @@ from melbourne_mate.generation.ollama import OllamaError
 from melbourne_mate.interface import app as chatbot
 
 NOTICE = (
-    "Taking part is voluntary. No personal information is recorded, and you can "
-    "stop at any time."
+    "Taking part is voluntary and you can stop at any time. Your answers, times "
+    "and ratings are saved under a participant code on this computer only. "
+    "Please do not write your name or other personal details."
 )
 METHODS = {
     "melbournemate": ("MelbourneMate", "blue"),

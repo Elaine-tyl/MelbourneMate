@@ -50,9 +50,11 @@ Start the study page.
 streamlit run src/melbourne_mate/interface/study_app.py
 ```
 
-The page tells every participant that taking part is voluntary, no personal
-information is recorded and they can stop at any time. No separate consent
-form is used for this classroom activity.
+The page tells every participant that taking part is voluntary and they can
+stop at any time. Their answers, times and ratings are saved under a
+participant code on the session computer only, and they are asked not to write
+their name or other personal details. No separate consent form is used for
+this classroom activity.
 
 Official search means using a search engine to open official websites, such
 as Home Affairs, Study Melbourne or Consumer Affairs Victoria. AI summaries, AI
